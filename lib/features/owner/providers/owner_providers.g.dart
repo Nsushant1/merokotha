@@ -117,13 +117,13 @@ final class UploadListingNotifierProvider
 }
 
 String _$uploadListingNotifierHash() =>
-    r'2732249193484a8bb04c96c1af18146344777148';
+    r'e4aae10f3b7024f17d7dc44989173a80e9b48f4c';
 
 abstract class _$UploadListingNotifier extends $Notifier<UploadListingState> {
   UploadListingState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<UploadListingState, UploadListingState>;
     final element =
         ref.element
@@ -133,7 +133,7 @@ abstract class _$UploadListingNotifier extends $Notifier<UploadListingState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -176,7 +176,7 @@ abstract class _$ListingStatusNotifier extends $Notifier<AsyncValue<void>> {
   AsyncValue<void> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element =
         ref.element
@@ -186,6 +186,6 @@ abstract class _$ListingStatusNotifier extends $Notifier<AsyncValue<void>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

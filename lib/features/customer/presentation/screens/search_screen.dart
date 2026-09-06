@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
-import 'package:merokotha/features/ads/data/ad_model.dart';
-import 'package:merokotha/features/ads/presentation/widgets/ad_banner.dart';
 import 'package:merokotha/features/customer/data/listings_repository.dart';
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
@@ -147,27 +145,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   separatorBuilder: (_, i) => const SizedBox(height: 12),
                   itemBuilder: (_, i) {
                     final l = validListings[i];
-                    return Column(
-                      children: [
-                        // Show ad before every 5th result
-                        if (i > 0 && i % 5 == 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: AdBanner(
-                              placement: AdPlacement.searchResults,
-                              padding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ListingCard(
-                          listing: l,
-                          isFavourited: favIds.contains(l.id),
-                          onFavourite: () =>
-                              ref.read(favouriteProvider.notifier).toggle(l),
-                          onTap: () => context.push(
-                            AppRoutes.roomDetail.replaceAll(':id', l.id),
-                          ),
-                        ),
-                      ],
+                    return ListingCard(
+                      listing: l,
+                      isFavourited: favIds.contains(l.id),
+                      onFavourite: () =>
+                          ref.read(favouriteProvider.notifier).toggle(l),
+                      onTap: () => context.push(
+                        AppRoutes.roomDetail.replaceAll(':id', l.id),
+                      ),
                     );
                   },
                 );

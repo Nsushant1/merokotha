@@ -10,8 +10,6 @@ import 'package:merokotha/shared/widgets/mk_section_title.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
-import 'package:merokotha/features/ads/data/ad_model.dart';
-import 'package:merokotha/features/ads/presentation/widgets/ad_banner.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
 class CustomerHomeScreen extends ConsumerWidget {
@@ -241,7 +239,7 @@ class CustomerHomeScreen extends ConsumerWidget {
 
               const SliverToBoxAdapter(child: SizedBox(height: 14)),
 
-              // ── Listings with injected ads ──
+              // ── Listings ──
               listingsAsync.when(
                 loading: () => const SliverToBoxAdapter(
                   child: _ListingFeedSkeleton(),
@@ -275,40 +273,24 @@ class CustomerHomeScreen extends ConsumerWidget {
                     );
                   }
 
-                  // SliverList with an ad injected every 5 listings
                   return SliverList(
                     delegate: SliverChildBuilderDelegate((_, i) {
-                      final showAdBefore = i > 0 && i % 5 == 0;
                       final l = listings[i];
-                      return Column(
-                        children: [
-                          if (showAdBefore)
-                            AdBanner(
-                              placement: AdPlacement.homeFeed,
-                              padding: const EdgeInsets.fromLTRB(
-                                AppSizes.pagePadding,
-                                4,
-                                AppSizes.pagePadding,
-                                4,
-                              ),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSizes.pagePadding,
-                              vertical: 6,
-                            ),
-                            child: ListingCard(
-                              listing: l,
-                              isFavourited: favIds.contains(l.id),
-                              onFavourite: () => ref
-                                  .read(favouriteProvider.notifier)
-                                  .toggle(l),
-                              onTap: () => context.push(
-                                AppRoutes.roomDetail.replaceAll(':id', l.id),
-                              ),
-                            ),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.pagePadding,
+                          vertical: 6,
+                        ),
+                        child: ListingCard(
+                          listing: l,
+                          isFavourited: favIds.contains(l.id),
+                          onFavourite: () => ref
+                              .read(favouriteProvider.notifier)
+                              .toggle(l),
+                          onTap: () => context.push(
+                            AppRoutes.roomDetail.replaceAll(':id', l.id),
                           ),
-                        ],
+                        ),
                       );
                     }, childCount: listings.length),
                   );

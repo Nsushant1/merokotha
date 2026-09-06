@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:merokotha/core/router/app_routes.dart';
-import 'package:merokotha/features/ads/data/ad_model.dart';
-import 'package:merokotha/features/ads/presentation/widgets/ad_banner.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_hero.dart';
@@ -60,10 +58,6 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-            const SliverToBoxAdapter(
-              child: AdBanner(placement: AdPlacement.landingPage),
-            ),
 
             SliverToBoxAdapter(
               child: Padding(

@@ -37,5 +37,4 @@ class AppRoutes {
   static const adminUserDetail = '/admin/users/:uid';
   static const adminListings = '/admin/listings';
   static const adminInquiries = '/admin/inquiries';
-  static const adminAds = '/admin/ads';
 }

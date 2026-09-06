@@ -9,8 +9,6 @@ import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/widgets/mk_section_title.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
-import 'package:merokotha/features/ads/data/ad_model.dart';
-import 'package:merokotha/features/ads/presentation/widgets/ad_banner.dart';
 import 'package:merokotha/shared/widgets/login_sheet.dart';
 import 'package:merokotha/features/customer/presentation/widgets/room_photo_section.dart';
 import 'package:merokotha/features/customer/presentation/widgets/room_info_row.dart';
@@ -318,11 +316,6 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                                 ),
                               ),
                             ],
-                          ),
-
-                          const AdBanner(
-                            placement: AdPlacement.roomDetail,
-                            padding: EdgeInsets.symmetric(vertical: 8),
                           ),
 
                           const SizedBox(height: 24),

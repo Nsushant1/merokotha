@@ -220,12 +220,7 @@ class AdminHomeScreen extends ConsumerWidget {
                     color: AppColors.warning,
                     onTap: () => context.push(AppRoutes.adminInquiries),
                   ),
-                  _QuickAction(
-                    label: 'Ads',
-                    icon: Icons.campaign_rounded,
-                    color: AppColors.secondary,
-                    onTap: () => context.push(AppRoutes.adminAds),
-                  ),
+
                 ],
               ),
 

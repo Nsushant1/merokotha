@@ -118,7 +118,7 @@ abstract class _$OtpNotifier extends $Notifier<OtpState> {
   OtpState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<OtpState, OtpState>;
     final element =
         ref.element
@@ -128,6 +128,6 @@ abstract class _$OtpNotifier extends $Notifier<OtpState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

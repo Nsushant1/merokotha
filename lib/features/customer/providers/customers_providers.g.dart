@@ -164,7 +164,7 @@ abstract class _$SearchFilterNotifier extends $Notifier<SearchFilter> {
   SearchFilter build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<SearchFilter, SearchFilter>;
     final element =
         ref.element
@@ -174,7 +174,7 @@ abstract class _$SearchFilterNotifier extends $Notifier<SearchFilter> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -208,7 +208,7 @@ abstract class _$SearchResults extends $AsyncNotifier<List<ListingModel>> {
   FutureOr<List<ListingModel>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<List<ListingModel>>, List<ListingModel>>;
     final element =
@@ -219,7 +219,7 @@ abstract class _$SearchResults extends $AsyncNotifier<List<ListingModel>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -419,7 +419,7 @@ abstract class _$FavouriteNotifier extends $Notifier<AsyncValue<void>> {
   AsyncValue<void> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element =
         ref.element
@@ -429,7 +429,7 @@ abstract class _$FavouriteNotifier extends $Notifier<AsyncValue<void>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -472,7 +472,7 @@ abstract class _$SendInquiryNotifier extends $Notifier<SendInquiryState> {
   SendInquiryState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<SendInquiryState, SendInquiryState>;
     final element =
         ref.element
@@ -482,7 +482,7 @@ abstract class _$SendInquiryNotifier extends $Notifier<SendInquiryState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
