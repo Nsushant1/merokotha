@@ -24,14 +24,6 @@ class OwnerRepository {
         );
   }
 
-  Future<List<ListingModel>> getMyListings(String ownerId) async {
-    final snap = await _listings
-        .where('ownerId', isEqualTo: ownerId)
-        .orderBy('createdAt', descending: true)
-        .get();
-    return snap.docs.map((d) => ListingModel.fromSnapshot(d)).toList();
-  }
-
   Future<String> createListing(ListingModel listing) async {
     final ref = await _listings.add(listing.toMap());
     return ref.id;
@@ -53,10 +45,6 @@ class OwnerRepository {
       'status': status.name,
       'updatedAt': FieldValue.serverTimestamp(),
     });
-  }
-
-  Future<void> incrementViewCount(String id) async {
-    await _listings.doc(id).update({'viewCount': FieldValue.increment(1)});
   }
 }
 

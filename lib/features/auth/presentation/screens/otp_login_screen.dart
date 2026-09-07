@@ -22,17 +22,22 @@ class OtpLoginScreen extends ConsumerStatefulWidget {
 class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
   final _phoneFormKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  final _otpKey = GlobalKey();
+  final _clearTrigger = ValueNotifier<int>(0);
 
   String _otpValue = '';
   bool _showOtpField = false;
+  bool _isListening = false;
   int _resendCountdown = 60;
+  int _lockoutCountdown = 0;
   Timer? _timer;
+  Timer? _lockoutTimer;
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _clearTrigger.dispose();
     _timer?.cancel();
+    _lockoutTimer?.cancel();
     super.dispose();
   }
 
@@ -44,6 +49,18 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
         t.cancel();
       } else {
         setState(() => _resendCountdown--);
+      }
+    });
+  }
+
+  void _startLockoutTimer(int seconds) {
+    _lockoutCountdown = seconds;
+    _lockoutTimer?.cancel();
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_lockoutCountdown == 0) {
+        t.cancel();
+      } else {
+        setState(() => _lockoutCountdown--);
       }
     });
   }
@@ -94,30 +111,35 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
     final otpState = ref.watch(otpProvider);
 
     ref.listen(otpProvider, (prev, next) {
-      if (next.errorMessage != null &&
-          next.errorMessage != prev?.errorMessage) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
       if (next.codeSent && !(prev?.codeSent ?? false) && mounted) {
-        setState(() => _showOtpField = true);
+        setState(() {
+          _showOtpField = true;
+          _isListening = true;
+        });
         _startResendTimer();
+      }
+      if (next.isLockedOut && !(prev?.isLockedOut ?? false) && mounted) {
+        _startLockoutTimer(next.lockoutSecondsRemaining);
       }
     });
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.grey900),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSizes.pagePadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 12),
 
               Row(
                 children: [
@@ -157,6 +179,11 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
                     ? _OtpHeading(phone: _phoneController.text.trim())
                     : const _PhoneHeading(),
               ),
+
+              if (_showOtpField && _isListening && _otpValue.isEmpty) ...[
+                const SizedBox(height: 16),
+                const _ListeningBadge(),
+              ],
 
               const SizedBox(height: 32),
 
@@ -224,16 +251,45 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OtpInputField(
-          key: _otpKey,
+          hasError: otpState.errorMessage != null,
+          clearTrigger: _clearTrigger,
           onCompleted: (otp) => setState(() => _otpValue = otp),
-          onChanged: (otp) => setState(() => _otpValue = otp),
+          onChanged: (otp) {
+            setState(() => _otpValue = otp);
+            if (otpState.errorMessage != null) {
+              ref.read(otpProvider.notifier).resetError();
+            }
+          },
         ),
+
+        if (_otpValue.isNotEmpty)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                _clearTrigger.value++;
+                setState(() => _otpValue = '');
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.grey400,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                'Clear',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
 
         const SizedBox(height: AppSizes.lg),
 
         MkButton(
-          label: AppStrings.verifyOtp,
-          onPressed: _verifyOtp,
+          label: otpState.isLockedOut
+              ? 'Try again in ${_lockoutCountdown}s'
+              : AppStrings.verifyOtp,
+          onPressed: otpState.isLockedOut ? null : _verifyOtp,
           isLoading: otpState.isVerifying,
         ),
 
@@ -250,38 +306,69 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
                       color: AppColors.grey400,
                     ),
                   )
-                : GestureDetector(
-                    onTap: otpState.isSending ? null : _sendOtp,
+                : TextButton(
+                    onPressed: otpState.isSending ? null : _sendOtp,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: const Text(
                       AppStrings.resendOtp,
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
 
-            GestureDetector(
-              onTap: () {
+            TextButton(
+              onPressed: () {
                 ref.read(otpProvider.notifier).resetAll();
                 setState(() {
                   _showOtpField = false;
                   _otpValue = '';
+                  _isListening = false;
                 });
                 _timer?.cancel();
               },
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.grey600,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               child: const Text(
                 'Change number',
                 style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.grey600,
                   decoration: TextDecoration.underline,
                 ),
               ),
             ),
           ],
         ),
+
+        if (otpState.errorMessage != null) ...[
+          const SizedBox(height: AppSizes.md),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.errorLight,
+              borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+            ),
+            child: Text(
+              otpState.errorMessage!,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.error,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -333,26 +420,74 @@ class _OtpHeading extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        RichText(
-          text: TextSpan(
-            style: const TextStyle(
-              fontSize: 15,
-              color: AppColors.grey600,
-              height: 1.5,
+        Row(
+          children: [
+            const Text(
+              '${AppStrings.otpSentTo} ',
+              style: TextStyle(
+                fontSize: 15,
+                color: AppColors.grey600,
+                height: 1.5,
+              ),
             ),
-            children: [
-              const TextSpan(text: '${AppStrings.otpSentTo} '),
-              TextSpan(
-                text: '+977 $phone',
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundSecondary,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Text(
+                '+977 $phone',
                 style: const TextStyle(
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.grey900,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _ListeningBadge extends StatelessWidget {
+  const _ListeningBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(AppColors.primary),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Waiting for OTP...',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

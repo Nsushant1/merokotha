@@ -103,7 +103,7 @@ class OwnerHomeScreen extends ConsumerWidget {
               userAsync.when(
                 data: (u) => OwnerGreeting(name: u?.name ?? 'Owner'),
                 loading: () => const SizedBox(height: 48),
-                error: (_, _) => const SizedBox.shrink(),
+                error: (_, _) => const OwnerGreeting(name: 'Owner'),
               ),
               const SizedBox(height: 20),
 
@@ -124,7 +124,10 @@ class OwnerHomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                error: (_, _) => const SizedBox.shrink(),
+                error: (e, _) => MkErrorWidget(
+                  message: e.toString(),
+                  onRetry: () => ref.invalidate(ownerListingsProvider),
+                ),
               ),
               const SizedBox(height: 24),
 

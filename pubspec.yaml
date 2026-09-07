@@ -32,6 +32,7 @@ dependencies:
   firebase_app_check: ^0.4.3
   url_launcher: ^6.3.2
   google_fonts: ^8.0.2
+  sms_autofill: ^2.4.1
 
 dev_dependencies:
   flutter_test:

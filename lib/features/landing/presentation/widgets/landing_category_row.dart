@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
 
-const landingRoomTypeOptions = [
+const _landingRoomTypeOptions = [
   ('room', 'Room'),
   ('flat', 'Flat'),
   ('apartment', 'Apartment'),
@@ -36,7 +36,7 @@ class LandingCategoryRow extends StatelessWidget {
             active: selected == null,
             onTap: () => onSelect(null),
           ),
-          ...landingRoomTypeOptions.map(
+          ..._landingRoomTypeOptions.map(
             (c) => _Chip(
               label: c.$2,
               active: selected == c.$1,

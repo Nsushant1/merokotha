@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,7 +74,6 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                 size: const Size(10, 5),
                 painter: _TrianglePainter(
                   color: isSelected ? AppColors.ownerPrimary : Colors.white,
-                  borderColor: AppColors.ownerPrimary,
                 ),
               ),
             ],
@@ -324,11 +324,25 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                       child: _selectedListing!.photoUrls.isNotEmpty
-                          ? Image.network(
-                              _selectedListing!.photoUrls.first,
+                          ? CachedNetworkImage(
+                              imageUrl: _selectedListing!.photoUrls.first,
                               width: 64,
                               height: 64,
                               fit: BoxFit.cover,
+                              placeholder: (_, _) => Container(
+                                width: 64,
+                                height: 64,
+                                color: AppColors.backgroundSecondary,
+                              ),
+                              errorWidget: (_, _, _) => Container(
+                                width: 64,
+                                height: 64,
+                                color: AppColors.backgroundSecondary,
+                                child: const Icon(
+                                  Icons.image_outlined,
+                                  color: AppColors.grey200,
+                                ),
+                              ),
                             )
                           : Container(
                               width: 64,
@@ -358,7 +372,7 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                           const SizedBox(height: 4),
                           PriceBadge(amount: _selectedListing!.rentPerMonth),
                           const SizedBox(height: 4),
-                          _statusBadge(_selectedListing!.status),
+                          StatusBadge.fromListingStatus(_selectedListing!.status),
                         ],
                       ),
                     ),
@@ -372,22 +386,11 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
     );
   }
 
-  Widget _statusBadge(ListingStatus status) {
-    switch (status) {
-      case ListingStatus.active:
-        return StatusBadge.active();
-      case ListingStatus.paused:
-        return StatusBadge.paused();
-      case ListingStatus.rented:
-        return StatusBadge.rented();
-    }
-  }
 }
 
 class _TrianglePainter extends CustomPainter {
   final Color color;
-  final Color borderColor;
-  const _TrianglePainter({required this.color, required this.borderColor});
+  const _TrianglePainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {

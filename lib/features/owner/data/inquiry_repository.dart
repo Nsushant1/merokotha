@@ -16,14 +16,6 @@ class InquiryRepository {
   CollectionReference<Map<String, dynamic>> get _inquiries =>
       _db.collection('inquiries');
 
-  Stream<List<InquiryModel>> watchOwnerInquiries(String ownerId) {
-    return _inquiries
-        .where('ownerId', isEqualTo: ownerId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((s) => s.docs.map((d) => InquiryModel.fromSnapshot(d)).toList());
-  }
-
   Stream<List<InquiryModel>> watchByStatus(
     String ownerId,
     InquiryStatus status,

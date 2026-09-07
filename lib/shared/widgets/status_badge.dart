@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
+import 'package:merokotha/shared/models/listing_model.dart';
 
 class StatusBadge extends StatelessWidget {
   final String label;
@@ -49,6 +50,17 @@ class StatusBadge extends StatelessWidget {
     color: AppColors.error,
     backgroundColor: AppColors.errorLight,
   );
+
+  factory StatusBadge.fromListingStatus(ListingStatus status) {
+    switch (status) {
+      case ListingStatus.active:
+        return StatusBadge.active();
+      case ListingStatus.paused:
+        return StatusBadge.paused();
+      case ListingStatus.rented:
+        return StatusBadge.rented();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

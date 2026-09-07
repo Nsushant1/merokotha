@@ -22,14 +22,13 @@ class LandingGridCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(LandingTheme.r),
             border: Border.all(color: LandingTheme.hairline),
-            boxShadow: LandingTheme.shadowSoft,
           ),
           clipBehavior: Clip.hardEdge,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 7,
+              AspectRatio(
+                aspectRatio: 4 / 3,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -37,7 +36,7 @@ class LandingGridCard extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: listing.photoUrls.first,
                             fit: BoxFit.cover,
-                            placeholder: (_, _) => const ShimmerPlaceholder(),
+                            placeholder: (_, _) => const _ShimmerPlaceholder(),
                             errorWidget: (_, _, _) => const _PhotoFallback(),
                           )
                         : const _PhotoFallback(),
@@ -45,7 +44,7 @@ class LandingGridCard extends StatelessWidget {
                       top: 10,
                       right: 10,
                       child: _ScrimBadge(
-                        text: listing.roomTypeLabel.toUpperCase(),
+                        text: listing.roomTypeLabel,
                       ),
                     ),
                     Positioned(
@@ -56,10 +55,92 @@ class LandingGridCard extends StatelessWidget {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      listing.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LandingTheme.titleMd,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.place_outlined,
+                          size: 12,
+                          color: LandingTheme.stone,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            listing.address ?? 'Nepal',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 11.5,
+                              color: LandingTheme.stone,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LandingListCard extends StatelessWidget {
+  final ListingModel listing;
+  final VoidCallback onTap;
+
+  const LandingListCard({super.key, required this.listing, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: LandingTheme.surface,
+      borderRadius: BorderRadius.circular(LandingTheme.r),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(LandingTheme.r),
+        child: Container(
+          height: 108,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(LandingTheme.r),
+            border: Border.all(color: LandingTheme.hairline),
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 92,
+                  height: 92,
+                  child: listing.photoUrls.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: listing.photoUrls.first,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => const _ShimmerPlaceholder(),
+                          errorWidget: (_, _, _) => const _PhotoFallback(),
+                        )
+                      : const _PhotoFallback(),
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
-                flex: 3,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -81,148 +162,35 @@ class LandingGridCard extends StatelessWidget {
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
-                              listing.address ?? 'Nepal',
+                              listing.address ?? 'Kathmandu',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.dmSans(
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 color: LandingTheme.stone,
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class LandingListCard extends StatelessWidget {
-  final ListingModel listing;
-  final VoidCallback onTap;
-
-  const LandingListCard({super.key, required this.listing, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final amenities = listing.facilities.take(3).join(' · ');
-
-    return Material(
-      color: LandingTheme.surface,
-      borderRadius: BorderRadius.circular(LandingTheme.r),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(LandingTheme.r),
-        child: Container(
-          height: 128,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(LandingTheme.r),
-            border: Border.all(color: LandingTheme.hairline),
-            boxShadow: LandingTheme.shadowSoft,
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: Row(
-            children: [
-              SizedBox(
-                width: 128,
-                height: 128,
-                child: listing.photoUrls.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: listing.photoUrls.first,
-                        fit: BoxFit.cover,
-                        placeholder: (_, _) => const ShimmerPlaceholder(),
-                        errorWidget: (_, _, _) => const _PhotoFallback(),
-                      )
-                    : const _PhotoFallback(),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
-                  child: Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 22),
-                            child: Text(
-                              listing.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: LandingTheme.titleMd,
+                          Text(
+                            'Rs. ${LandingTheme.formatPrice(listing.rentPerMonth)}',
+                            style: LandingTheme.priceLg,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '/month',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 11,
+                              color: LandingTheme.stone,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.place_outlined,
-                                size: 12,
-                                color: LandingTheme.stone,
-                              ),
-                              const SizedBox(width: 3),
-                              Expanded(
-                                child: Text(
-                                  listing.address ?? 'Kathmandu',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 12,
-                                    color: LandingTheme.stone,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                'Rs. ${LandingTheme.formatPrice(listing.rentPerMonth)}',
-                                style: LandingTheme.priceLg,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '/month',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 11,
-                                  color: LandingTheme.stone,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (amenities.isNotEmpty) ...[
-                            const SizedBox(height: 5),
-                            Text(
-                              amenities,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.dmSans(
-                                fontSize: 11,
-                                color: LandingTheme.stone,
-                              ),
-                            ),
-                          ],
                         ],
-                      ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Icon(
-                          Icons.favorite_border_rounded,
-                          size: 18,
-                          color: LandingTheme.stone,
-                        ),
                       ),
                     ],
                   ),
@@ -236,8 +204,8 @@ class LandingListCard extends StatelessWidget {
   }
 }
 
-class ShimmerPlaceholder extends StatelessWidget {
-  const ShimmerPlaceholder({super.key});
+class _ShimmerPlaceholder extends StatelessWidget {
+  const _ShimmerPlaceholder();
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +244,7 @@ class _ScrimBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        text,
+        text.toUpperCase(),
         style: const TextStyle(
           fontSize: 9,
           fontWeight: FontWeight.w700,

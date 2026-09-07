@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 class LandingTheme {
   // Brand
   static const accent = Color(0xFF1D9E75);
-  static const accentDark = Color(0xFF0F6E56);
   static const accentMuted = Color(0xFF4C8F7B);
 
   // Backgrounds
@@ -19,15 +18,6 @@ class LandingTheme {
 
   // Semantic
   static const error = Color(0xFFE24B4A);
-  static const warning = Color(0xFFF5A623);
-
-  static TextStyle get displayLg => GoogleFonts.dmSans(
-    fontSize: 32,
-    fontWeight: FontWeight.w700,
-    height: 1.14,
-    letterSpacing: -0.6,
-    color: Colors.white,
-  );
 
   static TextStyle get labelSm => GoogleFonts.dmSans(
     fontSize: 11,
@@ -54,15 +44,6 @@ class LandingTheme {
   );
 
   static const double r = 16.0;
-  static const double rSm = 12.0;
-
-  static const shadow = [
-    BoxShadow(color: Color(0x141A1A18), blurRadius: 20, offset: Offset(0, 8)),
-  ];
-
-  static const shadowSoft = [
-    BoxShadow(color: Color(0x0A1A1A18), blurRadius: 12, offset: Offset(0, 3)),
-  ];
 
   static String formatPrice(num v) => v
       .toInt()

@@ -28,6 +28,8 @@ class OtpState {
   final int? resendToken;
   final String? errorMessage;
   final bool codeSent;
+  final int failedAttempts;
+  final DateTime? lockoutUntil;
 
   const OtpState({
     this.isSending = false,
@@ -36,7 +38,20 @@ class OtpState {
     this.resendToken,
     this.errorMessage,
     this.codeSent = false,
+    this.failedAttempts = 0,
+    this.lockoutUntil,
   });
+
+  bool get isLockedOut {
+    if (lockoutUntil == null) return false;
+    return DateTime.now().isBefore(lockoutUntil!);
+  }
+
+  int get lockoutSecondsRemaining {
+    if (lockoutUntil == null) return 0;
+    final diff = lockoutUntil!.difference(DateTime.now()).inSeconds;
+    return diff > 0 ? diff : 0;
+  }
 
   OtpState copyWith({
     bool? isSending,
@@ -45,7 +60,10 @@ class OtpState {
     int? resendToken,
     String? errorMessage,
     bool? codeSent,
+    int? failedAttempts,
+    DateTime? lockoutUntil,
     bool clearError = false,
+    bool clearLockout = false,
   }) {
     return OtpState(
       isSending: isSending ?? this.isSending,
@@ -54,6 +72,8 @@ class OtpState {
       resendToken: resendToken ?? this.resendToken,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       codeSent: codeSent ?? this.codeSent,
+      failedAttempts: failedAttempts ?? this.failedAttempts,
+      lockoutUntil: clearLockout ? null : (lockoutUntil ?? this.lockoutUntil),
     );
   }
 }
@@ -64,9 +84,13 @@ class OtpNotifier extends _$OtpNotifier {
   OtpState build() => const OtpState();
 
   Future<void> sendOtp(String phoneNumber) async {
-    state = state.copyWith(isSending: true, clearError: true);
+    state = state.copyWith(
+      isSending: true,
+      clearError: true,
+      clearLockout: true,
+      failedAttempts: 0,
+    );
 
-    // Firebase requires E.164 format (+977...). Strip leading 0 if present.
     final formatted = phoneNumber.startsWith('+')
         ? phoneNumber
         : '+977${phoneNumber.replaceAll(RegExp(r'^0'), '')}';
@@ -101,17 +125,25 @@ class OtpNotifier extends _$OtpNotifier {
 
   Future<bool> verifyOtp(String smsCode) async {
     if (state.verificationId == null) return false;
+    if (state.isLockedOut) return false;
+
     state = state.copyWith(isVerifying: true, clearError: true);
     try {
       await ref
           .read(authRepositoryProvider)
           .verifyOtp(verificationId: state.verificationId!, smsCode: smsCode);
-      state = state.copyWith(isVerifying: false);
+      state = state.copyWith(isVerifying: false, clearLockout: true, failedAttempts: 0);
       return true;
     } on FirebaseAuthException catch (e) {
+      final attempts = state.failedAttempts + 1;
+      final locked = attempts >= 3;
       state = state.copyWith(
         isVerifying: false,
-        errorMessage: _mapFirebaseError(e.code),
+        errorMessage: locked
+            ? 'Too many failed attempts. Please wait.'
+            : _mapFirebaseError(e.code),
+        failedAttempts: attempts,
+        lockoutUntil: locked ? DateTime.now().add(const Duration(seconds: 10)) : null,
       );
       return false;
     }

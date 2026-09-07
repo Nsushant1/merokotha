@@ -10,7 +10,12 @@ class AppTheme {
   static TextTheme get _textTheme => GoogleFonts.dmSansTextTheme(
     const TextTheme(
       displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.w700, letterSpacing: -1.5, color: AppColors.grey900),
-      displayMedium: TextStyle(fontSize: 45, fontWeight: FontWeight.w700, letterSpacing: -0.5, color: AppColors.grey900),
+      displayMedium: TextStyle(
+        fontSize: 45,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        color: AppColors.grey900,
+      ),
       displaySmall: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.grey900),
       headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.grey900),
       headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.grey900),
@@ -68,9 +73,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, AppSizes.buttonHeight),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusMd)),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           elevation: 0,
         ),
@@ -80,9 +83,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           minimumSize: const Size(double.infinity, AppSizes.buttonHeight),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusMd)),
           side: const BorderSide(color: AppColors.primary),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
@@ -91,10 +92,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.background,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.md,
-          vertical: AppSizes.md,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.md),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusMd),
           borderSide: const BorderSide(color: AppColors.grey100),
@@ -138,27 +136,19 @@ class AppTheme {
         elevation: 8,
       ),
 
-      dividerTheme: const DividerThemeData(
-        color: AppColors.grey50,
-        thickness: 1,
-        space: 1,
-      ),
+      dividerTheme: const DividerThemeData(color: AppColors.grey50, thickness: 1, space: 1),
 
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.grey50,
         selectedColor: AppColors.primaryLight,
         labelStyle: const TextStyle(fontSize: 13),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusFull)),
         side: BorderSide.none,
       ),
 
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusMd)),
       ),
     );
   }

@@ -6,10 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
-import 'package:merokotha/features/landing/presentation/widgets/landing_hero.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_category_row.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_toggle_view.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_listing_cards.dart';
+import 'package:merokotha/features/landing/presentation/widgets/landing_search_bar.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
 class LandingScreen extends ConsumerStatefulWidget {
@@ -27,23 +27,16 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
   @override
   Widget build(BuildContext context) {
     final listingsAsync = ref.watch(activeListingsProvider);
-    final photosWithImages = listingsAsync.value
-        ?.where((l) => l.photoUrls.isNotEmpty)
-        .map((l) => l.photoUrls.first);
-    final heroPhoto = (photosWithImages != null && photosWithImages.isNotEmpty)
-        ? photosWithImages.first
-        : null;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: LandingTheme.bg,
         body: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
-              child: LandingHero(
-                photoUrl: heroPhoto,
+              child: _LandingHeader(
                 onSearchChanged: (v) => setState(() => _search = v.toLowerCase()),
               ),
             ),
@@ -109,7 +102,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                             crossAxisCount: 2,
                             mainAxisSpacing: 14,
                             crossAxisSpacing: 14,
-                            childAspectRatio: 0.62,
+                            childAspectRatio: 0.72,
                           ),
                           delegate: SliverChildBuilderDelegate(
                             (ctx, i) => LandingGridCard(
@@ -147,7 +140,109 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
           ],
         ),
         bottomNavigationBar: _SignInCta(
-          onTap: () => context.go(AppRoutes.login),
+          onTap: () => context.push(AppRoutes.login),
+        ),
+      ),
+    );
+  }
+}
+
+class _LandingHeader extends StatelessWidget {
+  final ValueChanged<String> onSearchChanged;
+
+  const _LandingHeader({required this.onSearchChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    'assets/merokotha.png',
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Mero Kotha',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: LandingTheme.ink,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const Spacer(),
+                _SignInChip(
+                  onTap: () => context.push(AppRoutes.login),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Find your next\nhome in Nepal',
+              style: GoogleFonts.dmSans(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                height: 1.15,
+                letterSpacing: -0.8,
+                color: LandingTheme.ink,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Discover rooms, flats & apartments across Nepal.',
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                color: LandingTheme.stone,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+            LandingSearchBar(onChanged: onSearchChanged),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SignInChip extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SignInChip({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: LandingTheme.bgWarm,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: LandingTheme.hairline),
+          ),
+          child: Text(
+            'Sign In',
+            style: GoogleFonts.dmSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: LandingTheme.ink,
+            ),
+          ),
         ),
       ),
     );
@@ -293,7 +388,7 @@ class _GridSkeleton extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 14,
         crossAxisSpacing: 14,
-        childAspectRatio: 0.62,
+        childAspectRatio: 0.72,
       ),
       delegate: SliverChildBuilderDelegate(
         (ctx, i) => ShimmerLoading(
@@ -306,9 +401,12 @@ class _GridSkeleton extends StatelessWidget {
             clipBehavior: Clip.hardEdge,
             child: Column(
               children: [
-                const Expanded(flex: 7, child: ShimmerBox(borderRadius: BorderRadius.zero)),
+                const Expanded(
+                  flex: 6,
+                  child: ShimmerBox(borderRadius: BorderRadius.zero),
+                ),
                 Expanded(
-                  flex: 3,
+                  flex: 4,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -343,19 +441,24 @@ class _ListSkeleton extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: ShimmerLoading(
             child: Container(
-              height: 114,
+              height: 108,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: LandingTheme.surface,
                 borderRadius: BorderRadius.circular(LandingTheme.r),
                 border: Border.all(color: LandingTheme.hairline),
               ),
-              clipBehavior: Clip.hardEdge,
               child: Row(
                 children: [
-                  const ShimmerBox(width: 114, height: 114, borderRadius: BorderRadius.zero),
+                  const ShimmerBox(
+                    width: 92,
+                    height: 92,
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -159,7 +159,10 @@ class _InquiryTab extends ConsumerWidget {
             );
           },
           loading: () => const MkLoading(),
-          error: (_, _) => const SizedBox.shrink(),
+          error: (e, _) => MkErrorWidget(
+            message: e.toString(),
+            onRetry: () => ref.invalidate(currentUserProvider),
+          ),
         );
   }
 
