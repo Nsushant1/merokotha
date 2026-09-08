@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
@@ -41,24 +42,25 @@ class OwnerListingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
         boxShadow: AppSizes.shadowCard,
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
             children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSizes.radiusLg),
-                ),
+              AspectRatio(
+                aspectRatio: 16 / 9,
                 child: listing.photoUrls.isNotEmpty
-                    ? Image.network(
-                        listing.photoUrls.first,
-                        height: 160,
-                        width: double.infinity,
+                    ? CachedNetworkImage(
+                        imageUrl: listing.photoUrls.first,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _PlaceholderImage(),
+                        fadeInDuration: const Duration(milliseconds: 300),
+                        placeholder: (context, url) =>
+                            const _ImagePlaceholder(),
+                        errorWidget: (context, url, error) =>
+                            const _ImagePlaceholder(),
                       )
-                    : _PlaceholderImage(),
+                    : const _ImagePlaceholder(),
               ),
               Positioned(
                 top: 10,
@@ -66,7 +68,7 @@ class OwnerListingCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 4,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
                     color: statusColor,
@@ -121,7 +123,7 @@ class OwnerListingCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -229,12 +231,14 @@ class _StatusMenuBtn extends StatelessWidget {
   }
 }
 
-class _PlaceholderImage extends StatelessWidget {
+class _ImagePlaceholder extends StatelessWidget {
+  const _ImagePlaceholder();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 160,
       width: double.infinity,
+      height: double.infinity,
       color: AppColors.grey50,
       child: const Icon(
         Icons.house_outlined,

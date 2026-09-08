@@ -26,7 +26,6 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
 
   String _otpValue = '';
   bool _showOtpField = false;
-  bool _isListening = false;
   int _resendCountdown = 60;
   int _lockoutCountdown = 0;
   Timer? _timer;
@@ -80,11 +79,10 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
       return;
     }
     FocusScope.of(context).unfocus();
+    await ref.read(otpProvider.notifier).verifyOtp(_otpValue);
+  }
 
-    final success = await ref.read(otpProvider.notifier).verifyOtp(_otpValue);
-
-    if (!success || !mounted) return;
-
+  Future<void> _navigatePostLogin() async {
     final firebaseUser = ref.read(authStateProvider).value;
     if (firebaseUser == null) return;
 
@@ -110,12 +108,17 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
   Widget build(BuildContext context) {
     final otpState = ref.watch(otpProvider);
 
+    ref.listen(authStateProvider, (prev, next) {
+      final wasAuth = prev?.value != null;
+      final isAuth = next.value != null;
+      if (!wasAuth && isAuth && mounted) {
+        _navigatePostLogin();
+      }
+    });
+
     ref.listen(otpProvider, (prev, next) {
       if (next.codeSent && !(prev?.codeSent ?? false) && mounted) {
-        setState(() {
-          _showOtpField = true;
-          _isListening = true;
-        });
+        setState(() => _showOtpField = true);
         _startResendTimer();
       }
       if (next.isLockedOut && !(prev?.isLockedOut ?? false) && mounted) {
@@ -179,11 +182,6 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
                     ? _OtpHeading(phone: _phoneController.text.trim())
                     : const _PhoneHeading(),
               ),
-
-              if (_showOtpField && _isListening && _otpValue.isEmpty) ...[
-                const SizedBox(height: 16),
-                const _ListeningBadge(),
-              ],
 
               const SizedBox(height: 32),
 
@@ -253,7 +251,10 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
         OtpInputField(
           hasError: otpState.errorMessage != null,
           clearTrigger: _clearTrigger,
-          onCompleted: (otp) => setState(() => _otpValue = otp),
+          onCompleted: (otp) {
+            setState(() => _otpValue = otp);
+            _verifyOtp();
+          },
           onChanged: (otp) {
             setState(() => _otpValue = otp);
             if (otpState.errorMessage != null) {
@@ -289,7 +290,9 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
           label: otpState.isLockedOut
               ? 'Try again in ${_lockoutCountdown}s'
               : AppStrings.verifyOtp,
-          onPressed: otpState.isLockedOut ? null : _verifyOtp,
+          onPressed: (otpState.isLockedOut || otpState.isVerifying)
+              ? null
+              : () => _verifyOtp(),
           isLoading: otpState.isVerifying,
         ),
 
@@ -329,7 +332,6 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
                 setState(() {
                   _showOtpField = false;
                   _otpValue = '';
-                  _isListening = false;
                 });
                 _timer?.cancel();
               },
@@ -453,41 +455,4 @@ class _OtpHeading extends StatelessWidget {
   }
 }
 
-class _ListeningBadge extends StatelessWidget {
-  const _ListeningBadge();
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(AppColors.primary),
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Waiting for OTP...',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

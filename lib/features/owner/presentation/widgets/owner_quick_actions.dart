@@ -66,28 +66,30 @@ class _QuickActionButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSizes.radiusMd),
           splashColor: color.withValues(alpha: 0.08),
+          highlightColor: color.withValues(alpha: 0.04),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSizes.radiusMd),
               boxShadow: AppSizes.shadowCard,
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 34,
-                  height: 34,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppSizes.radiusSm),
                   ),
-                  child: Icon(icon, size: 18, color: color),
+                  child: Icon(icon, size: 20, color: color),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 11,
                     color: AppColors.grey800,
                     fontWeight: FontWeight.w600,
                   ),
