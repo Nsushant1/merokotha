@@ -5,11 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
-import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_category_row.dart';
-import 'package:merokotha/features/landing/presentation/widgets/landing_toggle_view.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_listing_cards.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_search_bar.dart';
+import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
+import 'package:merokotha/features/landing/presentation/widgets/landing_toggle_view.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
 class LandingScreen extends ConsumerStatefulWidget {
@@ -36,18 +36,13 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
-              child: _LandingHeader(
-                onSearchChanged: (v) => setState(() => _search = v.toLowerCase()),
-              ),
+              child: _LandingHeader(onSearchChanged: (v) => setState(() => _search = v.toLowerCase())),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
             SliverToBoxAdapter(
-              child: LandingCategoryRow(
-                selected: _category,
-                onSelect: (c) => setState(() => _category = c),
-              ),
+              child: LandingCategoryRow(selected: _category, onSelect: (c) => setState(() => _category = c)),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
@@ -60,10 +55,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                   children: [
                     Text('AVAILABLE ROOMS', style: LandingTheme.labelSm),
                     const Spacer(),
-                    LandingToggleView(
-                      isGrid: _isGrid,
-                      onToggle: () => setState(() => _isGrid = !_isGrid),
-                    ),
+                    LandingToggleView(isGrid: _isGrid, onToggle: () => setState(() => _isGrid = !_isGrid)),
                   ],
                 ),
               ),
@@ -74,14 +66,10 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                 sliver: _isGrid ? const _GridSkeleton() : const _ListSkeleton(),
               ),
-              error: (e, _) => SliverFillRemaining(
-                hasScrollBody: false,
-                child: _ErrorState(message: '$e'),
-              ),
+              error: (e, _) => SliverFillRemaining(hasScrollBody: false, child: _ErrorState(message: '$e')),
               data: (list) {
                 final listings = list.where((l) {
-                  final matchQ = _search.isEmpty ||
-                      l.title.toLowerCase().contains(_search);
+                  final matchQ = _search.isEmpty || l.title.toLowerCase().contains(_search);
                   final matchC = _category == null || l.roomType == _category;
                   return matchQ && matchC;
                 }).toList();
@@ -97,8 +85,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                   sliver: _isGrid
                       ? SliverGrid(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             mainAxisSpacing: 14,
                             crossAxisSpacing: 14,
@@ -107,12 +94,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                           delegate: SliverChildBuilderDelegate(
                             (ctx, i) => LandingGridCard(
                               listing: listings[i],
-                              onTap: () => context.push(
-                                AppRoutes.roomDetail.replaceAll(
-                                  ':id',
-                                  listings[i].id,
-                                ),
-                              ),
+                              onTap: () => context.push(AppRoutes.roomDetail.replaceAll(':id', listings[i].id)),
                             ),
                             childCount: listings.length,
                           ),
@@ -123,12 +105,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: LandingListCard(
                                 listing: listings[i],
-                                onTap: () => context.push(
-                                  AppRoutes.roomDetail.replaceAll(
-                                    ':id',
-                                    listings[i].id,
-                                  ),
-                                ),
+                                onTap: () => context.push(AppRoutes.roomDetail.replaceAll(':id', listings[i].id)),
                               ),
                             ),
                             childCount: listings.length,
@@ -139,9 +116,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: _SignInCta(
-          onTap: () => context.push(AppRoutes.login),
-        ),
+        bottomNavigationBar: _SignInCta(onTap: () => context.push(AppRoutes.login)),
       ),
     );
   }
@@ -165,12 +140,7 @@ class _LandingHeader extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/merokotha.png',
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.asset('assets/merokotha.png', width: 36, height: 36, fit: BoxFit.cover),
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -183,16 +153,14 @@ class _LandingHeader extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                _SignInChip(
-                  onTap: () => context.push(AppRoutes.login),
-                ),
+                _SignInChip(onTap: () => context.push(AppRoutes.login)),
               ],
             ),
             const SizedBox(height: 24),
             Text(
-              'Find your next\nhome in Nepal',
+              'Find your next home.',
               style: GoogleFonts.dmSans(
-                fontSize: 30,
+                fontSize: 24,
                 fontWeight: FontWeight.w700,
                 height: 1.15,
                 letterSpacing: -0.8,
@@ -202,11 +170,7 @@ class _LandingHeader extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Discover rooms, flats & apartments across Nepal.',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                color: LandingTheme.stone,
-                height: 1.4,
-              ),
+              style: GoogleFonts.dmSans(fontSize: 14, color: LandingTheme.stone, height: 1.4),
             ),
             const SizedBox(height: 20),
             LandingSearchBar(onChanged: onSearchChanged),
@@ -237,11 +201,7 @@ class _SignInChip extends StatelessWidget {
           ),
           child: Text(
             'Sign In',
-            style: GoogleFonts.dmSans(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              color: LandingTheme.ink,
-            ),
+            style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: LandingTheme.ink),
           ),
         ),
       ),
@@ -256,21 +216,12 @@ class _SignInCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        14,
-        20,
-        14 + MediaQuery.paddingOf(context).bottom,
-      ),
+      padding: EdgeInsets.fromLTRB(20, 14, 20, 14 + MediaQuery.paddingOf(context).bottom),
       decoration: BoxDecoration(
         color: LandingTheme.surface,
         border: const Border(top: BorderSide(color: LandingTheme.hairline)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 16, offset: const Offset(0, -4)),
         ],
       ),
       child: SizedBox(
@@ -284,11 +235,7 @@ class _SignInCta extends StatelessWidget {
             child: const Center(
               child: Text(
                 'Sign in to inquire',
-                style: TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: Colors.white),
               ),
             ),
           ),
@@ -313,10 +260,7 @@ class _EmptyState extends StatelessWidget {
             Container(
               width: 84,
               height: 84,
-              decoration: BoxDecoration(
-                color: LandingTheme.bgWarm,
-                borderRadius: BorderRadius.circular(24),
-              ),
+              decoration: BoxDecoration(color: LandingTheme.bgWarm, borderRadius: BorderRadius.circular(24)),
               child: Icon(
                 hasFilters ? Icons.search_off_rounded : Icons.home_work_outlined,
                 size: 38,
@@ -326,11 +270,7 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               hasFilters ? 'No properties found' : 'No listings yet',
-              style: GoogleFonts.dmSans(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: LandingTheme.ink,
-              ),
+              style: GoogleFonts.dmSans(fontSize: 17, fontWeight: FontWeight.w700, color: LandingTheme.ink),
             ),
             const SizedBox(height: 8),
             Text(
@@ -363,11 +303,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Something went wrong',
-              style: GoogleFonts.dmSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: LandingTheme.ink,
-              ),
+              style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700, color: LandingTheme.ink),
             ),
             const SizedBox(height: 6),
             Text(message, textAlign: TextAlign.center, style: LandingTheme.bodyMd),
@@ -401,10 +337,7 @@ class _GridSkeleton extends StatelessWidget {
             clipBehavior: Clip.hardEdge,
             child: Column(
               children: [
-                const Expanded(
-                  flex: 6,
-                  child: ShimmerBox(borderRadius: BorderRadius.zero),
-                ),
+                const Expanded(flex: 6, child: ShimmerBox(borderRadius: BorderRadius.zero)),
                 Expanded(
                   flex: 4,
                   child: Padding(
@@ -450,11 +383,7 @@ class _ListSkeleton extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const ShimmerBox(
-                    width: 92,
-                    height: 92,
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
+                  const ShimmerBox(width: 92, height: 92, borderRadius: BorderRadius.all(Radius.circular(12))),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Padding(

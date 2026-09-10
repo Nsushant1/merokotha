@@ -180,14 +180,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                                     amount: listing.rentPerMonth,
                                     fontSize: 20,
                                   ),
-                                  if (listing.depositAmount > 0)
-                                    Text(
-                                      'Deposit: ${Formatters.npr(listing.depositAmount)}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.grey400,
-                                      ),
-                                    ),
+
                                 ],
                               ),
                               const Spacer(),

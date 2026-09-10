@@ -48,7 +48,6 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
 
   final _titleCtrl = TextEditingController();
   final _rentCtrl = TextEditingController();
-  final _depositCtrl = TextEditingController();
   final _floorCtrl = TextEditingController();
   final _totalFloorsCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -71,7 +70,6 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
     if (l != null) {
       _titleCtrl.text = l.title;
       _rentCtrl.text = l.rentPerMonth.toStringAsFixed(0);
-      _depositCtrl.text = l.depositAmount.toStringAsFixed(0);
       _floorCtrl.text = l.floor.toString();
       _totalFloorsCtrl.text = l.totalFloors.toString();
       _descCtrl.text = l.description;
@@ -91,7 +89,6 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
   void dispose() {
     _titleCtrl.dispose();
     _rentCtrl.dispose();
-    _depositCtrl.dispose();
     _floorCtrl.dispose();
     _totalFloorsCtrl.dispose();
     _descCtrl.dispose();
@@ -198,7 +195,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           title: _titleCtrl.text.trim(),
           roomType: _roomType,
           rentPerMonth: double.parse(_rentCtrl.text.trim()),
-          depositAmount: double.tryParse(_depositCtrl.text.trim()) ?? 0,
+          depositAmount: 0,
           floor: int.tryParse(_floorCtrl.text.trim()) ?? 0,
           totalFloors: int.tryParse(_totalFloorsCtrl.text.trim()) ?? 1,
           furnishing: _furnishing,
@@ -250,7 +247,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           title: _titleCtrl.text.trim(),
           roomType: _roomType,
           rentPerMonth: double.parse(_rentCtrl.text.trim()),
-          depositAmount: double.tryParse(_depositCtrl.text.trim()) ?? 0,
+          depositAmount: 0,
           floor: int.tryParse(_floorCtrl.text.trim()) ?? 0,
           totalFloors: int.tryParse(_totalFloorsCtrl.text.trim()) ?? 1,
           furnishing: _furnishing,
@@ -413,25 +410,11 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
               UploadFormCard(
                 title: 'Pricing',
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: MkPriceField(
-                          label: 'Rent / month',
-                          hint: '8000',
-                          controller: _rentCtrl,
-                          validator: Validators.price,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: MkPriceField(
-                          label: 'Deposit',
-                          hint: '0',
-                          controller: _depositCtrl,
-                        ),
-                      ),
-                    ],
+                  MkPriceField(
+                    label: 'Rent / month',
+                    hint: '8000',
+                    controller: _rentCtrl,
+                    validator: Validators.price,
                   ),
                 ],
               ),
