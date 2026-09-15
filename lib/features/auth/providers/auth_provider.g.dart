@@ -112,7 +112,7 @@ final class OtpNotifierProvider
   }
 }
 
-String _$otpNotifierHash() => r'b161b54b86907dfdec2d5ecfd590a4c43ed9c9b5';
+String _$otpNotifierHash() => r'c2d6047f7b199a5c8053af8437a5a947901beb22';
 
 abstract class _$OtpNotifier extends $Notifier<OtpState> {
   OtpState build();

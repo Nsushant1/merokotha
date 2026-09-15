@@ -166,6 +166,29 @@ class AdminUserDetailScreen extends ConsumerWidget {
                       color: AppColors.info,
                       onTap: () => _showRoleDialog(context, ref, user),
                     ),
+                    if (user.isAgent) ...[
+                      const Divider(height: 1, color: AppColors.border),
+                      if (!user.isVerified)
+                        _ActionTile(
+                          icon: Icons.verified_rounded,
+                          label: 'Verify agent',
+                          color: AppColors.success,
+                          onTap: () => ref
+                              .read(adminActionProvider.notifier)
+                              .verifyAgent(user.id)
+                              .then((_) => context.pop()),
+                        )
+                      else
+                        _ActionTile(
+                          icon: Icons.remove_moderator_outlined,
+                          label: 'Revoke agent verification',
+                          color: AppColors.warning,
+                          onTap: () => ref
+                              .read(adminActionProvider.notifier)
+                              .unverifyAgent(user.id)
+                              .then((_) => context.pop()),
+                        ),
+                    ],
                   ],
                 ),
 
@@ -286,9 +309,13 @@ class AdminUserDetailScreen extends ConsumerWidget {
                     leading: Icon(
                       r == UserRole.owner
                           ? Icons.house_rounded
+                          : r == UserRole.agent
+                          ? Icons.support_agent_rounded
                           : Icons.search_rounded,
                       color: r == UserRole.owner
                           ? AppColors.ownerPrimary
+                          : r == UserRole.agent
+                          ? AppColors.agentPrimary
                           : AppColors.customerPrimary,
                     ),
                     title: Text(r.name[0].toUpperCase() + r.name.substring(1)),
@@ -470,11 +497,15 @@ class _RoleBadgeDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = role == UserRole.owner
         ? AppColors.ownerPrimary
+        : role == UserRole.agent
+        ? AppColors.agentPrimary
         : role == UserRole.superAdmin
         ? const Color(0xFFB5790E)
         : AppColors.customerPrimary;
     final bg = role == UserRole.owner
         ? AppColors.ownerLight
+        : role == UserRole.agent
+        ? AppColors.agentLight
         : role == UserRole.superAdmin
         ? AdminColors.accentLight
         : AppColors.customerLight;

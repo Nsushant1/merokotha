@@ -13,6 +13,10 @@ class InquiryModel {
   final String? customerPhotoUrl;
   final String ownerId;
   final String? ownerName;
+
+  /// UID of the agent handling this inquiry (for agent-posted listings).
+  /// Mirrors the listing's [agentId]; null for owner-posted listings.
+  final String? agentId;
   final String message;
   final DateTime moveInDate;
   final InquiryStatus status;
@@ -29,6 +33,7 @@ class InquiryModel {
     this.customerPhotoUrl,
     required this.ownerId,
     this.ownerName,
+    this.agentId,
     required this.message,
     required this.moveInDate,
     required this.status,
@@ -47,6 +52,7 @@ class InquiryModel {
       customerPhotoUrl: map['customerPhotoUrl'] as String?,
       ownerId: map['ownerId'] as String? ?? '',
       ownerName: map['ownerName'] as String?,
+      agentId: map['agentId'] as String?,
       message: map['message'] as String? ?? '',
       moveInDate: (map['moveInDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       status: InquiryStatus.values.firstWhere(
@@ -71,6 +77,8 @@ class InquiryModel {
       'customerName': customerName,
       'customerPhotoUrl': customerPhotoUrl,
       'ownerId': ownerId,
+      'ownerName': ownerName,
+      'agentId': agentId,
       'message': message,
       'moveInDate': Timestamp.fromDate(moveInDate),
       'status': status.name,
@@ -83,5 +91,41 @@ class InquiryModel {
   bool get isPending => status == InquiryStatus.pending;
   bool get isAccepted => status == InquiryStatus.accepted;
   bool get isDeclined => status == InquiryStatus.declined;
+
+  /// True when this inquiry is handled by an agent.
+  bool get isAgentHandled => agentId != null && agentId!.isNotEmpty;
+
+  InquiryModel copyWith({
+    String? listingId,
+    String? listingTitle,
+    String? customerId,
+    String? customerName,
+    String? customerPhotoUrl,
+    String? ownerId,
+    String? ownerName,
+    String? agentId,
+    String? message,
+    DateTime? moveInDate,
+    InquiryStatus? status,
+    String? declineReason,
+  }) {
+    return InquiryModel(
+      id: id,
+      listingId: listingId ?? this.listingId,
+      listingTitle: listingTitle ?? this.listingTitle,
+      customerId: customerId ?? this.customerId,
+      customerName: customerName ?? this.customerName,
+      customerPhotoUrl: customerPhotoUrl ?? this.customerPhotoUrl,
+      ownerId: ownerId ?? this.ownerId,
+      ownerName: ownerName ?? this.ownerName,
+      agentId: agentId ?? this.agentId,
+      message: message ?? this.message,
+      moveInDate: moveInDate ?? this.moveInDate,
+      status: status ?? this.status,
+      declineReason: declineReason ?? this.declineReason,
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
+    );
+  }
 }
 

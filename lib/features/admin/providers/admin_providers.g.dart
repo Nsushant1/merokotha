@@ -444,7 +444,7 @@ final class AdminActionProvider
   }
 }
 
-String _$adminActionHash() => r'59a8099766c0f2b31249f9c17e64422671c1301c';
+String _$adminActionHash() => r'b40723100f16ae786ef0b86a657d88f5875c3115';
 
 abstract class _$AdminAction extends $Notifier<AdminActionState> {
   AdminActionState build();

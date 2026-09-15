@@ -49,7 +49,7 @@ class RoomBottomCTA extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: MkButton(
-            label: 'Message owner',
+            label: listing.isAgentListed ? 'Message agent' : 'Message owner',
             height: 48,
             prefixIcon: Icons.message_outlined,
             onPressed: () {

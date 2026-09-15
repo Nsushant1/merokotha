@@ -100,9 +100,15 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
           .read(userRepositoryProvider)
           .getUser(firebaseUser.uid);
       if (!mounted) return;
-      context.go(
-        user?.isOwner == true ? AppRoutes.ownerHome : AppRoutes.customerHome,
-      );
+      if (user?.isAdmin == true) {
+        context.go(AppRoutes.adminHome);
+      } else if (user?.isAgent == true) {
+        context.go(AppRoutes.agentHome);
+      } else {
+        context.go(
+          user?.isOwner == true ? AppRoutes.ownerHome : AppRoutes.customerHome,
+        );
+      }
     }
   }
 

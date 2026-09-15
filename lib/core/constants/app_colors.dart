@@ -44,4 +44,8 @@ class AppColors {
   // one consistent identity instead of a competing accent color.
   static const customerPrimary = Color(0xFF1D9E75);
   static const customerLight = Color(0xFFE1F5EE);
+
+  // Agent theme — aliased to brand green, consistent with owner/customer.
+  static const agentPrimary = Color(0xFF1D9E75);
+  static const agentLight = Color(0xFFE1F5EE);
 }

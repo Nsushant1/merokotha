@@ -164,6 +164,9 @@ class SendInquiryNotifier extends _$SendInquiryNotifier {
         customerId: customerId,
         customerName: customerName,
         ownerId: listing.ownerId,
+        // Propagated for agent-posted listings (null for owner listings);
+        // lets the agent inbox query its own inquiries in Phase 5.
+        agentId: listing.agentId,
         message: message,
         moveInDate: moveInDate,
         status: InquiryStatus.pending,

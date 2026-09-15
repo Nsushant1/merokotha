@@ -26,6 +26,11 @@ import 'package:merokotha/features/customer/presentation/screens/inquire_screen.
 import 'package:merokotha/features/customer/presentation/screens/customer_profile_screen.dart';
 import 'package:merokotha/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:merokotha/features/chat/presentation/screens/chat_thread_screen.dart';
+import 'package:merokotha/features/agent/presentation/screens/agent_home_screen.dart';
+import 'package:merokotha/features/agent/presentation/screens/agent_upload_screen.dart';
+import 'package:merokotha/features/agent/presentation/screens/agent_listings_screen.dart';
+import 'package:merokotha/features/agent/presentation/screens/agent_inquiries_screen.dart';
+import 'package:merokotha/features/agent/presentation/screens/agent_profile_screen.dart';
 import 'package:merokotha/features/admin/presentation/screens/admin_home_screen.dart';
 import 'package:merokotha/features/admin/presentation/screens/admin_users_screen.dart';
 import 'package:merokotha/features/admin/presentation/screens/admin_user_detail_screen.dart';
@@ -159,6 +164,27 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.adminUserDetail,
         builder: (_, state) =>
             AdminUserDetailScreen(uid: state.pathParameters['uid']!),
+      ),
+      GoRoute(
+        path: AppRoutes.agentHome,
+        builder: (_, _) => const AgentHomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.agentUpload,
+        builder: (_, state) =>
+            AgentUploadScreen(listing: state.extra as ListingModel?),
+      ),
+      GoRoute(
+        path: AppRoutes.agentListings,
+        builder: (_, _) => const AgentListingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.agentInquiries,
+        builder: (_, _) => const AgentInquiriesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.agentProfile,
+        builder: (_, _) => const AgentProfileScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

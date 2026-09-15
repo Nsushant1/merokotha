@@ -12,6 +12,7 @@ class AdminStats {
   final int totalUsers;
   final int totalOwners;
   final int totalCustomers;
+  final int totalAgents;
   final int totalListings;
   final int activeListings;
   final int totalInquiries;
@@ -22,6 +23,7 @@ class AdminStats {
     this.totalUsers = 0,
     this.totalOwners = 0,
     this.totalCustomers = 0,
+    this.totalAgents = 0,
     this.totalListings = 0,
     this.activeListings = 0,
     this.totalInquiries = 0,
@@ -46,6 +48,7 @@ class AdminRepository {
       _users.get(),
       _users.where('role', isEqualTo: 'owner').get(),
       _users.where('role', isEqualTo: 'customer').get(),
+      _users.where('role', isEqualTo: 'agent').get(),
       _users.where('isBanned', isEqualTo: true).get(),
       _listings.get(),
       _listings.where('status', isEqualTo: 'active').get(),
@@ -57,11 +60,12 @@ class AdminRepository {
       totalUsers: results[0].docs.length,
       totalOwners: results[1].docs.length,
       totalCustomers: results[2].docs.length,
-      bannedUsers: results[3].docs.length,
-      totalListings: results[4].docs.length,
-      activeListings: results[5].docs.length,
-      totalInquiries: results[6].docs.length,
-      pendingInquiries: results[7].docs.length,
+      totalAgents: results[3].docs.length,
+      bannedUsers: results[4].docs.length,
+      totalListings: results[5].docs.length,
+      activeListings: results[6].docs.length,
+      totalInquiries: results[7].docs.length,
+      pendingInquiries: results[8].docs.length,
     );
   }
 
@@ -108,6 +112,15 @@ class AdminRepository {
   Future<void> setUserRole(String uid, UserRole role) async {
     await _users.doc(uid).update({
       'role': role.name,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Marks an agent as admin-verified (or revokes verification).
+  /// Posting privileges for agents require isVerified == true.
+  Future<void> setVerified(String uid, bool verified) async {
+    await _users.doc(uid).update({
+      'isVerified': verified,
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }

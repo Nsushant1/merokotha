@@ -11,7 +11,8 @@ Stream<List<ChatModel>> myChats(Ref ref) {
   final user = ref.watch(currentUserProvider).asData?.value;
   if (user == null) return const Stream.empty();
 
-  if (user.isOwner) {
+  // Agents act on the lister side (same ownerId slot as owners).
+  if (user.isLister) {
     return ref.watch(chatRepositoryProvider).watchOwnerChats(user.id);
   } else {
     return ref.watch(chatRepositoryProvider).watchCustomerChats(user.id);
@@ -35,7 +36,7 @@ Stream<int> totalUnread(Ref ref) {
 
   return ref
       .watch(chatRepositoryProvider)
-      .watchTotalUnread(userId: user.id, isOwner: user.isOwner);
+      .watchTotalUnread(userId: user.id, isOwner: user.isLister);
 }
 
 class SendMessageState {

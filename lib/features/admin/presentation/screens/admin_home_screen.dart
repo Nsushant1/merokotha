@@ -144,6 +144,30 @@ class AdminHomeScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: AdminStatCard(
+                            label: 'Agents',
+                            value: '${stats.totalAgents}',
+                            icon: Icons.support_agent_rounded,
+                            color: AppColors.success,
+                            onTap: () => context.go(AppRoutes.adminUsers),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: AdminStatCard(
+                            label: 'Room seekers',
+                            value: '${stats.totalCustomers}',
+                            icon: Icons.search_rounded,
+                            color: AppColors.customerPrimary,
+                            onTap: () => context.go(AppRoutes.adminUsers),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AdminStatCard(
                             label: 'Active listings',
                             value: '${stats.activeListings}',
                             icon: Icons.home_work_rounded,

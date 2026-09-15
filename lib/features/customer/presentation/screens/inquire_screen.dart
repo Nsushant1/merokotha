@@ -255,7 +255,9 @@ class _FormView extends StatelessWidget {
             const SizedBox(height: 20),
 
             MkTextField(
-              label: 'Message to owner',
+              label: listing.isAgentListed
+                  ? 'Message to agent'
+                  : 'Message to owner',
               hint: 'Write your inquiry...',
               controller: messageCtrl,
               validator: (v) => Validators.required(v, fieldName: 'Message'),
@@ -319,8 +321,10 @@ class _SuccessView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'The owner will review your message and respond soon. You\'ll be notified when they reply.',
+          Text(
+            listing.isAgentListed
+                ? 'The agent will review your message and respond soon. You\'ll be notified when they reply.'
+                : 'The owner will review your message and respond soon. You\'ll be notified when they reply.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,

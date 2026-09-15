@@ -27,6 +27,13 @@ class AppRoutes {
   static const inquire = '/customer/inquire/:id';
   static const customerProfile = '/customer/profile';
 
+  // Agent (third role: dashboard shell in Phase 2, full flows in later phases)
+  static const agentHome = '/agent/home';
+  static const agentUpload = '/agent/upload';
+  static const agentListings = '/agent/listings';
+  static const agentInquiries = '/agent/inquiries';
+  static const agentProfile = '/agent/profile';
+
   // Shared
   static const chatList = '/chat';
   static const chatThread = '/chat/:chatId';

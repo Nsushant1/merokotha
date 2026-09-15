@@ -9,6 +9,16 @@ class ListingModel {
   final String ownerId;
   final String ownerName;
   final String? ownerPhotoUrl;
+
+  /// UID of the agent who posted this listing on behalf of an owner.
+  /// Null for regular owner-posted listings.
+  /// When set, [ownerId] is the agent's uid and [ownerName]/[ownerPhone]
+  /// hold the manually entered real-owner contact (masked publicly).
+  final String? agentId;
+
+  /// Manually entered real-owner phone for agent-posted listings.
+  /// Null for regular owner-posted listings. Masked until inquiry accepted.
+  final String? ownerPhone;
   final String title;
   final String roomType; // stored as string, maps to RoomType enum
   final double rentPerMonth;
@@ -33,6 +43,8 @@ class ListingModel {
     required this.ownerId,
     required this.ownerName,
     this.ownerPhotoUrl,
+    this.agentId,
+    this.ownerPhone,
     required this.title,
     required this.roomType,
     required this.rentPerMonth,
@@ -59,6 +71,8 @@ class ListingModel {
       ownerId: map['ownerId'] as String? ?? '',
       ownerName: map['ownerName'] as String? ?? '',
       ownerPhotoUrl: map['ownerPhotoUrl'] as String?,
+      agentId: map['agentId'] as String?,
+      ownerPhone: map['ownerPhone'] as String?,
       title: map['title'] as String? ?? '',
       roomType: map['roomType'] as String? ?? 'room',
       rentPerMonth: (map['rentPerMonth'] as num?)?.toDouble() ?? 0,
@@ -94,6 +108,8 @@ class ListingModel {
     'ownerId': ownerId,
     'ownerName': ownerName,
     'ownerPhotoUrl': ownerPhotoUrl,
+    'agentId': agentId,
+    'ownerPhone': ownerPhone,
     'title': title,
     'roomType': roomType,
     'rentPerMonth': rentPerMonth,
@@ -115,6 +131,10 @@ class ListingModel {
   };
 
   ListingModel copyWith({
+    String? ownerName,
+    String? ownerPhotoUrl,
+    String? agentId,
+    String? ownerPhone,
     String? title,
     String? roomType,
     double? rentPerMonth,
@@ -134,8 +154,10 @@ class ListingModel {
   }) => ListingModel(
     id: id,
     ownerId: ownerId,
-    ownerName: ownerName,
-    ownerPhotoUrl: ownerPhotoUrl,
+    ownerName: ownerName ?? this.ownerName,
+    ownerPhotoUrl: ownerPhotoUrl ?? this.ownerPhotoUrl,
+    agentId: agentId ?? this.agentId,
+    ownerPhone: ownerPhone ?? this.ownerPhone,
     title: title ?? this.title,
     roomType: roomType ?? this.roomType,
     rentPerMonth: rentPerMonth ?? this.rentPerMonth,
@@ -158,6 +180,9 @@ class ListingModel {
 
   // ── Helpers ──
   bool get isActive => status == ListingStatus.active;
+
+  /// True when posted by an agent on behalf of an owner.
+  bool get isAgentListed => agentId != null && agentId!.isNotEmpty;
 
   // Human readable room type label
   String get roomTypeLabel {

@@ -279,6 +279,11 @@ class _RoleBadge extends StatelessWidget {
         fg = AppColors.customerPrimary;
         label = 'Customer';
         break;
+      case UserRole.agent:
+        bg = AppColors.agentLight;
+        fg = AppColors.agentPrimary;
+        label = 'Agent';
+        break;
       case UserRole.superAdmin:
         bg = AdminColors.accentLight;
         fg = const Color(0xFFB5790E);

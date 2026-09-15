@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:merokotha/shared/widgets/owner_bottom_nav.dart';
+import 'package:merokotha/features/agent/presentation/widgets/agent_bottom_nav.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
@@ -23,6 +24,7 @@ class ChatListScreen extends ConsumerWidget {
     final chatsAsync = ref.watch(myChatsProvider);
     final user = ref.watch(currentUserProvider).asData?.value;
     final isOwner = user?.isOwner ?? true;
+    final isAgent = user?.isAgent ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
@@ -55,7 +57,9 @@ class ChatListScreen extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: isOwner
+      bottomNavigationBar: isAgent
+          ? const AgentBottomNav(currentIndex: 3)
+          : isOwner
           ? const OwnerBottomNav(currentIndex: 3)
           : const CustomerBottomNav(currentIndex: 2),
     );

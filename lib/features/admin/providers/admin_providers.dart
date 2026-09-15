@@ -141,5 +141,25 @@ class AdminAction extends _$AdminAction {
     }
   }
 
+  Future<void> verifyAgent(String uid) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await ref.read(adminRepositoryProvider).setVerified(uid, true);
+      state = state.copyWith(isLoading: false, success: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> unverifyAgent(String uid) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await ref.read(adminRepositoryProvider).setVerified(uid, false);
+      state = state.copyWith(isLoading: false, success: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
   void reset() => state = const AdminActionState();
 }

@@ -11,11 +11,16 @@ class OwnerListingCard extends StatelessWidget {
   final void Function(ListingStatus) onStatusChange;
   final VoidCallback onDelete;
 
+  /// Route pushed by the edit button. Defaults to the owner upload screen;
+  /// agent screens pass [AppRoutes.agentUpload] so edits stay in-flow.
+  final String? editRoute;
+
   const OwnerListingCard({
     super.key,
     required this.listing,
     required this.onStatusChange,
     required this.onDelete,
+    this.editRoute,
   });
 
   @override
@@ -149,7 +154,7 @@ class OwnerListingCard extends StatelessWidget {
                           icon: Icons.edit_outlined,
                           color: AppColors.grey600,
                           onTap: () => context.push(
-                            AppRoutes.uploadListing,
+                            editRoute ?? AppRoutes.uploadListing,
                             extra: listing,
                           ),
                         ),

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum UserRole { owner, customer, superAdmin }
+enum UserRole { owner, customer, agent, superAdmin }
 
 class UserModel {
   final String id;
@@ -96,7 +96,15 @@ class UserModel {
 
   bool get isOwner => role == UserRole.owner;
   bool get isCustomer => role == UserRole.customer;
+  bool get isAgent => role == UserRole.agent;
   bool get isAdmin => role == UserRole.superAdmin;
+
+  /// Owner or agent — both can list rooms and handle inquiries.
+  bool get isLister => isOwner || isAgent;
+
+  /// Admin-verified agent. Becoming an agent requires admin verification
+  /// (see plan); unverified agents can browse but cannot post.
+  bool get isVerifiedAgent => isAgent && isVerified;
 
   @override
   String toString() => 'UserModel(id: $id, name: $name, role: ${role.name})';

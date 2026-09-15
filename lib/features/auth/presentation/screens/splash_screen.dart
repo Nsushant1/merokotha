@@ -67,6 +67,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       if (user?.isAdmin == true) {
         context.go(AppRoutes.adminHome);
+      } else if (user?.isAgent == true) {
+        // Verified or not: agents land on agent home. The pending
+        // verification banner there explains posting is locked until
+        // an admin verifies the account; browsing still works.
+        context.go(AppRoutes.agentHome);
       } else if (user?.isOwner == true) {
         context.go(AppRoutes.ownerHome);
       } else {

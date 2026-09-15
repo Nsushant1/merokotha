@@ -49,6 +49,21 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'customer';
     }
 
+    // Is the signed-in user an agent role (and not banned)?
+    // Agents cannot self-assign this role (users create/update still only
+    // allow owner/customer); promotion to agent is an admin action.
+    function isAgentRole() {
+      return notBanned() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'agent';
+    }
+
+    // Is the signed-in user an admin-verified agent?
+    // Only verified agents may post rooms on behalf of owners.
+    function isVerifiedAgent() {
+      return isAgentRole() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isVerified', false) == true;
+    }
+
     // Does the update only touch the listed fields?
     function onlyFields(fields) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
@@ -136,12 +151,35 @@ service cloud.firestore {
         && request.resource.data.rentPerMonth is number
         && request.resource.data.rentPerMonth > 0;
 
+      // Verified agents post on behalf of owners: ownerId and agentId are
+      // both the agent's uid, with the real-owner contact entered manually.
+      // Owner contact is required so agent listings always have it.
+      allow create: if isVerifiedAgent()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.agentId == request.auth.uid
+        && request.resource.data.keys().hasAll([
+            'ownerId', 'agentId', 'ownerName', 'ownerPhone', 'title',
+            'rentPerMonth', 'status', 'createdAt'
+          ])
+        && request.resource.data.ownerName is string
+        && request.resource.data.ownerName.size() > 0
+        && request.resource.data.ownerPhone is string
+        && request.resource.data.ownerPhone.size() > 0
+        && request.resource.data.status == 'active'
+        && request.resource.data.rentPerMonth is number
+        && request.resource.data.rentPerMonth > 0;
+
       // FIXED: ownerId and createdAt are immutable — previously an owner
       // could reassign a listing to another user or rewrite its age.
+      // agentId is likewise immutable, so an agent listing cannot be
+      // converted into an owner listing (or vice versa) after creation.
       // The listing owner OR superAdmin can update a listing.
+      // (For agent listings, ownerId is the agent's uid, so the agent
+      // who posted it can update it.)
       allow update: if isAdmin() ||
         (isAuth() && notBanned() && resource.data.ownerId == request.auth.uid
           && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.get('agentId', null) == resource.data.get('agentId', null)
           && request.resource.data.createdAt == resource.data.createdAt);
 
       // The listing owner OR superAdmin can delete a listing
