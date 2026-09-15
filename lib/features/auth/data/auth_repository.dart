@@ -19,21 +19,31 @@ class AuthRepository {
     required void Function(String verificationId, int? resendToken) onCodeSent,
     required void Function(FirebaseAuthException e) onError,
     required void Function(PhoneAuthCredential credential) onAutoVerified,
+    int? forceResendingToken,
+    void Function(String verificationId)? onAutoRetrievalTimeout,
   }) async {
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         // 120s timeout: default 60s was too short on slow networks
         timeout: const Duration(seconds: 120),
+        forceResendingToken: forceResendingToken,
         verificationCompleted: onAutoVerified,
         verificationFailed: onError,
         codeSent: onCodeSent,
-        codeAutoRetrievalTimeout: (_) {},
+        codeAutoRetrievalTimeout: (verificationId) {
+          onAutoRetrievalTimeout?.call(verificationId);
+        },
       );
-    } catch (e) {
-      if (e is FirebaseAuthException) {
-        onError(e);
-      }
+    } on FirebaseAuthException catch (e) {
+      onError(e);
+    } catch (_) {
+      onError(
+        FirebaseAuthException(
+          code: 'network-request-failed',
+          message: 'Could not reach the OTP service. Check connection and retry.',
+        ),
+      );
     }
   }
 

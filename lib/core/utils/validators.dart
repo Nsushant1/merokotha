@@ -5,10 +5,16 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';
     }
-    // Nepal phone: starts with 97 or 98, total 10 digits
-    final cleaned = value.replaceAll(RegExp(r'[\s\-\+]'), '');
-    final nepaliPhone = RegExp(r'^(977)?(97|98)\d{8}$');
-    if (!nepaliPhone.hasMatch(cleaned) && cleaned.length != 10) {
+    // Normalize: strip spaces, dashes, parentheses and leading '+'.
+    var cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (cleaned.startsWith('+')) cleaned = cleaned.substring(1);
+    // Allow "97798XXXXXXXX" or "98XXXXXXXX".
+    if (cleaned.startsWith('977')) cleaned = cleaned.substring(3);
+    // Strip a single trunk-zero: "098XXXXXXXX" -> "98XXXXXXXX".
+    if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+    // Nepal mobile: starts with 97 or 98, total exactly 10 digits.
+    final nepaliPhone = RegExp(r'^(97|98)\d{8}$');
+    if (!nepaliPhone.hasMatch(cleaned)) {
       return 'Enter a valid Nepal phone number';
     }
     return null;

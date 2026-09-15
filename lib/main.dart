@@ -14,10 +14,18 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity, // 🔁 Change to .debug for testing
-    appleProvider: AppleProvider.appAttest, // 🔁 Change to .debug for testing
-  );
+  // App Check must never crash startup: on release builds without a
+  // registered SHA / Play Integrity setup, activate() can throw and would
+  // otherwise silently break phone auth (OTP never arrives).
+  try {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.playIntegrity, // 🔁 Change to .debug for testing
+      appleProvider: AppleProvider.appAttest, // 🔁 Change to .debug for testing
+    );
+  } catch (_) {
+    // Continue without App Check; Firebase Auth will fall back to
+    // reCAPTCHA verification so OTP can still be delivered.
+  }
 
   await NotificationService().init();
 

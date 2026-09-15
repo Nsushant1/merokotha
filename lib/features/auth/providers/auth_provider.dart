@@ -84,6 +84,18 @@ class OtpNotifier extends _$OtpNotifier {
   OtpState build() => const OtpState();
 
   Future<void> sendOtp(String phoneNumber) async {
+    if (state.isSending) return;
+    if (state.isLockedOut) return;
+
+    final formatted = normalizeNepalPhone(phoneNumber);
+    if (formatted == null) {
+      state = state.copyWith(
+        isSending: false,
+        errorMessage: 'Enter a valid Nepal phone number',
+      );
+      return;
+    }
+
     state = state.copyWith(
       isSending: true,
       clearError: true,
@@ -91,14 +103,11 @@ class OtpNotifier extends _$OtpNotifier {
       failedAttempts: 0,
     );
 
-    final formatted = phoneNumber.startsWith('+')
-        ? phoneNumber
-        : '+977${phoneNumber.replaceAll(RegExp(r'^0'), '')}';
-
     await ref
         .read(authRepositoryProvider)
         .sendOtp(
           phoneNumber: formatted,
+          forceResendingToken: state.resendToken,
           onCodeSent: (verificationId, resendToken) {
             state = state.copyWith(
               isSending: false,
@@ -106,6 +115,19 @@ class OtpNotifier extends _$OtpNotifier {
               verificationId: verificationId,
               resendToken: resendToken,
             );
+          },
+          onAutoRetrievalTimeout: (verificationId) {
+            // Keep the verificationId even if auto-retrieval times out
+            // without codeSent firing (slow networks / Play Integrity delay).
+            if (!state.codeSent && state.verificationId == null) {
+              state = state.copyWith(
+                isSending: false,
+                codeSent: true,
+                verificationId: verificationId,
+              );
+            } else if (state.isSending) {
+              state = state.copyWith(isSending: false);
+            }
           },
           onError: (e) {
             state = state.copyWith(
@@ -124,8 +146,12 @@ class OtpNotifier extends _$OtpNotifier {
   }
 
   Future<bool> verifyOtp(String smsCode) async {
-    if (state.verificationId == null) return false;
+    if (state.verificationId == null) {
+      state = state.copyWith(errorMessage: 'OTP session expired. Request a new code');
+      return false;
+    }
     if (state.isLockedOut) return false;
+    if (state.isVerifying) return false;
 
     state = state.copyWith(isVerifying: true, clearError: true);
     try {
@@ -152,15 +178,40 @@ class OtpNotifier extends _$OtpNotifier {
   void resetError() => state = state.copyWith(clearError: true);
   void resetAll() => state = const OtpState();
 
+  /// Normalizes any user-typed Nepal number to E.164 (`+97798XXXXXXXX`).
+  /// Returns null when the input cannot be a valid Nepal mobile number.
+  /// Handles: spaces, dashes, brackets, leading '+', '977' prefix
+  /// duplication, and a single trunk-zero.
+  static String? normalizeNepalPhone(String input) {
+    var cleaned = input.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (cleaned.startsWith('+')) cleaned = cleaned.substring(1);
+    if (!RegExp(r'^\d+$').hasMatch(cleaned)) return null;
+    if (cleaned.startsWith('977')) cleaned = cleaned.substring(3);
+    if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+    if (!RegExp(r'^(97|98)\d{8}$').hasMatch(cleaned)) return null;
+    return '+977$cleaned';
+  }
+
   String _mapFirebaseError(String code) {
     switch (code) {
       case 'invalid-phone-number':
+      case 'missing-phone-number':
         return 'Invalid phone number format';
+      case 'app-not-authorized':
+      case 'invalid-app-credential':
+      case 'missing-client-identifier':
+        return 'OTP is blocked for this build. Please update the app or contact support';
+      case 'captcha-check-failed':
+        return 'Device verification failed. Use a real device with Play Services and retry';
       case 'too-many-requests':
+      case 'quota-exceeded':
         return 'Too many attempts. Try again later';
       case 'invalid-verification-code':
         return 'Wrong OTP. Please try again';
+      case 'invalid-verification-id':
+        return 'Session invalid. Request a new OTP';
       case 'session-expired':
+      case 'code-expired':
         return 'OTP expired. Request a new one';
       case 'network-request-failed':
         return 'No internet connection';

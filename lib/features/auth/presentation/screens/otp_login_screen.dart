@@ -66,6 +66,8 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
 
   Future<void> _sendOtp() async {
     if (!_phoneFormKey.currentState!.validate()) return;
+    final otpState = ref.read(otpProvider);
+    if (otpState.isSending || otpState.isLockedOut) return;
     FocusScope.of(context).unfocus();
 
     await ref.read(otpProvider.notifier).sendOtp(_phoneController.text.trim());

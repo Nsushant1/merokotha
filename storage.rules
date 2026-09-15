@@ -12,9 +12,35 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    // Is the request from this specific user?
+    // FIXED: null-safe — request.auth.uid on a signed-out request
+    // errors, so isAuth() must be checked first.
     function isMe(uid) {
-      return request.auth.uid == uid;
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // Is the caller a superAdmin? (used as a bypass for moderation)
+    function isStorageAdmin() {
+      return isAuth() &&
+        exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'superAdmin';
+    }
+
+    // Is the caller the owner of this listing?
+    // (upload flow creates the Firestore doc before photos upload,
+    // so the doc always exists at upload time)
+    function isListingOwner(listingId) {
+      return isAuth() &&
+        exists(/databases/(default)/documents/listings/$(listingId)) &&
+        firestore.get(/databases/(default)/documents/listings/$(listingId)).data.ownerId == request.auth.uid;
+    }
+
+    // Is the caller a participant of this chat?
+    // (chat thread screen only opens for existing chats)
+    function isChatParticipant(chatId) {
+      return isAuth() &&
+        exists(/databases/(default)/documents/chats/$(chatId)) && (
+        firestore.get(/databases/(default)/documents/chats/$(chatId)).data.ownerId == request.auth.uid ||
+        firestore.get(/databases/(default)/documents/chats/$(chatId)).data.customerId == request.auth.uid);
     }
 
     // Is the file a valid image under 5MB?
@@ -35,13 +61,16 @@ service firebase.storage {
       // (public so landing page can show photos to non-logged-in visitors)
       allow read: if true;
 
-      // Any signed-in user can upload a listing photo
-      // Must be a valid image under 5MB
-      allow write: if isAuth() && isValidImage();
+      // FIXED: previously ANY signed-in user could upload into ANY
+      // listing folder and overwrite others' photos ("ownership enforced
+      // at Firestore level" was not true for Storage). Now only the
+      // listing owner (or admin) can upload. Split create/update from
+      // delete: request.resource is null on delete, so isValidImage()
+      // must never be evaluated for deletes.
+      allow create, update: if (isListingOwner(listingId) || isStorageAdmin()) && isValidImage();
 
-      // Any signed-in user can delete listing photos
-      // (ownership check is enforced at the Firestore level)
-      allow delete: if isAuth();
+      // Only the listing owner (or admin) can delete listing photos
+      allow delete: if isListingOwner(listingId) || isStorageAdmin();
     }
 
 
@@ -57,10 +86,10 @@ service firebase.storage {
 
       // Only the user themselves can upload their profile photo
       // Must be a valid image under 5MB
-      allow write: if isAuth() && isMe(userId) && isValidImage();
+      allow create, update: if isMe(userId) && isValidImage();
 
       // Only the user themselves can delete their profile photo
-      allow delete: if isAuth() && isMe(userId);
+      allow delete: if isMe(userId);
     }
 
 
@@ -71,15 +100,17 @@ service firebase.storage {
 
     match /chats/{chatId}/{fileName} {
 
-      // Anyone signed in can read chat photos
-      allow read: if isAuth();
+      // FIXED: previously any signed-in user could read any chat's
+      // photos. Now only the two participants (or admin) can read.
+      allow read: if isChatParticipant(chatId) || isStorageAdmin();
 
-      // Any signed-in user can upload a chat photo
+      // FIXED: previously any signed-in user could upload into any
+      // chat folder. Now only participants (or admin) can upload.
       // Must be a valid image under 5MB
-      allow write: if isAuth() && isValidImage();
+      allow create, update: if (isChatParticipant(chatId) || isStorageAdmin()) && isValidImage();
 
-      // Sender can delete their own chat photo
-      allow delete: if isAuth();
+      // Only participants (or admin) can delete chat photos
+      allow delete: if isChatParticipant(chatId) || isStorageAdmin();
     }
 
 

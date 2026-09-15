@@ -17,27 +17,35 @@ service cloud.firestore {
       return isAuth() && request.auth.uid == uid;
     }
 
+    // Cached read of the caller's user doc (exists-guard first:
+    // get() on a missing doc errors, so every role check below
+    // requires exists() before reading .data).
+    function callerExists() {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     // Is the signed-in user a superAdmin?
     function isAdmin() {
-      return isAuth() &&
+      return callerExists() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superAdmin';
     }
 
     // Is the signed-in user NOT banned?
     function notBanned() {
-      return isAuth() &&
+      return callerExists() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) == false;
     }
 
     // Is the signed-in user an owner role (and not banned)?
     function isOwnerRole() {
-      return isAuth() && notBanned() &&
+      return notBanned() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
     // Is the signed-in user a customer role (and not banned)?
     function isCustomerRole() {
-      return isAuth() && notBanned() &&
+      return notBanned() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'customer';
     }
 
@@ -48,7 +56,8 @@ service cloud.firestore {
 
     // Is the current user a participant of a given chat?
     function isChatParticipant(chatId) {
-      return isAuth() && (
+      return isAuth() &&
+        exists(/databases/$(database)/documents/chats/$(chatId)) && (
         get(/databases/$(database)/documents/chats/$(chatId)).data.ownerId    == request.auth.uid ||
         get(/databases/$(database)/documents/chats/$(chatId)).data.customerId == request.auth.uid
       );
@@ -72,9 +81,17 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['name', 'phone', 'role', 'createdAt'])
         && request.resource.data.role in ['owner', 'customer'];
 
-      // A user can update their own profile
-      // superAdmin can update any user (for ban/unban and role changes)
-      allow update: if isMe(userId) || isAdmin();
+      // FIXED: self-update is limited to profile fields only.
+      // Previously any user could set role='superAdmin', clear isBanned,
+      // or change phone/createdAt on their own doc (privilege escalation).
+      // Role switch owner<->customer (profile screens) still works;
+      // superAdmin can update any user (ban/unban and role changes).
+      allow update: if isAdmin();
+      allow update: if isMe(userId) && notBanned()
+        && onlyFields(['name', 'location', 'photoUrl', 'fcmToken', 'role', 'updatedAt'])
+        && request.resource.data.role in ['owner', 'customer']
+        && request.resource.data.phone == resource.data.phone
+        && request.resource.data.createdAt == resource.data.createdAt;
 
       // Only superAdmin can delete user documents
       allow delete: if isAdmin();
@@ -97,7 +114,7 @@ service cloud.firestore {
 
       // PUBLIC READ — anyone (logged in or not) can read active listings
       // This powers the landing page for unauthenticated visitors
-      allow read: if resource.data.status == 'active';
+      allow read: if resource.data.get('status', '') == 'active';
 
       // Authenticated non-banned users can read all listings
       // (owner sees their own paused/rented listings, admin sees all)
@@ -115,11 +132,17 @@ service cloud.firestore {
             'ownerId', 'ownerName', 'title',
             'rentPerMonth', 'status', 'createdAt'
           ])
-        && request.resource.data.status == 'active';
+        && request.resource.data.status == 'active'
+        && request.resource.data.rentPerMonth is number
+        && request.resource.data.rentPerMonth > 0;
 
-      // The listing owner OR superAdmin can update a listing
+      // FIXED: ownerId and createdAt are immutable — previously an owner
+      // could reassign a listing to another user or rewrite its age.
+      // The listing owner OR superAdmin can update a listing.
       allow update: if isAdmin() ||
-        (isAuth() && notBanned() && resource.data.ownerId == request.auth.uid);
+        (isAuth() && notBanned() && resource.data.ownerId == request.auth.uid
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.createdAt == resource.data.createdAt);
 
       // The listing owner OR superAdmin can delete a listing
       allow delete: if isAdmin() ||
@@ -152,9 +175,12 @@ service cloud.firestore {
         && request.resource.data.status == 'pending';
 
       // The listing owner can update the status (accept / decline)
-      // superAdmin can update anything
+      // superAdmin can update anything.
+      // FIXED: owner may only move status to accepted/declined —
+      // previously any status value (or a forged customerId) passed.
       allow update: if isAdmin() ||
         (isAuth() && resource.data.ownerId == request.auth.uid
+          && request.resource.data.status in ['accepted', 'declined']
           && onlyFields(['status', 'declineReason', 'updatedAt']));
 
       // Nobody can delete inquiries from the client
@@ -205,14 +231,18 @@ service cloud.firestore {
         // Only participants or superAdmin can read messages
         allow read: if isAdmin() || isChatParticipant(chatId);
 
-        // ── FIXED: sender must be a participant of THIS chat ──
-        // Prevents anyone who knows a chatId from injecting messages
+        // Sender must be a participant of THIS chat —
+        // prevents anyone who knows a chatId from injecting messages.
+        // FIXED: text must be a string within 1000 chars
+        // (empty text is allowed for image-only messages).
         allow create: if isAuth() && notBanned()
           && request.resource.data.senderId == request.auth.uid
           && isChatParticipant(chatId)
           && request.resource.data.keys().hasAll([
               'senderId', 'text', 'createdAt', 'isRead'
-            ]);
+            ])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 1000;
 
         // Only the isRead flag can be updated (mark as read)
         // Message content cannot be edited after sending
