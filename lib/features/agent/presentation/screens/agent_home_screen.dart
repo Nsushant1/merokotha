@@ -52,10 +52,7 @@ class AgentHomeScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       const Text(
                         'Post rooms for owners and handle inquiries.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.grey600,
-                        ),
+                        style: TextStyle(fontSize: 14, color: AppColors.grey600),
                       ),
                       // Pending-verification banner (approved UX):
                       // unverified agents land here, can browse,
@@ -67,19 +64,13 @@ class AgentHomeScreen extends ConsumerWidget {
                           padding: const EdgeInsets.all(AppSizes.md),
                           decoration: BoxDecoration(
                             color: AppColors.warningLight,
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.radiusMd,
-                            ),
+                            borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                             border: Border.all(color: AppColors.warning),
                           ),
                           child: const Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.hourglass_top_rounded,
-                                size: 20,
-                                color: AppColors.warning,
-                              ),
+                              Icon(Icons.hourglass_top_rounded, size: 20, color: AppColors.warning),
                               SizedBox(width: 10),
                               Expanded(
                                 child: Text(
@@ -145,11 +136,7 @@ class _AgentAction extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _AgentAction({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
+  const _AgentAction({required this.label, required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) => Container(
@@ -184,11 +171,7 @@ class _AgentAction extends StatelessWidget {
                   label,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey800,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: AppColors.grey800, fontWeight: FontWeight.w700),
                 ),
               ),
             ],

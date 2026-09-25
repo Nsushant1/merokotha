@@ -50,8 +50,7 @@ service cloud.firestore {
     }
 
     // Is the signed-in user an agent role (and not banned)?
-    // Agents cannot self-assign this role (users create/update still only
-    // allow owner/customer); promotion to agent is an admin action.
+    // Agents self-register as unverified; only verified agents may post.
     function isAgentRole() {
       return notBanned() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'agent';
@@ -91,20 +90,22 @@ service cloud.firestore {
       allow read: if isAuth();
 
       // A user can only create their OWN document
-      // Role must be owner or customer — cannot self-assign superAdmin
+      // Role must be owner, customer, or agent — cannot self-assign superAdmin.
+      // Agents self-register as unverified; only an admin-verified agent
+      // (isVerified == true) can post listings.
       allow create: if isMe(userId)
         && request.resource.data.keys().hasAll(['name', 'phone', 'role', 'createdAt'])
-        && request.resource.data.role in ['owner', 'customer'];
+        && request.resource.data.role in ['owner', 'customer', 'agent'];
 
       // FIXED: self-update is limited to profile fields only.
       // Previously any user could set role='superAdmin', clear isBanned,
       // or change phone/createdAt on their own doc (privilege escalation).
-      // Role switch owner<->customer (profile screens) still works;
+      // Role switch owner<->customer<->agent (profile screens) still works;
       // superAdmin can update any user (ban/unban and role changes).
       allow update: if isAdmin();
       allow update: if isMe(userId) && notBanned()
         && onlyFields(['name', 'location', 'photoUrl', 'fcmToken', 'role', 'updatedAt'])
-        && request.resource.data.role in ['owner', 'customer']
+        && request.resource.data.role in ['owner', 'customer', 'agent']
         && request.resource.data.phone == resource.data.phone
         && request.resource.data.createdAt == resource.data.createdAt;
 

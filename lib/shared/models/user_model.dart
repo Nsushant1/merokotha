@@ -5,6 +5,7 @@ enum UserRole { owner, customer, agent, superAdmin }
 class UserModel {
   final String id;
   final String name;
+  final String email;
   final String phone;
   final UserRole role;
   final String? photoUrl;
@@ -18,6 +19,7 @@ class UserModel {
   const UserModel({
     required this.id,
     required this.name,
+    this.email = '',
     required this.phone,
     required this.role,
     this.photoUrl,
@@ -34,6 +36,7 @@ class UserModel {
     return UserModel(
       id: id,
       name: map['name'] as String? ?? '',
+      email: map['email'] as String? ?? '',
       phone: map['phone'] as String? ?? '',
       role: UserRole.values.firstWhere(
         (e) => e.name == map['role'],
@@ -57,6 +60,7 @@ class UserModel {
   Map<String, dynamic> toMap() {
     return {
       'name': name,
+      'email': email,
       'phone': phone,
       'role': role.name,
       'photoUrl': photoUrl,
@@ -71,6 +75,7 @@ class UserModel {
 
   UserModel copyWith({
     String? name,
+    String? email,
     String? phone,
     UserRole? role,
     String? photoUrl,
@@ -82,6 +87,7 @@ class UserModel {
     return UserModel(
       id: id,
       name: name ?? this.name,
+      email: email ?? this.email,
       phone: phone ?? this.phone,
       role: role ?? this.role,
       photoUrl: photoUrl ?? this.photoUrl,

@@ -23,6 +23,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
   bool _isSaving = false;
   UserRole? _role;
@@ -55,6 +57,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           ),
         );
     _animCtrl.forward();
+
+    final fbUser = ref.read(authStateProvider).value;
+    if (fbUser != null) {
+      _nameCtrl.text = fbUser.displayName ?? '';
+      _emailCtrl.text = fbUser.email ?? '';
+    }
   }
 
   @override
@@ -67,6 +75,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
     _locationCtrl.dispose();
     _animCtrl.dispose();
     super.dispose();
@@ -84,8 +94,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       final user = UserModel(
         id: fbUser.uid,
         name: _nameCtrl.text.trim(),
-        phone: fbUser.phoneNumber ?? '',
+        email: _emailCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
         role: role,
+        photoUrl: fbUser.photoURL,
         location: _locationCtrl.text.trim(),
         createdAt: now,
         updatedAt: now,
@@ -94,6 +106,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       if (!mounted) return;
       if (role == UserRole.owner) {
         context.go(AppRoutes.ownerHome);
+      } else if (role == UserRole.agent) {
+        context.go(AppRoutes.agentHome);
       } else if (role == UserRole.superAdmin) {
         context.go(AppRoutes.adminHome);
       } else {
@@ -117,10 +131,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   bool get _isOwner => _role == UserRole.owner;
-  Color get _accent =>
-      _isOwner ? AppColors.ownerPrimary : AppColors.customerPrimary;
-  Color get _accentLight =>
-      _isOwner ? AppColors.ownerLight : AppColors.customerLight;
+  bool get _isAgent => _role == UserRole.agent;
+  Color get _accent => _isOwner
+      ? AppColors.ownerPrimary
+      : _isAgent
+          ? AppColors.agentPrimary
+          : AppColors.customerPrimary;
+  Color get _accentLight => _isOwner
+      ? AppColors.ownerLight
+      : _isAgent
+          ? AppColors.agentLight
+          : AppColors.customerLight;
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +161,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                     position: _headerSlide,
                     child: _HeaderPanel(
                       isOwner: _isOwner,
+                      isAgent: _isAgent,
                       accent: _accent,
                       accentLight: _accentLight,
                     ),
@@ -155,6 +177,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                           children: [
                             _FormCard(
                               nameCtrl: _nameCtrl,
+                              emailCtrl: _emailCtrl,
+                              phoneCtrl: _phoneCtrl,
                               locationCtrl: _locationCtrl,
                               accent: _accent,
                             ),
@@ -199,11 +223,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
 class _HeaderPanel extends StatelessWidget {
   final bool isOwner;
+  final bool isAgent;
   final Color accent;
   final Color accentLight;
 
   const _HeaderPanel({
     required this.isOwner,
+    this.isAgent = false,
     required this.accent,
     required this.accentLight,
   });
@@ -212,7 +238,9 @@ class _HeaderPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final chips = isOwner
         ? ['List for free', 'Reach tenants', 'Manage inquiries']
-        : ['Browse listings', 'Save favourites', 'Contact owners'];
+        : isAgent
+            ? ['Post for owners', 'Manage listings', 'Handle inquiries']
+            : ['Browse listings', 'Save favourites', 'Contact owners'];
 
     return Container(
       width: double.infinity,
@@ -235,13 +263,21 @@ class _HeaderPanel extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  isOwner ? Icons.house_rounded : Icons.search_rounded,
+                  isOwner
+                      ? Icons.house_rounded
+                      : isAgent
+                          ? Icons.badge_rounded
+                          : Icons.search_rounded,
                   size: 13,
                   color: accent,
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isOwner ? 'Room Owner' : 'Room Seeker',
+                  isOwner
+                      ? 'Room Owner'
+                      : isAgent
+                          ? 'Agent'
+                          : 'Room Seeker',
                   style: GoogleFonts.dmSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -256,7 +292,11 @@ class _HeaderPanel extends StatelessWidget {
           const SizedBox(height: 22),
 
           Text(
-            isOwner ? 'List your\nplace in minutes' : 'Find your\nperfect room',
+            isOwner
+                ? 'List your\nplace in minutes'
+                : isAgent
+                    ? 'Post rooms\nfor owners'
+                    : 'Find your\nperfect room',
             style: GoogleFonts.cormorantGaramond(
               fontSize: 38,
               fontWeight: FontWeight.w600,
@@ -316,11 +356,15 @@ class _HeaderPanel extends StatelessWidget {
 
 class _FormCard extends StatelessWidget {
   final TextEditingController nameCtrl;
+  final TextEditingController emailCtrl;
+  final TextEditingController phoneCtrl;
   final TextEditingController locationCtrl;
   final Color accent;
 
   const _FormCard({
     required this.nameCtrl,
+    required this.emailCtrl,
+    required this.phoneCtrl,
     required this.locationCtrl,
     required this.accent,
   });
@@ -357,6 +401,26 @@ class _FormCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _Field(
+            ctrl: emailCtrl,
+            label: 'Email',
+            hint: '',
+            icon: Icons.email_outlined,
+            validator: null,
+            accent: accent,
+            enabled: false,
+          ),
+          const SizedBox(height: 18),
+          _Field(
+            ctrl: phoneCtrl,
+            label: 'Phone number',
+            hint: '98XXXXXXXX',
+            icon: Icons.phone_outlined,
+            validator: Validators.phone,
+            accent: accent,
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 18),
+          _Field(
             ctrl: locationCtrl,
             label: 'Location',
             hint: 'e.g. Kathmandu, Baneshwor',
@@ -379,6 +443,8 @@ class _Field extends StatelessWidget {
   final IconData icon;
   final String? Function(String?)? validator;
   final Color accent;
+  final bool enabled;
+  final TextInputType? keyboardType;
 
   const _Field({
     required this.ctrl,
@@ -387,6 +453,8 @@ class _Field extends StatelessWidget {
     required this.icon,
     required this.validator,
     required this.accent,
+    this.enabled = true,
+    this.keyboardType,
   });
 
   @override
@@ -407,10 +475,14 @@ class _Field extends StatelessWidget {
         TextFormField(
           controller: ctrl,
           validator: validator,
-          textCapitalization: TextCapitalization.words,
+          enabled: enabled,
+          keyboardType: keyboardType,
+          textCapitalization: keyboardType == TextInputType.phone
+              ? TextCapitalization.none
+              : TextCapitalization.words,
           style: GoogleFonts.dmSans(
             fontSize: 15,
-            color: AppColors.grey900,
+            color: enabled ? AppColors.grey900 : AppColors.grey400,
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(

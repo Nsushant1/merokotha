@@ -6,16 +6,7 @@ class AppStrings {
   static const tagline = 'Find your perfect room';
 
   // Auth
-  static const enterPhone = 'Enter your phone number';
-  static const phoneHint = '+977 98XXXXXXXX';
-  static const sendOtp = 'Send OTP';
-  static const enterOtp = 'Enter OTP';
-  static const otpSentTo = 'OTP sent to';
-  static const verifyOtp = 'Verify';
-  static const resendOtp = 'Resend OTP';
-  static const resendIn = 'Resend in';
-  static const seconds = 's';
-  static const invalidOtp = 'Enter the 6-digit OTP';
+  static const continueWithGoogle = 'Continue with Google';
 
   // Role select
   static const chooseRole = 'I am a...';
@@ -23,6 +14,8 @@ class AppStrings {
   static const ownerDesc = 'I want to list my rooms for rent';
   static const customer = 'Room Seeker';
   static const customerDesc = 'I am looking for a room to rent';
+  static const agent = 'Agent';
+  static const agentDesc = 'I post rooms on behalf of owners';
 
   // Onboarding
   static const setupProfile = 'Set up your profile';

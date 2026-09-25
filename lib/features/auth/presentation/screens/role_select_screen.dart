@@ -25,7 +25,7 @@ class RoleSelectScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSizes.pagePadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +92,20 @@ class RoleSelectScreen extends ConsumerWidget {
                     UserRole.customer,
               ),
 
-              const Spacer(),
+              const SizedBox(height: AppSizes.md),
+
+              RoleCard(
+                title: AppStrings.agent,
+                description: AppStrings.agentDesc,
+                icon: Icons.badge_rounded,
+                isSelected: selected == UserRole.agent,
+                color: AppColors.agentPrimary,
+                lightColor: AppColors.agentLight,
+                onTap: () => ref.read(_selectedRoleProvider.notifier).state =
+                    UserRole.agent,
+              ),
+
+              const SizedBox(height: 24),
 
               _HiddenAdminButton(
                 onAdminSelected: () =>

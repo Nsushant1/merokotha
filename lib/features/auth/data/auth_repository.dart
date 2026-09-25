@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:merokotha/shared/providers/firebase_providers.dart';
@@ -7,58 +8,29 @@ part 'auth_repository.g.dart';
 
 class AuthRepository {
   final FirebaseAuth _auth;
+  final GoogleSignIn _googleSignIn;
 
-  AuthRepository(this._auth);
+  AuthRepository(this._auth, {GoogleSignIn? googleSignIn})
+      : _googleSignIn = googleSignIn ?? GoogleSignIn();
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
 
-  Future<void> sendOtp({
-    required String phoneNumber,
-    required void Function(String verificationId, int? resendToken) onCodeSent,
-    required void Function(FirebaseAuthException e) onError,
-    required void Function(PhoneAuthCredential credential) onAutoVerified,
-    int? forceResendingToken,
-    void Function(String verificationId)? onAutoRetrievalTimeout,
-  }) async {
-    try {
-      await _auth.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        // 120s timeout: default 60s was too short on slow networks
-        timeout: const Duration(seconds: 120),
-        forceResendingToken: forceResendingToken,
-        verificationCompleted: onAutoVerified,
-        verificationFailed: onError,
-        codeSent: onCodeSent,
-        codeAutoRetrievalTimeout: (verificationId) {
-          onAutoRetrievalTimeout?.call(verificationId);
-        },
-      );
-    } on FirebaseAuthException catch (e) {
-      onError(e);
-    } catch (_) {
-      onError(
-        FirebaseAuthException(
-          code: 'network-request-failed',
-          message: 'Could not reach the OTP service. Check connection and retry.',
-        ),
-      );
-    }
-  }
+  Future<UserCredential?> signInWithGoogle() async {
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) return null; // User cancelled
 
-  Future<UserCredential> verifyOtp({
-    required String verificationId,
-    required String smsCode,
-  }) async {
-    final credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: smsCode,
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
     return await _auth.signInWithCredential(credential);
   }
 
   Future<void> signOut() async {
+    await _googleSignIn.signOut();
     await _auth.signOut();
   }
 }

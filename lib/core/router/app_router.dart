@@ -4,7 +4,7 @@ import 'package:merokotha/features/owner/presentation/screens/my_listing_screen.
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:merokotha/features/auth/presentation/screens/splash_screen.dart';
-import 'package:merokotha/features/auth/presentation/screens/otp_login_screen.dart';
+import 'package:merokotha/features/auth/presentation/screens/google_login_screen.dart';
 import 'package:merokotha/features/auth/presentation/screens/role_select_screen.dart';
 import 'package:merokotha/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
@@ -74,7 +74,7 @@ GoRouter appRouter(Ref ref) {
         builder: (_, _) => const LandingScreen(),
       ),
       GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashScreen()),
-      GoRoute(path: AppRoutes.login, builder: (_, _) => const OtpLoginScreen()),
+      GoRoute(path: AppRoutes.login, builder: (_, _) => const GoogleLoginScreen()),
       GoRoute(
         path: AppRoutes.roleSelect,
         builder: (_, _) => const RoleSelectScreen(),

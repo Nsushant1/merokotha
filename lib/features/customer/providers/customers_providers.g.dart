@@ -466,7 +466,7 @@ final class SendInquiryNotifierProvider
 }
 
 String _$sendInquiryNotifierHash() =>
-    r'06a94692262405619abb87adbbc3dd7fe336da28';
+    r'997b956d3ec6e9db756f53d7234b36d8ecd48676';
 
 abstract class _$SendInquiryNotifier extends $Notifier<SendInquiryState> {
   SendInquiryState build();

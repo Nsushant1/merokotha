@@ -12,19 +12,35 @@ void main() async {
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    runApp(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'Unable to start MeroKotha. Please check your internet connection and try again.\n\nError: $e',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    ));
+    return;
+  }
 
   // App Check must never crash startup: on release builds without a
-  // registered SHA / Play Integrity setup, activate() can throw and would
-  // otherwise silently break phone auth (OTP never arrives).
+  // registered SHA / Play Integrity setup, activate() can throw.
   try {
     await FirebaseAppCheck.instance.activate(
-      androidProvider: AndroidProvider.playIntegrity, // 🔁 Change to .debug for testing
-      appleProvider: AppleProvider.appAttest, // 🔁 Change to .debug for testing
+      androidProvider: AndroidProvider.playIntegrity, // Change to .debug for testing
+      appleProvider: AppleProvider.appAttest, // Change to .debug for testing
     );
   } catch (_) {
-    // Continue without App Check; Firebase Auth will fall back to
-    // reCAPTCHA verification so OTP can still be delivered.
+    // Continue without App Check.
   }
 
   await NotificationService().init();

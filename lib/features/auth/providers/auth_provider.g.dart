@@ -80,51 +80,52 @@ final class CurrentUserProvider
 
 String _$currentUserHash() => r'1eefb03ba0c7ffbb3a1b97d0f9c35260b0de5796';
 
-@ProviderFor(OtpNotifier)
-final otpProvider = OtpNotifierProvider._();
+@ProviderFor(GoogleSignInNotifier)
+final googleSignInProvider = GoogleSignInNotifierProvider._();
 
-final class OtpNotifierProvider
-    extends $NotifierProvider<OtpNotifier, OtpState> {
-  OtpNotifierProvider._()
+final class GoogleSignInNotifierProvider
+    extends $NotifierProvider<GoogleSignInNotifier, GoogleSignInState> {
+  GoogleSignInNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'otpProvider',
+        name: r'googleSignInProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$otpNotifierHash();
+  String debugGetCreateSourceHash() => _$googleSignInNotifierHash();
 
   @$internal
   @override
-  OtpNotifier create() => OtpNotifier();
+  GoogleSignInNotifier create() => GoogleSignInNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(OtpState value) {
+  Override overrideWithValue(GoogleSignInState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<OtpState>(value),
+      providerOverride: $SyncValueProvider<GoogleSignInState>(value),
     );
   }
 }
 
-String _$otpNotifierHash() => r'c2d6047f7b199a5c8053af8437a5a947901beb22';
+String _$googleSignInNotifierHash() =>
+    r'dfef0c8aed4b7840dd141a5f137f14c32bc350cf';
 
-abstract class _$OtpNotifier extends $Notifier<OtpState> {
-  OtpState build();
+abstract class _$GoogleSignInNotifier extends $Notifier<GoogleSignInState> {
+  GoogleSignInState build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<OtpState, OtpState>;
+    final ref = this.ref as $Ref<GoogleSignInState, GoogleSignInState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<OtpState, OtpState>,
-              OtpState,
+              AnyNotifier<GoogleSignInState, GoogleSignInState>,
+              GoogleSignInState,
               Object?,
               Object?
             >;
