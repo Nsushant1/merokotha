@@ -22,11 +22,15 @@ class RoleSelectScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(_selectedRoleProvider);
 
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSizes.pagePadding),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -38,6 +42,10 @@ class RoleSelectScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                 ),
                 child: const Icon(
                   Icons.tune_rounded,
@@ -47,22 +55,15 @@ class RoleSelectScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 AppStrings.chooseRole,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4,
-                  color: AppColors.grey900,
-                ),
+                style: textTheme.displayMedium,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'This helps us personalise your experience.\nYou can switch roles later from your profile.',
-                style: TextStyle(
-                  fontSize: 14.5,
+                style: textTheme.bodyLarge?.copyWith(
                   color: AppColors.grey600,
-                  height: 1.5,
                 ),
               ),
 
@@ -125,6 +126,8 @@ class RoleSelectScreen extends ConsumerWidget {
 
               const SizedBox(height: AppSizes.md),
             ],
+          ),
+            ),
           ),
         ),
       ),

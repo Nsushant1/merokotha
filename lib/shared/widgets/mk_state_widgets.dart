@@ -74,16 +74,20 @@ class MkErrorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
+        padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
                 color: AppColors.errorLight,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.16),
+                  width: 1.5,
+                ),
               ),
               child: const Icon(
                 Icons.wifi_off_rounded,
@@ -96,7 +100,8 @@ class MkErrorWidget extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 14.5,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
                 color: AppColors.grey600,
                 height: 1.5,
               ),
@@ -108,7 +113,7 @@ class MkErrorWidget extends StatelessWidget {
                 onPressed: onRetry,
                 variant: MkButtonVariant.outline,
                 fullWidth: false,
-                height: 44,
+                height: AppSizes.buttonHeightSm,
                 prefixIcon: Icons.refresh_rounded,
               ),
             ],
@@ -139,27 +144,33 @@ class MkEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
+        padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 88,
-              height: 88,
-              decoration: const BoxDecoration(
+              width: 92,
+              height: 92,
+              decoration: BoxDecoration(
                 color: AppColors.primaryLight,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.16),
+                  width: 1.5,
+                ),
               ),
-              child: Icon(icon, size: 38, color: AppColors.primary),
+              child: Icon(icon, size: 40, color: AppColors.primary),
             ),
             const SizedBox(height: 24),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
                 color: AppColors.grey900,
-                letterSpacing: -0.2,
+                letterSpacing: -0.3,
+                height: 1.3,
               ),
             ),
             const SizedBox(height: 8),
@@ -167,8 +178,8 @@ class MkEmptyState extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.grey400,
+                fontSize: 15,
+                color: AppColors.grey600,
                 height: 1.5,
               ),
             ),
@@ -178,7 +189,7 @@ class MkEmptyState extends StatelessWidget {
                 label: actionLabel!,
                 onPressed: onAction,
                 fullWidth: false,
-                height: 46,
+                height: 48,
               ),
             ],
           ],

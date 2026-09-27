@@ -333,9 +333,10 @@ class _NotificationBell extends StatelessWidget {
                       child: Text(
                         count > 9 ? '9+' : '$count',
                         style: const TextStyle(
-                          fontSize: 9,
+                          fontSize: 10,
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
+                          height: 1.1,
                         ),
                       ),
                     ),

@@ -49,17 +49,14 @@ class AdminStatCard extends StatelessWidget {
                 const SizedBox(height: 14),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
                     fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: AppColors.grey900,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 12, color: AppColors.grey400),
+                  style: Theme.of(context).textTheme.labelMedium,
                 ),
               ],
             ),

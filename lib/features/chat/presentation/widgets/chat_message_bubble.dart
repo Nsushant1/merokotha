@@ -36,12 +36,16 @@ class ChatMessageBubble extends StatelessWidget {
                   : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isMe ? AppColors.primary : Colors.white,
-                border: isMe ? null : Border.all(color: AppColors.border),
+                border: isMe
+                    ? Border.all(
+                        color: AppColors.primaryDark.withValues(alpha: 0.3),
+                      )
+                    : Border.all(color: AppColors.border),
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(isMe ? 18 : 5),
-                  bottomRight: Radius.circular(isMe ? 5 : 18),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isMe ? 20 : 6),
+                  bottomRight: Radius.circular(isMe ? 6 : 20),
                 ),
                 boxShadow: const [
                   BoxShadow(
@@ -85,9 +89,10 @@ class ChatMessageBubble extends StatelessWidget {
                       child: Text(
                         message.text,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
                           color: isMe ? Colors.white : AppColors.grey900,
-                          height: 1.4,
+                          height: 1.45,
                         ),
                       ),
                     ),
@@ -101,9 +106,10 @@ class ChatMessageBubble extends StatelessWidget {
                         Text(
                           Formatters.time(message.createdAt),
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
                             color: isMe
-                                ? Colors.white.withValues(alpha: 0.7)
+                                ? Colors.white.withValues(alpha: 0.75)
                                 : AppColors.grey400,
                           ),
                         ),

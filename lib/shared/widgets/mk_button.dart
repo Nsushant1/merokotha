@@ -53,7 +53,7 @@ class MkButton extends StatelessWidget {
           );
 
     final size = Size(fullWidth ? double.infinity : 0, h);
-    const textStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.1);
+    const textStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2);
 
     switch (variant) {
       case MkButtonVariant.primary:
@@ -72,9 +72,7 @@ class MkButton extends StatelessWidget {
                       end: Alignment.bottomRight,
                     ),
               color: onPressed == null && !isLoading ? AppColors.grey100 : null,
-              boxShadow: onPressed == null
-                  ? null
-                  : const [BoxShadow(color: Color(0x331D9E75), blurRadius: 16, offset: Offset(0, 6))],
+              boxShadow: onPressed == null ? null : AppSizes.shadowButton,
             ),
             child: Material(
               type: MaterialType.transparency,
@@ -123,7 +121,8 @@ class MkButton extends StatelessWidget {
             onPressed: isLoading ? null : onPressed,
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.grey900,
-              side: const BorderSide(color: AppColors.border, width: 1.3),
+              backgroundColor: Colors.white,
+              side: const BorderSide(color: AppColors.borderStrong, width: 1.5),
               shape: RoundedRectangleBorder(borderRadius: radius),
               textStyle: textStyle,
             ),

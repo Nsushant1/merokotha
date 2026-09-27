@@ -90,7 +90,7 @@ class _EmptyPlaceholder extends StatelessWidget {
         const SizedBox(height: 4),
         const Text(
           'Tap to select images',
-          style: TextStyle(fontSize: 11.5, color: AppColors.grey400),
+          style: TextStyle(fontSize: 12, color: AppColors.grey400),
         ),
       ],
     );

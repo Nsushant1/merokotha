@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 
+/// Owner dashboard greeting — unified header type:
+/// tracked uppercase eyebrow + 28px extrabold name.
 class OwnerGreeting extends StatelessWidget {
   final String name;
   const OwnerGreeting({super.key, required this.name});
@@ -14,26 +16,21 @@ class OwnerGreeting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$_greeting,',
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.grey600,
-            fontWeight: FontWeight.w500,
+          _greeting.toUpperCase(),
+          style: textTheme.labelSmall?.copyWith(
+            color: AppColors.primary,
+            letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 6),
         Text(
           name.split(' ').first,
-          style: const TextStyle(
-            fontSize: 27,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.4,
-            color: AppColors.grey900,
-          ),
+          style: textTheme.displayMedium,
         ),
       ],
     );

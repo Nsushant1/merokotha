@@ -55,11 +55,17 @@ class RoleCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSelected ? color : AppColors.grey50,
                   borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                  border: Border.all(
+                    color: isSelected
+                        ? color.withValues(alpha: 0.3)
+                        : AppColors.border,
+                    width: 1,
+                  ),
                 ),
                 child: Icon(
                   icon,
-                  size: AppSizes.iconXl,
-                  color: isSelected ? Colors.white : AppColors.grey400,
+                  size: AppSizes.iconLg,
+                  color: isSelected ? Colors.white : AppColors.grey600,
                 ),
               ),
               const SizedBox(width: AppSizes.md),
@@ -70,19 +76,15 @@ class RoleCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: isSelected ? color : AppColors.grey900,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.grey600,
-                        height: 1.4,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        height: 1.45,
                       ),
                     ),
                   ],

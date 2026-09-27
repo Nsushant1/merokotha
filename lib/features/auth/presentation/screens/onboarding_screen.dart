@@ -297,12 +297,12 @@ class _HeaderPanel extends StatelessWidget {
                 : isAgent
                     ? 'Post rooms\nfor owners'
                     : 'Find your\nperfect room',
-            style: GoogleFonts.cormorantGaramond(
-              fontSize: 38,
-              fontWeight: FontWeight.w600,
+            style: GoogleFonts.dmSans(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
               color: AppColors.grey900,
-              height: 1.1,
-              letterSpacing: -0.5,
+              height: 1.15,
+              letterSpacing: -0.8,
             ),
           ),
 
@@ -311,9 +311,9 @@ class _HeaderPanel extends StatelessWidget {
           Text(
             'Tell us a bit about yourself to personalise your experience.',
             style: GoogleFonts.dmSans(
-              fontSize: 14,
-              color: AppColors.grey400,
-              height: 1.6,
+              fontSize: 15,
+              color: AppColors.grey600,
+              height: 1.5,
             ),
           ),
 

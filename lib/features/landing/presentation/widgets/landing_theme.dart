@@ -1,49 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:merokotha/core/constants/app_colors.dart';
+import 'package:merokotha/core/constants/app_sizes.dart';
+import 'package:merokotha/core/constants/app_typography.dart';
 
+/// Landing visual tokens — now a thin alias over the app-wide design
+/// system so public browse screens share one font, one palette, and one
+/// type scale with the rest of the app. Kept as a facade so existing
+/// call sites keep working unchanged.
 class LandingTheme {
-  // Brand
-  static const accent = Color(0xFF1D9E75);
-  static const accentMuted = Color(0xFF4C8F7B);
+  // Brand — single AP green identity.
+  static const accent = AppColors.primary;
+  static const accentMuted = AppColors.primaryDark;
 
-  // Backgrounds
-  static const bg = Color(0xFFFFFFFF);
-  static const bgWarm = Color(0xFFF8F7F4);
-  static const surface = Color(0xFFFFFFFF);
+  // Backgrounds — standardized surfaces.
+  static const bg = AppColors.background;
+  static const bgWarm = AppColors.backgroundSecondary;
+  static const surface = AppColors.background;
 
-  // Neutrals / text
-  static const ink = Color(0xFF1A1A18);
-  static const stone = Color(0xFF86847D);
-  static const hairline = Color(0xFFEBEBEB);
+  // Neutrals / text — standardized ramp.
+  static const ink = AppColors.grey900;
+  static const stone = AppColors.grey600;
+  static const hairline = AppColors.border;
 
   // Semantic
-  static const error = Color(0xFFE24B4A);
+  static const error = AppColors.error;
 
-  static TextStyle get labelSm => GoogleFonts.dmSans(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 1.4,
-    color: accentMuted,
-  );
+  // Eyebrow label: 11px bold, tracked, brand.
+  static TextStyle get labelSm => AppTypography.overline;
 
-  static TextStyle get bodyMd =>
-      GoogleFonts.dmSans(fontSize: 13.5, color: stone, height: 1.5);
+  // Secondary body: 14px, comfortable measure.
+  static TextStyle get bodyMd => AppTypography.bodyMd;
 
-  static TextStyle get priceLg => GoogleFonts.dmSans(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-    color: ink,
-    letterSpacing: -0.2,
-  );
+  // Listing price: 16px extra-bold, tight.
+  static TextStyle get priceLg => AppTypography.titleMd;
 
-  static TextStyle get titleMd => GoogleFonts.dmSans(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: ink,
-    letterSpacing: -0.1,
-  );
+  // Listing title: 15px semibold.
+  static TextStyle get titleMd => AppTypography.titleSm;
 
-  static const double r = 16.0;
+  static const double r = AppSizes.radiusLg;
 
   static String formatPrice(num v) => v
       .toInt()

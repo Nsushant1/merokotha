@@ -32,11 +32,13 @@ class InquiryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.all(AppSizes.md),
+      padding: const EdgeInsets.all(AppSizes.cardPadding),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: AppSizes.shadowCard,
       ),
       child: Column(
@@ -45,7 +47,7 @@ class InquiryCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 20,
+                radius: 21,
                 backgroundColor: AppColors.primaryLight,
                 backgroundImage: inquiry.customerPhotoUrl != null
                     ? NetworkImage(inquiry.customerPhotoUrl!)
@@ -55,33 +57,26 @@ class InquiryCard extends StatelessWidget {
                         inquiry.customerName.isNotEmpty
                             ? inquiry.customerName[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                        style: textTheme.titleSmall?.copyWith(
                           color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
                         ),
                       )
                     : null,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       inquiry.customerName,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.grey900,
-                      ),
+                      style: textTheme.titleSmall,
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       inquiry.listingTitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.grey400,
-                      ),
+                      style: textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -93,21 +88,18 @@ class InquiryCard extends StatelessWidget {
           ),
 
           if (inquiry.message.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.backgroundSecondary,
                 borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                border: Border.all(color: AppColors.border, width: 1),
               ),
               child: Text(
                 inquiry.message,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.grey600,
-                  height: 1.4,
-                ),
+                style: textTheme.bodyMedium,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

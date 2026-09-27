@@ -58,40 +58,40 @@ class _QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(AppSizes.radiusLg);
     return Expanded(
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+        borderRadius: radius,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+          borderRadius: radius,
           splashColor: color.withValues(alpha: 0.08),
           highlightColor: color.withValues(alpha: 0.04),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+              borderRadius: radius,
+              border: Border.all(color: AppColors.border, width: 1),
               boxShadow: AppSizes.shadowCard,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 38,
-                  height: 38,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                   ),
                   child: Icon(icon, size: 20, color: color),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppColors.grey800,
-                    fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
                 ),

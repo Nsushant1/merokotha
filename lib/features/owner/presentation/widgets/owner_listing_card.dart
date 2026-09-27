@@ -41,10 +41,12 @@ class OwnerListingCard extends StatelessWidget {
       statusLabel = 'Paused';
     }
 
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: AppSizes.shadowCard,
       ),
       clipBehavior: Clip.antiAlias,
@@ -77,14 +79,15 @@ class OwnerListingCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: statusColor,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusFull),
                   ),
                   child: Text(
                     statusLabel,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
                       color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ),
@@ -92,17 +95,13 @@ class OwnerListingCard extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(AppSizes.md),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   listing.title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grey900,
-                  ),
+                  style: textTheme.titleSmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -114,30 +113,26 @@ class OwnerListingCard extends StatelessWidget {
                       size: 13,
                       color: AppColors.grey400,
                     ),
-                    const SizedBox(width: 3),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         listing.address ?? '',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.grey400,
-                        ),
+                        style: textTheme.bodySmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Rs ${listing.rentPerMonth.toStringAsFixed(0)}/mo',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                      style: textTheme.titleSmall?.copyWith(
                         color: AppColors.primary,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     Row(

@@ -1,9 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:merokotha/core/constants/app_colors.dart';
+import 'package:merokotha/core/constants/app_sizes.dart';
+import 'package:merokotha/core/theme/app_decorations.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 
+/// Public listing cards — rebuilt on the unified card system:
+/// white surface, 20px radius, hairline border, soft shadow,
+/// DM Sans-only type (title 15 w700, meta 13, price 16 w800).
+/// Navigation/behavior unchanged: tap still routes via [onTap].
 class LandingGridCard extends StatelessWidget {
   final ListingModel listing;
   final VoidCallback onTap;
@@ -12,17 +18,16 @@ class LandingGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final radius = BorderRadius.circular(LandingTheme.r);
     return Material(
-      color: LandingTheme.surface,
-      borderRadius: BorderRadius.circular(LandingTheme.r),
+      color: Colors.transparent,
+      borderRadius: radius,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(LandingTheme.r),
+        borderRadius: radius,
         child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(LandingTheme.r),
-            border: Border.all(color: LandingTheme.hairline),
-          ),
+          decoration: AppDecorations.card,
           clipBehavior: Clip.hardEdge,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,16 +41,14 @@ class LandingGridCard extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: listing.photoUrls.first,
                             fit: BoxFit.cover,
-                            placeholder: (_, _) => const _ShimmerPlaceholder(),
+                            placeholder: (_, _) => const _MediaPlaceholder(),
                             errorWidget: (_, _, _) => const _PhotoFallback(),
                           )
                         : const _PhotoFallback(),
                     Positioned(
                       top: 10,
                       right: 10,
-                      child: _ScrimBadge(
-                        text: listing.roomTypeLabel,
-                      ),
+                      child: _TypeBadge(text: listing.roomTypeLabel),
                     ),
                     Positioned(
                       left: 10,
@@ -56,7 +59,7 @@ class LandingGridCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -64,26 +67,23 @@ class LandingGridCard extends StatelessWidget {
                       listing.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: LandingTheme.titleMd,
+                      style: textTheme.titleSmall,
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.place_outlined,
-                          size: 12,
-                          color: LandingTheme.stone,
+                          size: 13,
+                          color: AppColors.grey400,
                         ),
-                        const SizedBox(width: 3),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             listing.address ?? 'Nepal',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 11.5,
-                              color: LandingTheme.stone,
-                            ),
+                            style: textTheme.bodySmall,
                           ),
                         ),
                       ],
@@ -107,23 +107,22 @@ class LandingListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final radius = BorderRadius.circular(LandingTheme.r);
     return Material(
-      color: LandingTheme.surface,
-      borderRadius: BorderRadius.circular(LandingTheme.r),
+      color: Colors.transparent,
+      borderRadius: radius,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(LandingTheme.r),
+        borderRadius: radius,
         child: Container(
-          height: 108,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(LandingTheme.r),
-            border: Border.all(color: LandingTheme.hairline),
-          ),
+          height: 112,
+          padding: const EdgeInsets.all(10),
+          decoration: AppDecorations.card,
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                 child: SizedBox(
                   width: 92,
                   height: 92,
@@ -131,69 +130,57 @@ class LandingListCard extends StatelessWidget {
                       ? CachedNetworkImage(
                           imageUrl: listing.photoUrls.first,
                           fit: BoxFit.cover,
-                          placeholder: (_, _) => const _ShimmerPlaceholder(),
+                          placeholder: (_, _) => const _MediaPlaceholder(),
                           errorWidget: (_, _, _) => const _PhotoFallback(),
                         )
                       : const _PhotoFallback(),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        listing.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: LandingTheme.titleMd,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.place_outlined,
-                            size: 12,
-                            color: LandingTheme.stone,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      listing.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.place_outlined,
+                          size: 13,
+                          color: AppColors.grey400,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            listing.address ?? 'Kathmandu',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.bodySmall,
                           ),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              listing.address ?? 'Kathmandu',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.dmSans(
-                                fontSize: 12,
-                                color: LandingTheme.stone,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            'Rs. ${LandingTheme.formatPrice(listing.rentPerMonth)}',
-                            style: LandingTheme.priceLg,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '/month',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 11,
-                              color: LandingTheme.stone,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          'Rs. ${LandingTheme.formatPrice(listing.rentPerMonth)}',
+                          style: textTheme.titleMedium,
+                        ),
+                        const SizedBox(width: 4),
+                        Text('/month', style: textTheme.bodySmall),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -204,12 +191,12 @@ class LandingListCard extends StatelessWidget {
   }
 }
 
-class _ShimmerPlaceholder extends StatelessWidget {
-  const _ShimmerPlaceholder();
+class _MediaPlaceholder extends StatelessWidget {
+  const _MediaPlaceholder();
 
   @override
   Widget build(BuildContext context) {
-    return Container(color: const Color(0xFFECEAE4));
+    return Container(color: AppColors.surfaceContainer);
   }
 }
 
@@ -219,11 +206,11 @@ class _PhotoFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: LandingTheme.bgWarm,
-      child: Center(
+      color: AppColors.backgroundSecondary,
+      child: const Center(
         child: Icon(
           Icons.home_outlined,
-          color: LandingTheme.stone,
+          color: AppColors.grey400,
           size: 28,
         ),
       ),
@@ -231,24 +218,24 @@ class _PhotoFallback extends StatelessWidget {
   }
 }
 
-class _ScrimBadge extends StatelessWidget {
+class _TypeBadge extends StatelessWidget {
   final String text;
-  const _ScrimBadge({required this.text});
+  const _TypeBadge({required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(6),
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
       ),
       child: Text(
         text.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
         ),
       ),
@@ -263,21 +250,18 @@ class _PriceTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(7),
-        boxShadow: const [
-          BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 2)),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+        border: Border.all(color: AppColors.border, width: 1),
+        boxShadow: AppSizes.shadowCard,
       ),
       child: Text(
         'Rs. ${LandingTheme.formatPrice(amount)}',
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: LandingTheme.ink,
-          letterSpacing: -0.1,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: AppColors.grey900,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );

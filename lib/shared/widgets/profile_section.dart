@@ -54,32 +54,40 @@ class ProfileAvatarSection extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Text(
           user.name,
+          textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.4,
+            height: 1.2,
             color: AppColors.grey900,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
             color: badgeBackgroundColor,
             borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+            border: Border.all(
+              color: badgeColor.withValues(alpha: 0.18),
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(roleBadgeIcon, size: 12, color: badgeColor),
-              const SizedBox(width: 5),
+              Icon(roleBadgeIcon, size: 13, color: badgeColor),
+              const SizedBox(width: 6),
               Text(
                 roleBadgeLabel,
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
                   color: badgeColor,
                 ),
               ),
@@ -108,32 +116,27 @@ class ProfileSectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: AppSizes.shadowCard,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSizes.md,
-              AppSizes.md,
-              AppSizes.md,
-              10,
-            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
             child: Text(
-              title,
+              title.toUpperCase(),
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
+                letterSpacing: 0.8,
                 color: AppColors.grey600,
               ),
             ),
           ),
           const Divider(height: 1, color: AppColors.border),
           Padding(
-            padding: const EdgeInsets.all(AppSizes.md),
+            padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
             child: Column(children: children),
           ),
         ],
@@ -168,23 +171,29 @@ class ProfileSettingsTile extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 9),
         child: Row(
           children: [
             Container(
-              width: 34,
-              height: 34,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
                 color: AppColors.grey50,
                 borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                border: Border.all(color: AppColors.border, width: 1),
               ),
-              child: Icon(icon, size: 17, color: AppColors.grey600),
+              child: Icon(icon, size: 18, color: AppColors.grey800),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 14, color: AppColors.grey900),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.1,
+                  color: AppColors.grey900,
+                ),
               ),
             ),
             if (count != null && count! > 0)

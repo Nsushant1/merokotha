@@ -97,12 +97,12 @@ class _AgentInquiriesScreenState extends ConsumerState<AgentInquiriesScreen>
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.grey600,
                 labelStyle: const TextStyle(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
                 unselectedLabelStyle: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
                 tabs: const [
                   Tab(text: 'Pending'),
@@ -395,7 +395,7 @@ class _OwnerContactStripState extends ConsumerState<_OwnerContactStrip> {
                   'Owner: ${listing.ownerName}'
                   '${listing.ownerPhone != null ? ' • ${listing.ownerPhone}' : ''}',
                   style: const TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.grey800,
                   ),

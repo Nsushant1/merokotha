@@ -64,30 +64,29 @@ class AdminUserTile extends StatelessWidget {
                             child: Text(
                               user.name,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.grey900,
-                              ),
+                              style: Theme.of(context).textTheme.titleSmall,
                             ),
                           ),
                           if (user.isBanned) ...[
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                                horizontal: 8,
+                                vertical: 3,
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.error,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusSm,
+                                ),
                               ),
                               child: const Text(
                                 'BANNED',
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: 10,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.4,
                                 ),
                               ),
                             ),
@@ -97,19 +96,16 @@ class AdminUserTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         user.phone,
-                        style: const TextStyle(fontSize: 12, color: AppColors.grey400),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(height: 6),
                       Row(
                         children: [
                           _RoleBadge(role: user.role),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             Formatters.timeAgo(user.createdAt),
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.grey400,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -190,18 +186,14 @@ class AdminListingTile extends StatelessWidget {
                     children: [
                       Text(
                         listing.title,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.grey900,
-                        ),
+                        style: Theme.of(context).textTheme.titleSmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         listing.ownerName,
-                        style: const TextStyle(fontSize: 11, color: AppColors.grey400),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(height: 6),
                       Row(
@@ -291,14 +283,20 @@ class _RoleBadge extends StatelessWidget {
         break;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+        border: Border.all(color: fg.withValues(alpha: 0.2), width: 1),
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: fg),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+          color: fg,
+        ),
       ),
     );
   }
@@ -324,12 +322,13 @@ class _SmallAction extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.radiusFull),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
+              letterSpacing: 0.1,
               color: color,
             ),
           ),

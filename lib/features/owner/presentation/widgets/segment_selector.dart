@@ -32,19 +32,20 @@ class SegmentSelector<T> extends StatelessWidget {
                 onTap: () => onChanged(v),
                 borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                     border: Border.all(
                       color: isSelected ? AppColors.primary : AppColors.border,
+                      width: isSelected ? 1.6 : 1.2,
                     ),
                   ),
                   child: Text(
                     label(v),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                       color: isSelected ? AppColors.primary : AppColors.grey600,
                     ),
                   ),

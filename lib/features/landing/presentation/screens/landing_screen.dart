@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:merokotha/core/constants/app_colors.dart';
+import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
+import 'package:merokotha/core/utils/responsive.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_category_row.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_listing_cards.dart';
@@ -81,12 +83,13 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                   );
                 }
 
+                final columns = MkBreakpoints.isMobile(context) ? 2 : 3;
                 return SliverPadding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                   sliver: _isGrid
                       ? SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: columns,
                             mainAxisSpacing: 14,
                             crossAxisSpacing: 14,
                             childAspectRatio: 0.72,
@@ -145,12 +148,7 @@ class _LandingHeader extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   'Mero Kotha',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: LandingTheme.ink,
-                    letterSpacing: -0.3,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Spacer(),
                 _SignInChip(onTap: () => context.push(AppRoutes.login)),
@@ -159,18 +157,12 @@ class _LandingHeader extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Find your next home.',
-              style: GoogleFonts.dmSans(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                height: 1.15,
-                letterSpacing: -0.8,
-                color: LandingTheme.ink,
-              ),
+              style: Theme.of(context).textTheme.displaySmall,
             ),
             const SizedBox(height: 8),
             Text(
               'Discover rooms, flats & apartments across Nepal.',
-              style: GoogleFonts.dmSans(fontSize: 14, color: LandingTheme.stone, height: 1.4),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 20),
             LandingSearchBar(onChanged: onSearchChanged),
@@ -201,7 +193,10 @@ class _SignInChip extends StatelessWidget {
           ),
           child: Text(
             'Sign In',
-            style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: LandingTheme.ink),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: AppColors.grey900,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),
@@ -225,17 +220,19 @@ class _SignInCta extends StatelessWidget {
         ],
       ),
       child: SizedBox(
-        height: 52,
+        height: AppSizes.buttonHeight,
         child: Material(
           color: LandingTheme.accent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSizes.radiusMd),
           child: InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSizes.radiusMd),
             onTap: onTap,
-            child: const Center(
+            child: Center(
               child: Text(
                 'Sign in to inquire',
-                style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: Colors.white),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -270,7 +267,7 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               hasFilters ? 'No properties found' : 'No listings yet',
-              style: GoogleFonts.dmSans(fontSize: 17, fontWeight: FontWeight.w700, color: LandingTheme.ink),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
@@ -303,7 +300,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Something went wrong',
-              style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700, color: LandingTheme.ink),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 6),
             Text(message, textAlign: TextAlign.center, style: LandingTheme.bodyMd),

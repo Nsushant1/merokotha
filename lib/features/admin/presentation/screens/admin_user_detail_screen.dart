@@ -417,9 +417,9 @@ class _Card extends StatelessWidget {
           child: Text(
             title,
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
+              letterSpacing: 0.8,
               color: AppColors.grey600,
             ),
           ),

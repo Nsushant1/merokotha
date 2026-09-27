@@ -6,6 +6,7 @@ import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
+import 'package:merokotha/core/theme/app_decorations.dart';
 import 'package:merokotha/shared/widgets/mk_section_title.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
@@ -34,7 +35,7 @@ class CustomerHomeScreen extends ConsumerWidget {
               // ── Header + Search ──
               SliverToBoxAdapter(
                 child: Container(
-                  color: Colors.white,
+                  decoration: AppDecorations.headerBand,
                   padding: const EdgeInsets.fromLTRB(
                     AppSizes.pagePadding,
                     20,
@@ -52,32 +53,27 @@ class CustomerHomeScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _greeting(),
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.grey400,
-                                    letterSpacing: 0.2,
+                                  _greeting().toUpperCase(),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primary,
+                                    letterSpacing: 1.2,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 6),
                                 userAsync.when(
                                   data: (u) => Text(
                                     u?.name.split(' ').first ?? 'MeroKotha',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.grey900,
-                                      height: 1.15,
-                                    ),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.displaySmall,
                                   ),
-                                  loading: () => const Text(
+                                  loading: () => Text(
                                     'MeroKotha',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.grey900,
-                                      height: 1.15,
-                                    ),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.displaySmall,
                                   ),
                                   error: (_, _) => const SizedBox.shrink(),
                                 ),
@@ -87,16 +83,15 @@ class CustomerHomeScreen extends ConsumerWidget {
                                     children: [
                                       const Icon(
                                         Icons.location_on_rounded,
-                                        size: 13,
+                                        size: 14,
                                         color: AppColors.customerPrimary,
                                       ),
-                                      const SizedBox(width: 3),
+                                      const SizedBox(width: 4),
                                       Text(
                                         u?.location ?? 'Kathmandu',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.grey400,
-                                        ),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
@@ -110,16 +105,13 @@ class CustomerHomeScreen extends ConsumerWidget {
                             children: [
                               // Notification bell
                               Container(
-                                width: 42,
-                                height: 42,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.grey50,
-                                  shape: BoxShape.circle,
-                                ),
+                                width: 44,
+                                height: 44,
+                                decoration: AppDecorations.iconWell(),
                                 child: const Icon(
                                   Icons.notifications_outlined,
                                   size: 20,
-                                  color: AppColors.grey600,
+                                  color: AppColors.grey800,
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -140,13 +132,13 @@ class CustomerHomeScreen extends ConsumerWidget {
                                     child: UserAvatar(
                                       name: u?.name ?? 'User',
                                       photoUrl: u?.photoUrl,
-                                      size: 36,
+                                      size: 38,
                                       backgroundColor: AppColors.customerLight,
                                     ),
                                   ),
                                 ),
                                 loading: () =>
-                                    const SizedBox(width: 42, height: 42),
+                                    const SizedBox(width: 44, height: 44),
                                 error: (_, _) => const SizedBox.shrink(),
                               ),
                             ],
@@ -154,52 +146,13 @@ class CustomerHomeScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      // Search bar
-                      GestureDetector(
+                      // Search bar — unified pattern
+                      MkSearchField.readOnly(
+                        hint: 'Search rooms, area, landmarks...',
                         onTap: () => context.push(AppRoutes.search),
-                        child: Container(
-                          height: 52,
-                          padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                          decoration: BoxDecoration(
-                            color: AppColors.backgroundSecondary,
-                            borderRadius:
-                                BorderRadius.circular(AppSizes.radiusFull),
-                            border: Border.all(color: AppColors.grey100),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.search_rounded,
-                                size: 20,
-                                color: AppColors.grey400,
-                              ),
-                              const SizedBox(width: 10),
-                              const Expanded(
-                                child: Text(
-                                  'Search rooms, area, landmarks...',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.grey400,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppColors.customerPrimary,
-                                  borderRadius: BorderRadius.circular(
-                                    AppSizes.radiusFull,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.tune_rounded,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                        suffix: MkSearchSuffixButton(
+                          icon: Icons.tune_rounded,
+                          onTap: () => context.push(AppRoutes.search),
                         ),
                       ),
                     ],
@@ -387,65 +340,21 @@ class _CategoryChipRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 36,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSizes.pagePadding),
-        children: [
-          _CatChip(
-            label: 'All',
-            active: selected == null,
-            onTap: () => onSelect(null),
-          ),
-          ..._roomTypeOptions.map(
-            (c) => _CatChip(
-              label: c.$2,
-              active: selected == c.$1,
-              onTap: () => onSelect(selected == c.$1 ? null : c.$1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CatChip extends StatelessWidget {
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  const _CatChip({
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: active ? AppColors.customerPrimary : Colors.white,
-          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-          border: Border.all(
-            color: active ? AppColors.customerPrimary : AppColors.grey100,
+    return MkChipRow(
+      children: [
+        MkChip(
+          label: 'All',
+          selected: selected == null,
+          onTap: () => onSelect(null),
+        ),
+        ..._roomTypeOptions.map(
+          (c) => MkChip(
+            label: c.$2,
+            selected: selected == c.$1,
+            onTap: () => onSelect(selected == c.$1 ? null : c.$1),
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-            color: active ? Colors.white : AppColors.grey600,
-          ),
-        ),
-      ),
+      ],
     );
   }
 }

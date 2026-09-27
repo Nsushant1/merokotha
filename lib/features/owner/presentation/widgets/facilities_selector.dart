@@ -44,11 +44,12 @@ class FacilitiesSelector extends StatelessWidget {
               onChanged(updated);
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppSizes.radiusFull),
                 border: Border.all(
                   color: isSelected ? AppColors.primary : AppColors.border,
+                  width: isSelected ? 1.6 : 1.2,
                 ),
               ),
               child: Row(
@@ -56,16 +57,16 @@ class FacilitiesSelector extends StatelessWidget {
                 children: [
                   Icon(
                     icon,
-                    size: 15,
+                    size: 16,
                     color: isSelected ? AppColors.primary : AppColors.grey600,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       color: isSelected ? AppColors.primary : AppColors.grey600,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                     ),
                   ),
                 ],

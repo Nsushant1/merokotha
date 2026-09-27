@@ -27,29 +27,45 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: size / 2,
-      backgroundColor: backgroundColor ?? AppColors.primaryLight,
-      child: photoUrl != null && photoUrl!.isNotEmpty
-          ? ClipOval(
-              child: CachedNetworkImage(
-                imageUrl: photoUrl!,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                placeholder: (_, _) => _initialsWidget,
-                errorWidget: (_, _, _) => _initialsWidget,
-              ),
-            )
-          : _initialsWidget,
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x141A1A18),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: CircleAvatar(
+        radius: size / 2,
+        backgroundColor: backgroundColor ?? AppColors.primaryLight,
+        child: photoUrl != null && photoUrl!.isNotEmpty
+            ? ClipOval(
+                child: CachedNetworkImage(
+                  imageUrl: photoUrl!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  placeholder: (_, _) => _initialsWidget,
+                  errorWidget: (_, _, _) => _initialsWidget,
+                ),
+              )
+            : _initialsWidget,
+      ),
     );
   }
 
   Widget get _initialsWidget => Text(
     _initials,
     style: TextStyle(
-      fontSize: size * 0.35,
-      fontWeight: FontWeight.w600,
+      fontSize: size * 0.34,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.2,
       color: AppColors.primary,
     ),
   );

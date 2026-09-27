@@ -47,78 +47,84 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
   Widget build(BuildContext context) {
     final signInState = ref.watch(googleSignInProvider);
 
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.pagePadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    'assets/merokotha.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Welcome to MeroKotha',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4,
-                  color: AppColors.grey900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Sign in to list rooms, save favourites, and chat with owners.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: AppColors.grey600,
-                  height: 1.5,
-                ),
-              ),
-              const Spacer(),
-              MkButton(
-                label: 'Continue with Google',
-                onPressed: signInState.isLoading ? null : _signInWithGoogle,
-                isLoading: signInState.isLoading,
-                prefixIcon: Icons.g_mobiledata_rounded,
-              ),
-              const SizedBox(height: 16),
-              if (signInState.errorMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.errorLight,
-                    borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                  ),
-                  child: Text(
-                    signInState.errorMessage!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.error,
-                      height: 1.4,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Spacer(),
+                  Container(
+                    width: 84,
+                    height: 84,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/merokotha.png',
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-              const SizedBox(height: 24),
-            ],
+                  const SizedBox(height: 28),
+                  Text(
+                    'Welcome to MeroKotha',
+                    textAlign: TextAlign.center,
+                    style: textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Sign in to list rooms, save favourites, and chat with owners.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: AppColors.grey600,
+                    ),
+                  ),
+                  const Spacer(),
+                  MkButton(
+                    label: 'Continue with Google',
+                    onPressed: signInState.isLoading ? null : _signInWithGoogle,
+                    isLoading: signInState.isLoading,
+                    prefixIcon: Icons.g_mobiledata_rounded,
+                  ),
+                  const SizedBox(height: 16),
+                  if (signInState.errorMessage != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorLight,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                        border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        signInState.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
           ),
         ),
       ),

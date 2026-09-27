@@ -39,22 +39,22 @@ class ChatInputBar extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Container(
-              constraints: const BoxConstraints(minHeight: 40),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              constraints: const BoxConstraints(minHeight: 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.backgroundSecondary,
-                borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                border: Border.all(color: AppColors.border, width: 1.2),
               ),
               child: TextField(
                 controller: controller,
                 maxLines: 4,
                 minLines: 1,
                 textCapitalization: TextCapitalization.sentences,
-                style: const TextStyle(fontSize: 14, color: AppColors.grey900),
-                decoration: const InputDecoration(
+                style: Theme.of(context).textTheme.bodyLarge,
+                decoration: InputDecoration(
                   hintText: 'Type a message...',
-                  hintStyle: TextStyle(fontSize: 14, color: AppColors.grey400),
+                  hintStyle: Theme.of(context).textTheme.bodyMedium,
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
@@ -107,23 +107,15 @@ class _RoundIconTap extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: shadow
-                ? const [
-                    BoxShadow(
-                      color: Color(0x331D9E75),
-                      blurRadius: 10,
-                      offset: Offset(0, 3),
-                    ),
-                  ]
-                : null,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: shadow ? AppSizes.shadowButton : null,
+            ),
+            child: Icon(icon, size: 19, color: iconColor),
           ),
-          child: Icon(icon, size: 19, color: iconColor),
-        ),
       ),
     );
   }

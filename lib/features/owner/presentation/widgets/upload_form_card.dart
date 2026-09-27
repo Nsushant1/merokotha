@@ -16,10 +16,11 @@ class UploadFormCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSizes.md),
+      padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: AppSizes.shadowCard,
       ),
       child: Column(
@@ -28,15 +29,16 @@ class UploadFormCard extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.1,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.2,
+              height: 1.3,
               color: AppColors.grey900,
             ),
           ),
           const SizedBox(height: 14),
           const Divider(height: 1, color: AppColors.border),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           ...children,
         ],
       ),
@@ -52,9 +54,10 @@ class UploadFormLabel extends StatelessWidget {
   Widget build(BuildContext context) => Text(
     text,
     style: const TextStyle(
-      fontSize: 13,
-      fontWeight: FontWeight.w500,
-      color: AppColors.grey800,
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.1,
+      color: AppColors.grey900,
     ),
   );
 }

@@ -27,61 +27,70 @@ class LoginSheet extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.radiusXl),
         boxShadow: AppSizes.shadowRaised,
       ),
-      padding: const EdgeInsets.fromLTRB(28, 16, 28, 32),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 36,
-              height: 4,
+              width: 40,
+              height: 5,
               decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
           ),
           const SizedBox(height: 24),
           Container(
-            width: 48,
-            height: 48,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.16),
+                width: 1,
+              ),
             ),
-            child: const Icon(Icons.key_rounded, color: AppColors.primary, size: 22),
+            child: const Icon(Icons.key_rounded, color: AppColors.primary, size: 24),
           ),
           const SizedBox(height: 20),
           Text(
             'Ready to Move In?',
             style: GoogleFonts.dmSans(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
               color: AppColors.grey900,
-              letterSpacing: -0.3,
+              letterSpacing: -0.5,
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             'Sign in to contact owners, save listings, and schedule viewings.',
-            style: GoogleFonts.dmSans(fontSize: 13.5, color: AppColors.grey600, height: 1.5),
+            style: GoogleFonts.dmSans(fontSize: 15, color: AppColors.grey600, height: 1.5),
           ),
           const SizedBox(height: 28),
           MkButton(
             label: 'Get Started',
             onPressed: () => context.go(AppRoutes.login),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Center(
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: Text(
-                'Maybe later',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.grey600,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  'Maybe later',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey600,
+                  ),
                 ),
               ),
             ),

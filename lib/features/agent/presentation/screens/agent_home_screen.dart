@@ -76,8 +76,8 @@ class AgentHomeScreen extends ConsumerWidget {
                                 child: Text(
                                   'Awaiting admin verification — you can browse rooms, posting unlocks after approval.',
                                   style: TextStyle(
-                                    fontSize: 13.5,
-                                    height: 1.4,
+                                    fontSize: 14,
+                                    height: 1.45,
                                     color: AppColors.grey800,
                                     fontWeight: FontWeight.w600,
                                   ),

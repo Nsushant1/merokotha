@@ -14,7 +14,7 @@ class MkMapButton extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.iconColor,
-    this.size = 42,
+    this.size = 44,
   });
 
   @override
@@ -27,14 +27,10 @@ class MkMapButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-            ),
-          ],
+          border: Border.all(color: AppColors.border, width: 1),
+          boxShadow: AppSizes.shadowCard,
         ),
-        child: Icon(icon, size: 20, color: iconColor ?? AppColors.grey800),
+        child: Icon(icon, size: 20, color: iconColor ?? AppColors.grey900),
       ),
     );
   }

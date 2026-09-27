@@ -65,37 +65,32 @@ class _OwnerCard extends StatelessWidget {
   const _OwnerCard({required this.name, required this.photoUrl});
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(AppSizes.md),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: AppColors.border),
-      borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-    ),
-    child: Row(
-      children: [
-        UserAvatar(name: name, photoUrl: photoUrl, size: 44),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.grey900,
-              ),
-            ),
-            const Text(
-              'House Owner',
-              style: TextStyle(fontSize: 12, color: AppColors.grey400),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSizes.cardPadding),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppColors.border, width: 1),
+        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        boxShadow: AppSizes.shadowCard,
+      ),
+      child: Row(
+        children: [
+          UserAvatar(name: name, photoUrl: photoUrl, size: 44),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, style: textTheme.titleSmall),
+              const SizedBox(height: 2),
+              Text('House Owner', style: textTheme.bodySmall),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Agent rendering — same layout, Agent badge instead of House Owner label.
@@ -105,49 +100,54 @@ class _AgentCard extends StatelessWidget {
   const _AgentCard({required this.name, required this.photoUrl});
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(AppSizes.md),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: AppColors.border),
-      borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-    ),
-    child: Row(
-      children: [
-        UserAvatar(name: name, photoUrl: photoUrl, size: 44),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.grey900,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.agentLight,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-                ),
-                child: const Text(
-                  'Agent',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.agentPrimary,
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSizes.cardPadding),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppColors.border, width: 1),
+        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        boxShadow: AppSizes.shadowCard,
+      ),
+      child: Row(
+        children: [
+          UserAvatar(name: name, photoUrl: photoUrl, size: 44),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.agentLight,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+                    border: Border.all(
+                      color: AppColors.agentPrimary.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Text(
+                    'Agent',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
+                      color: AppColors.agentPrimary,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }

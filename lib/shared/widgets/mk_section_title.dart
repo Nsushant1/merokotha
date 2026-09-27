@@ -9,7 +9,7 @@ class MkDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const Padding(
     padding: EdgeInsets.symmetric(vertical: AppSizes.md),
-    child: Divider(height: 1, color: AppColors.grey50),
+    child: Divider(height: 1, color: AppColors.border),
   );
 }
 
@@ -32,8 +32,10 @@ class MkSectionTitle extends StatelessWidget {
       return Text(
         text,
         style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.2,
+          height: 1.3,
           color: AppColors.grey900,
         ),
       );
@@ -43,19 +45,23 @@ class MkSectionTitle extends StatelessWidget {
       children: [
         Container(
           width: 4,
-          height: 20,
+          height: 22,
           decoration: BoxDecoration(
             color: accentColor ?? AppColors.primary,
             borderRadius: BorderRadius.circular(AppSizes.radiusFull),
           ),
         ),
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.grey900,
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+              height: 1.3,
+              color: AppColors.grey900,
+            ),
           ),
         ),
       ],

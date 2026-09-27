@@ -93,7 +93,7 @@ class AdminHomeScreen extends ConsumerWidget {
                               const Text(
                                 'Super Administrator',
                                 style: TextStyle(
-                                  fontSize: 12.5,
+                                  fontSize: 13,
                                   color: AppColors.grey400,
                                 ),
                               ),

@@ -20,7 +20,7 @@ class MkAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(56);
+  Size get preferredSize => const Size.fromHeight(60);
 
   @override
   Widget build(BuildContext context) {
@@ -30,20 +30,25 @@ class MkAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: false,
+      toolbarHeight: 60,
+      titleSpacing: 4,
       leading:
           leading ??
           (showBack && Navigator.canPop(context)
               ? Padding(
-                  padding: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.only(left: 12),
                   child: _RoundBackButton(onTap: onBack ?? () => Navigator.pop(context)),
                 )
               : null),
       title: Text(
         title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          fontSize: 18,
+          fontSize: 17,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
+          letterSpacing: -0.3,
+          height: 1.2,
           color: AppColors.grey900,
         ),
       ),
@@ -62,16 +67,25 @@ class _RoundBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.backgroundSecondary,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: const SizedBox(
-          width: 38,
-          height: 38,
-          child: Icon(Icons.arrow_back_ios_new_rounded, size: 17, color: AppColors.grey800),
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AppColors.backgroundSecondary,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: AppColors.grey900,
+          ),
         ),
       ),
     );

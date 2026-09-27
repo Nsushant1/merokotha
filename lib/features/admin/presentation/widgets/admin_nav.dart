@@ -49,7 +49,7 @@ class AdminBottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 60,
+          height: 68,
           child: Row(
             children: [
               for (var i = 0; i < _items.length; i++)
@@ -97,13 +97,14 @@ class _AdminNavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(selected ? activeIcon : icon, color: color, size: 23),
+            Icon(selected ? activeIcon : icon, color: color, size: 24),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                letterSpacing: 0.2,
                 color: color,
               ),
             ),
@@ -127,7 +128,7 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(56);
+  Size get preferredSize => const Size.fromHeight(60);
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +136,13 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: AdminColors.primary,
       foregroundColor: Colors.white,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
       centerTitle: false,
+      toolbarHeight: 60,
       leading: showBack
           ? Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.only(left: 12),
               child: Material(
                 color: AdminColors.surface,
                 shape: const CircleBorder(),
@@ -146,9 +150,9 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
                   customBorder: const CircleBorder(),
                   onTap: () => context.pop(),
                   child: const SizedBox(
-                    width: 38,
-                    height: 38,
-                    child: Icon(Icons.arrow_back_ios_new_rounded, size: 17, color: Colors.white),
+                    width: 40,
+                    height: 40,
+                    child: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.white),
                   ),
                 ),
               ),

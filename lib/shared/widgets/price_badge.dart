@@ -10,7 +10,7 @@ class PriceBadge extends StatelessWidget {
     super.key,
     required this.amount,
     this.showPerMonth = true,
-    this.fontSize = 15,
+    this.fontSize = 16,
   });
 
   @override
@@ -22,7 +22,8 @@ class PriceBadge extends StatelessWidget {
             text: 'NPR ${_format(amount)}',
             style: TextStyle(
               fontSize: fontSize,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
               color: AppColors.primary,
             ),
           ),
@@ -30,9 +31,9 @@ class PriceBadge extends StatelessWidget {
             TextSpan(
               text: '/mo',
               style: TextStyle(
-                fontSize: fontSize - 3,
-                fontWeight: FontWeight.w400,
-                color: AppColors.grey400,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.grey600,
               ),
             ),
         ],

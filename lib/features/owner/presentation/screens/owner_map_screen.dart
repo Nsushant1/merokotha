@@ -286,9 +286,9 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                         'Add a listing with a map pin and it will appear here.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 12.5,
-                          color: AppColors.grey400,
-                          height: 1.4,
+                          fontSize: 13,
+                          color: AppColors.grey600,
+                          height: 1.5,
                         ),
                       ),
                       const SizedBox(height: 16),

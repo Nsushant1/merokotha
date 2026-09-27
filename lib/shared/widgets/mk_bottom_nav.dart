@@ -38,7 +38,7 @@ class MkBottomNav extends StatelessWidget {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
         boxShadow: [
           BoxShadow(color: Color(0x0A1A1A18), blurRadius: 16, offset: Offset(0, -4)),
         ],
@@ -46,7 +46,7 @@ class MkBottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 60,
+          height: 68,
           child: Row(
             children: [
               for (var i = 0; i < items.length; i++)
@@ -92,6 +92,16 @@ class _NavTapTarget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 20,
+              height: 3,
+              margin: const EdgeInsets.only(bottom: 5),
+              decoration: BoxDecoration(
+                color: selected ? accentColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -101,26 +111,27 @@ class _NavTapTarget extends StatelessWidget {
                     selected ? item.activeIcon : item.icon,
                     key: ValueKey(selected),
                     color: color,
-                    size: 23,
+                    size: 24,
                   ),
                 ),
                 if (item.badgeCount > 0)
                   Positioned(
-                    top: -3,
-                    right: -8,
+                    top: -4,
+                    right: -10,
                     child: Container(
-                      padding: const EdgeInsets.all(3),
-                      constraints: const BoxConstraints(minWidth: 15, minHeight: 15),
-                      decoration: const BoxDecoration(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      decoration: BoxDecoration(
                         color: AppColors.error,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Colors.white, width: 1.5),
                       ),
                       child: Text(
                         item.badgeCount > 9 ? '9+' : '${item.badgeCount}',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           height: 1.1,
                         ),
@@ -133,8 +144,9 @@ class _NavTapTarget extends StatelessWidget {
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 180),
               style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                letterSpacing: 0.2,
                 color: color,
               ),
               child: Text(item.label),

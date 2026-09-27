@@ -53,12 +53,13 @@ class MkTextField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.grey800,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.1,
+            color: AppColors.grey900,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           validator: validator,
@@ -74,7 +75,11 @@ class MkTextField extends StatelessWidget {
           onTap: onTap,
           focusNode: focusNode,
           textInputAction: textInputAction,
-          style: const TextStyle(fontSize: 15, color: AppColors.grey900),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: AppColors.grey900,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon,
