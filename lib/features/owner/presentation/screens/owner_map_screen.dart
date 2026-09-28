@@ -195,7 +195,7 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                 const SizedBox(width: 10),
                 MkMapButton(
                   icon: Icons.add_location_alt_outlined,
-                  onTap: () => context.go(AppRoutes.uploadListing),
+                  onTap: () => context.push(AppRoutes.uploadListing),
                 ),
               ],
             ),

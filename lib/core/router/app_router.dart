@@ -39,21 +39,6 @@ import 'package:merokotha/features/admin/presentation/screens/admin_inquiries_sc
 
 part 'app_router.g.dart';
 
-/// System-back guard for pages that can end up as the bottom of the
-/// navigation stack (via `go`, the auth redirect, or a deep link).
-///
-/// - Pushed pages (a real back stack exists) pop normally.
-/// - A page already at its [home] allows the pop, so the OS exits the app.
-/// - A non-home page with no back stack goes to [home] instead of
-///   closing the app.
-bool _backToHome(BuildContext context, GoRouterState state, String home) {
-  final router = GoRouter.of(context);
-  if (router.canPop()) return true;
-  if (state.uri.path == home) return true;
-  router.go(home);
-  return false;
-}
-
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
   final authState = ref.watch(authStateProvider);
@@ -89,12 +74,7 @@ GoRouter appRouter(Ref ref) {
         builder: (_, _) => const LandingScreen(),
       ),
       GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashScreen()),
-      GoRoute(
-        path: AppRoutes.login,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.landing),
-        builder: (_, _) => const GoogleLoginScreen(),
-      ),
+      GoRoute(path: AppRoutes.login, builder: (_, _) => const GoogleLoginScreen()),
       GoRoute(
         path: AppRoutes.roleSelect,
         builder: (_, _) => const RoleSelectScreen(),
@@ -105,158 +85,105 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: AppRoutes.ownerHome,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.ownerHome),
         builder: (_, _) => const OwnerHomeScreen(),
       ),
       GoRoute(
         path: AppRoutes.uploadListing,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.ownerHome),
         builder: (_, state) =>
             UploadListingScreen(listing: state.extra as ListingModel?),
       ),
       GoRoute(
         path: AppRoutes.myListings,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.ownerHome),
         builder: (_, _) => const MyListingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.ownerInquiries,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.ownerHome),
         builder: (_, _) => const OwnerInquiriesScreen(),
       ),
       GoRoute(
         path: AppRoutes.ownerMap,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.ownerHome),
         builder: (_, _) => const OwnerMapScreen(),
       ),
       GoRoute(
         path: AppRoutes.ownerProfile,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.ownerHome),
         builder: (_, _) => const OwnerProfileScreen(),
       ),
       GoRoute(
         path: AppRoutes.customerHome,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.customerHome),
         builder: (_, _) => const CustomerHomeScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.search,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.customerHome),
-        builder: (_, _) => const SearchScreen(),
-      ),
+      GoRoute(path: AppRoutes.search, builder: (_, _) => const SearchScreen()),
       GoRoute(
         path: AppRoutes.customerMap,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.customerHome),
         builder: (_, _) => const CustomerMapScreen(),
       ),
       GoRoute(
         path: AppRoutes.favourites,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.customerHome),
         builder: (_, _) => const FavouritesScreen(),
       ),
       GoRoute(
         path: AppRoutes.customerProfile,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.customerHome),
         builder: (_, _) => const CustomerProfileScreen(),
       ),
       GoRoute(
         path: AppRoutes.roomDetail,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.customerHome),
         builder: (_, state) =>
             RoomDetailScreen(listingId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.inquire,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.customerHome),
         builder: (_, state) =>
             InquireScreen(listing: state.extra as ListingModel),
       ),
       GoRoute(
         path: AppRoutes.chatList,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.landing),
         builder: (_, _) => const ChatListScreen(),
       ),
       GoRoute(
         path: AppRoutes.chatThread,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.landing),
         builder: (_, state) =>
             ChatThreadScreen(chatId: state.pathParameters['chatId']!),
       ),
       GoRoute(
         path: AppRoutes.adminHome,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.adminHome),
         builder: (_, _) => const AdminHomeScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminUsers,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.adminHome),
         builder: (_, _) => const AdminUsersScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminListings,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.adminHome),
         builder: (_, _) => const AdminListingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminInquiries,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.adminHome),
         builder: (_, _) => const AdminInquiriesScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminUserDetail,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.adminHome),
         builder: (_, state) =>
             AdminUserDetailScreen(uid: state.pathParameters['uid']!),
       ),
       GoRoute(
         path: AppRoutes.agentHome,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.agentHome),
         builder: (_, _) => const AgentHomeScreen(),
       ),
       GoRoute(
         path: AppRoutes.agentUpload,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.agentHome),
         builder: (_, state) =>
             AgentUploadScreen(listing: state.extra as ListingModel?),
       ),
       GoRoute(
         path: AppRoutes.agentListings,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.agentHome),
         builder: (_, _) => const AgentListingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.agentInquiries,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.agentHome),
         builder: (_, _) => const AgentInquiriesScreen(),
       ),
       GoRoute(
         path: AppRoutes.agentProfile,
-        onExit: (context, state) =>
-            _backToHome(context, state, AppRoutes.agentHome),
         builder: (_, _) => const AgentProfileScreen(),
       ),
     ],

@@ -4,7 +4,7 @@ description: "MeroKotha - Find and list rental rooms in Nepal."
 publish_to: 'none' 
 
 sdk: ">=3.11.3 <4.0.0"
-version: 1.0.0+5
+version: 1.0.0+6
 
 environment:
   sdk: ^3.11.3

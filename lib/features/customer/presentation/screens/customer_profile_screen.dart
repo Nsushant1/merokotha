@@ -322,7 +322,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                         count: favIds.length,
                         countColor: AppColors.customerPrimary,
                         countBackgroundColor: AppColors.customerLight,
-                        onTap: () => context.go(AppRoutes.favourites),
+                        onTap: () => context.push(AppRoutes.favourites),
                         trailing: const Icon(
                           Icons.chevron_right_rounded,
                           size: 20,

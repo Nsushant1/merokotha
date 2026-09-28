@@ -7,6 +7,7 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/shared/widgets/app_back_scope.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
 
 class GoogleLoginScreen extends ConsumerStatefulWidget {
@@ -59,7 +60,11 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
     final signInState = ref.watch(googleSignInProvider);
 
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
+    // Back from login always returns to Landing (never closes the app),
+    // no matter how this page was reached (push, go, or auth redirect).
+    return AppBackScope(
+      homeRoute: AppRoutes.landing,
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
@@ -139,6 +144,6 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
