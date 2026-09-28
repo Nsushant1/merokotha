@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
+import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
@@ -20,26 +21,36 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
     final success = await ref.read(googleSignInProvider.notifier).signInWithGoogle();
     if (!success || !mounted) return;
 
-    final firebaseUser = ref.read(authStateProvider).value;
+    // Use the synchronous FirebaseAuth user, not the async stream provider
+    // value — authStateProvider may not have emitted yet, which previously
+    // caused a silent no-navigation after a successful sign-in.
+    final firebaseUser = ref.read(authRepositoryProvider).currentUser;
     if (firebaseUser == null) return;
 
-    final userExists = await ref.read(userRepositoryProvider).userExists(firebaseUser.uid);
-    if (!mounted) return;
-
-    if (!userExists) {
-      context.go(AppRoutes.roleSelect);
-    } else {
-      final user = await ref.read(userRepositoryProvider).getUser(firebaseUser.uid);
+    // Firestore/App Check failures here must not be mistaken for login
+    // failures; fall back to role selection so the user is not stuck.
+    try {
+      final userExists = await ref.read(userRepositoryProvider).userExists(firebaseUser.uid);
       if (!mounted) return;
-      if (user?.isAdmin == true) {
-        context.go(AppRoutes.adminHome);
-      } else if (user?.isAgent == true) {
-        context.go(AppRoutes.agentHome);
-      } else if (user?.isOwner == true) {
-        context.go(AppRoutes.ownerHome);
+
+      if (!userExists) {
+        context.go(AppRoutes.roleSelect);
       } else {
-        context.go(AppRoutes.customerHome);
+        final user = await ref.read(userRepositoryProvider).getUser(firebaseUser.uid);
+        if (!mounted) return;
+        if (user?.isAdmin == true) {
+          context.go(AppRoutes.adminHome);
+        } else if (user?.isAgent == true) {
+          context.go(AppRoutes.agentHome);
+        } else if (user?.isOwner == true) {
+          context.go(AppRoutes.ownerHome);
+        } else {
+          context.go(AppRoutes.customerHome);
+        }
       }
+    } catch (_) {
+      if (!mounted) return;
+      context.go(AppRoutes.roleSelect);
     }
   }
 

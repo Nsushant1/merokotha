@@ -21,7 +21,7 @@ service firebase.storage {
     // Is the caller a superAdmin? (used as a bypass for moderation)
     function isStorageAdmin() {
       return isAuth() &&
-        exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'superAdmin';
     }
 
@@ -30,7 +30,7 @@ service firebase.storage {
     // so the doc always exists at upload time)
     function isListingOwner(listingId) {
       return isAuth() &&
-        exists(/databases/(default)/documents/listings/$(listingId)) &&
+        firestore.exists(/databases/(default)/documents/listings/$(listingId)) &&
         firestore.get(/databases/(default)/documents/listings/$(listingId)).data.ownerId == request.auth.uid;
     }
 
@@ -38,7 +38,7 @@ service firebase.storage {
     // (chat thread screen only opens for existing chats)
     function isChatParticipant(chatId) {
       return isAuth() &&
-        exists(/databases/(default)/documents/chats/$(chatId)) && (
+        firestore.exists(/databases/(default)/documents/chats/$(chatId)) && (
         firestore.get(/databases/(default)/documents/chats/$(chatId)).data.ownerId == request.auth.uid ||
         firestore.get(/databases/(default)/documents/chats/$(chatId)).data.customerId == request.auth.uid);
     }

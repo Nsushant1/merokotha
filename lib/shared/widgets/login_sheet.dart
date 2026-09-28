@@ -75,7 +75,10 @@ class LoginSheet extends StatelessWidget {
           const SizedBox(height: 28),
           MkButton(
             label: 'Get Started',
-            onPressed: () => context.go(AppRoutes.login),
+            // Push (not go) so the login page sits on top of the current
+            // stack — system back returns to the previous screen instead
+            // of closing the app.
+            onPressed: () => context.push(AppRoutes.login),
           ),
           const SizedBox(height: 16),
           Center(

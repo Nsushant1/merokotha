@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/shared/models/user_model.dart';
@@ -59,12 +61,34 @@ class GoogleSignInNotifier extends _$GoogleSignInNotifier {
       state = state.copyWith(isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
+      debugPrint('GoogleSignIn failed [FirebaseAuthException ${e.code}]: ${e.message}');
       state = state.copyWith(
         isLoading: false,
         errorMessage: _mapFirebaseError(e.code),
       );
       return false;
-    } catch (_) {
+    } on PlatformException catch (e) {
+      // Play Store builds surface SHA/OAuth misconfiguration here as
+      // code=sign_in_failed, message="ApiException: 10: DEVELOPER_ERROR".
+      debugPrint('GoogleSignIn failed [PlatformException ${e.code}]: ${e.message}');
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _mapPlatformError(e.code, e.message),
+      );
+      return false;
+    } catch (e) {
+      debugPrint('GoogleSignIn failed [${e.runtimeType}]: $e');
+      final message = e.toString();
+      if (message.contains('ApiException: 10') ||
+          message.contains('DEVELOPER_ERROR')) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage:
+              'Google sign-in is misconfigured for this build (error 10). '
+              'The Play Store signing key is likely missing from Firebase.',
+        );
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Something went wrong. Please try again.',
@@ -80,7 +104,7 @@ class GoogleSignInNotifier extends _$GoogleSignInNotifier {
       case 'account-exists-with-different-credential':
         return 'An account already exists with the same email but different sign-in credentials.';
       case 'invalid-credential':
-        return 'Invalid sign-in credentials. Please try again.';
+        return 'Google sign-in failed (invalid credential). If this is the Play Store build, the Play signing key may not be registered in Firebase.';
       case 'user-disabled':
         return 'This account has been disabled.';
       case 'operation-not-allowed':
@@ -90,5 +114,20 @@ class GoogleSignInNotifier extends _$GoogleSignInNotifier {
       default:
         return 'Something went wrong. Please try again.';
     }
+  }
+
+  String _mapPlatformError(String code, String? message) {
+    final m = message ?? '';
+    if (m.contains('ApiException: 10') || m.contains('DEVELOPER_ERROR')) {
+      return 'Google sign-in is misconfigured for this build (error 10). '
+          'The Play Store signing key is likely missing from Firebase.';
+    }
+    if (m.contains('ApiException: 7') || code == 'network_error') {
+      return 'No internet connection. Please check your network and try again.';
+    }
+    if (code == 'sign_in_canceled' || code == 'sign_in_failed' && m.contains('12500')) {
+      return 'Sign-in was cancelled. Please try again.';
+    }
+    return 'Google sign-in failed ($code). Please try again.';
   }
 }

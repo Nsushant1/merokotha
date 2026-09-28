@@ -35,6 +35,24 @@ const _roomTypes = [
   ('other', 'Other'),
 ];
 
+/// Short actionable hint per Storage error code, shown next to the code.
+String _photoHint(String code) {
+  switch (code) {
+    case 'unauthorized':
+      return 'Check Storage rules / App Check enforcement.';
+    case 'bucket-not-found':
+    case 'project-not-found':
+      return 'Storage bucket may not be provisioned.';
+    case 'quota-exceeded':
+      return 'Storage quota exceeded.';
+    case 'canceled':
+    case 'retry-limit-exceeded':
+      return 'Network issue — please retry.';
+    default:
+      return 'Please try again.';
+  }
+}
+
 /// Agent posting flow: rooms are posted on behalf of an owner, so the
 /// real-owner name and phone are entered manually. The agent's own profile
 /// is shown publicly; owner contact stays hidden until an inquiry is
@@ -156,12 +174,29 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
     final storage = FirebaseStorage.instance;
     final urls = <String>[];
     for (var i = 0; i < _pickedImages.length; i++) {
-      final ref = storage.ref().child('listings/$listingId/image_$i.jpg');
-      final task = await ref.putFile(
-        _pickedImages[i],
-        SettableMetadata(contentType: 'image/jpeg'),
+      final file = _pickedImages[i];
+      if (!await file.exists()) {
+        debugPrint('Photo upload skipped: file no longer exists: ${file.path}');
+        continue;
+      }
+      try {
+        final ref = storage.ref().child('listings/$listingId/image_$i.jpg');
+        final task = await ref.putFile(
+          file,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+        urls.add(await task.ref.getDownloadURL());
+      } on FirebaseException catch (e) {
+        debugPrint('Photo upload failed for image $i [${e.code}]: ${e.message}');
+        rethrow;
+      }
+    }
+    if (urls.isEmpty) {
+      throw FirebaseException(
+        plugin: 'firebase_storage',
+        code: 'file-not-found',
+        message: 'No valid image files to upload.',
       );
-      urls.add(await task.ref.getDownloadURL());
     }
     return urls;
   }
@@ -227,7 +262,21 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
           await ref.read(agentRepositoryProvider).updateAgentListing(id, {
             'photoUrls': photoUrls,
           });
-        } catch (_) {
+        } on FirebaseException catch (e) {
+          debugPrint('Agent listing $id photo step failed [${e.code}]: ${e.message}');
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Listing saved, but photo upload failed (${e.code}). ${_photoHint(e.code)}',
+              ),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          context.go(AppRoutes.agentListings);
+          return;
+        } catch (e) {
+          debugPrint('Agent listing $id photo step failed: $e');
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -281,7 +330,21 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
           await ref.read(agentRepositoryProvider).updateAgentListing(listingId, {
             'photoUrls': photoUrls,
           });
-        } catch (_) {
+        } on FirebaseException catch (e) {
+          debugPrint('Agent listing $listingId photo update failed [${e.code}]: ${e.message}');
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Listing updated, but photo upload failed (${e.code}). ${_photoHint(e.code)}',
+              ),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          context.go(AppRoutes.agentListings);
+          return;
+        } catch (e) {
+          debugPrint('Agent listing $listingId photo update failed: $e');
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

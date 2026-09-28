@@ -33,6 +33,24 @@ const _roomTypes = [
   ('other', 'Other'),
 ];
 
+/// Short actionable hint per Storage error code, shown next to the code.
+String _photoHint(String code) {
+  switch (code) {
+    case 'unauthorized':
+      return 'Check Storage rules / App Check enforcement.';
+    case 'bucket-not-found':
+    case 'project-not-found':
+      return 'Storage bucket may not be provisioned.';
+    case 'quota-exceeded':
+      return 'Storage quota exceeded.';
+    case 'canceled':
+    case 'retry-limit-exceeded':
+      return 'Network issue — please retry.';
+    default:
+      return 'Please try again.';
+  }
+}
+
 class UploadListingScreen extends ConsumerStatefulWidget {
   final ListingModel? listing;
 
@@ -145,12 +163,33 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
     final storage = FirebaseStorage.instance;
     final urls = <String>[];
     for (var i = 0; i < _pickedImages.length; i++) {
-      final ref = storage.ref().child('listings/$listingId/image_$i.jpg');
-      final task = await ref.putFile(
-        _pickedImages[i],
-        SettableMetadata(contentType: 'image/jpeg'),
+      final file = _pickedImages[i];
+      if (!await file.exists()) {
+        debugPrint('Photo upload skipped: file no longer exists: ${file.path}');
+        continue;
+      }
+      final size = await file.length();
+      debugPrint('Uploading photo $i for listing $listingId (${(size / 1024).toStringAsFixed(0)} KB)');
+      try {
+        final ref = storage.ref().child('listings/$listingId/image_$i.jpg');
+        final task = await ref.putFile(
+          file,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+        urls.add(await task.ref.getDownloadURL());
+      } on FirebaseException catch (e) {
+        // Log the real code (unauthorized, bucket-not-found, etc.)
+        // instead of swallowing it — the caller surfaces e.code.
+        debugPrint('Photo upload failed for image $i [${e.code}]: ${e.message}');
+        rethrow;
+      }
+    }
+    if (urls.isEmpty) {
+      throw FirebaseException(
+        plugin: 'firebase_storage',
+        code: 'file-not-found',
+        message: 'No valid image files to upload.',
       );
-      urls.add(await task.ref.getDownloadURL());
     }
     return urls;
   }
@@ -215,7 +254,21 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           await ref.read(ownerRepositoryProvider).updateListing(id, {
             'photoUrls': photoUrls,
           });
-        } catch (_) {
+        } on FirebaseException catch (e) {
+          debugPrint('Owner listing $id photo step failed [${e.code}]: ${e.message}');
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Listing saved, but photo upload failed (${e.code}). ${_photoHint(e.code)}',
+              ),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          context.go(AppRoutes.myListings);
+          return;
+        } catch (e) {
+          debugPrint('Owner listing $id photo step failed: $e');
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -267,7 +320,21 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           await ref.read(ownerRepositoryProvider).updateListing(listingId, {
             'photoUrls': photoUrls,
           });
-        } catch (_) {
+        } on FirebaseException catch (e) {
+          debugPrint('Owner listing $listingId photo update failed [${e.code}]: ${e.message}');
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Listing updated, but photo upload failed (${e.code}). ${_photoHint(e.code)}',
+              ),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          context.go(AppRoutes.myListings);
+          return;
+        } catch (e) {
+          debugPrint('Owner listing $listingId photo update failed: $e');
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -291,8 +358,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final uploadState = ref.watch(uploadListingProvider);
-    final existingPhotos = widget.listing?.photoUrls ?? [];
+    final uploadState = ref.watch(uploadListingProvider);    final existingPhotos = widget.listing?.photoUrls ?? [];
     final locationSet =
         _pickedLocation != null || (_isEdit && widget.listing?.geoPoint != null);
 
