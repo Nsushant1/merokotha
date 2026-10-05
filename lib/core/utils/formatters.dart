@@ -8,6 +8,18 @@ class Formatters {
     return 'NPR ${formatter.format(amount)}';
   }
 
+  /// Full price value with thousands separators: 25000 -> 25,000.
+  /// Used everywhere a price is displayed (no K/L abbreviation).
+  static String amount(num value) {
+    return value
+        .toInt()
+        .toString()
+        .replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+  }
+
   static String date(DateTime date) {
     return DateFormat('dd MMM yyyy').format(date);
   }

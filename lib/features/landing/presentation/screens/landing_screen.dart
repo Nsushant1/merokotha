@@ -65,7 +65,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
 
             listingsAsync.when(
               loading: () => SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                 sliver: _isGrid ? const _GridSkeleton() : const _ListSkeleton(),
               ),
               error: (e, _) => SliverFillRemaining(hasScrollBody: false, child: _ErrorState(message: '$e')),
@@ -85,7 +85,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
 
                 final columns = MkBreakpoints.isMobile(context) ? 2 : 3;
                 return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                   sliver: _isGrid
                       ? SliverGrid(
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

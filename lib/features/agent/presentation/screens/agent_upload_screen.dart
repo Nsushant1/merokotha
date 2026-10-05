@@ -86,6 +86,10 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
   LatLng? _pickedLocation;
   final List<File> _pickedImages = [];
 
+  /// Guards the whole submit (validation → Firestore write → photo upload
+  /// → navigation) so rapid taps on Publish can only ever post once.
+  bool _isSubmitting = false;
+
   bool get _isEdit => widget.listing != null;
 
   @override
@@ -209,6 +213,8 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
   }
 
   Future<void> _submit() async {
+    // No matter how many times Publish is tapped, only one submit runs.
+    if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
     if (_resolvedGeoPoint == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -221,10 +227,15 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
     }
     FocusScope.of(context).unfocus();
 
-    if (_isEdit) {
-      await _submitEdit();
-    } else {
-      await _submitCreate();
+    setState(() => _isSubmitting = true);
+    try {
+      if (_isEdit) {
+        await _submitEdit();
+      } else {
+        await _submitCreate();
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -777,8 +788,8 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
 
               MkButton(
                 label: _isEdit ? 'Save changes' : AppStrings.publishListing,
-                onPressed: _submit,
-                isLoading: uploadState.isLoading,
+                onPressed: (_isSubmitting || uploadState.isLoading) ? null : _submit,
+                isLoading: uploadState.isLoading || _isSubmitting,
                 prefixIcon: _isEdit
                     ? Icons.save_rounded
                     : Icons.publish_rounded,

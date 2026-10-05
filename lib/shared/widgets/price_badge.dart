@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
+import 'package:merokotha/core/utils/formatters.dart';
 
 class PriceBadge extends StatelessWidget {
   final double amount;
@@ -41,9 +42,5 @@ class PriceBadge extends StatelessWidget {
     );
   }
 
-  String _format(double v) {
-    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
-    return v.toStringAsFixed(0);
-  }
+  String _format(double v) => Formatters.amount(v);
 }

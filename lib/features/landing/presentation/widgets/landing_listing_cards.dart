@@ -116,16 +116,16 @@ class LandingListCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: radius,
         child: Container(
-          height: 112,
-          padding: const EdgeInsets.all(10),
+          height: 136,
+          padding: const EdgeInsets.all(12),
           decoration: AppDecorations.card,
           child: Row(
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                 child: SizedBox(
-                  width: 92,
-                  height: 92,
+                  width: 112,
+                  height: 112,
                   child: listing.photoUrls.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: listing.photoUrls.first,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
+import 'package:merokotha/core/utils/formatters.dart';
 
 class PriceRangeSlider extends StatefulWidget {
   final double? minValue;
@@ -31,8 +32,7 @@ class _PriceRangeSliderState extends State<PriceRangeSlider> {
 
   String _label(double v) {
     if (v >= 100000) return 'Any';
-    if (v >= 1000) return 'NPR ${(v / 1000).toStringAsFixed(0)}K';
-    return 'NPR ${v.toStringAsFixed(0)}';
+    return 'NPR ${Formatters.amount(v)}';
   }
 
   @override

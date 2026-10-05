@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
+import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/widgets/mk_map_button.dart';
@@ -214,11 +215,7 @@ class _PriceMarker extends StatelessWidget {
 
   const _PriceMarker({required this.price, required this.isSelected});
 
-  String get _label {
-    if (price >= 100000) return 'NPR ${(price / 100000).toStringAsFixed(1)}L';
-    if (price >= 1000) return 'NPR ${(price / 1000).toStringAsFixed(0)}K';
-    return 'NPR ${price.toStringAsFixed(0)}';
-  }
+  String get _label => 'NPR ${Formatters.amount(price)}';
 
   @override
   Widget build(BuildContext context) {
