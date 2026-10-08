@@ -29,13 +29,16 @@ class AppSizes {
 
   // Shadows — soft, realistic, low-elevation (premium look, no harsh drop shadows)
   static const shadowCard = [
-    BoxShadow(color: Color(0x0F1A1A18), blurRadius: 20, offset: Offset(0, 6)),
+    BoxShadow(color: Color(0x12063B7A), blurRadius: 20, offset: Offset(0, 6)),
   ];
   static const shadowRaised = [
-    BoxShadow(color: Color(0x141A1A18), blurRadius: 24, offset: Offset(0, 10)),
+    BoxShadow(color: Color(0x14063B7A), blurRadius: 24, offset: Offset(0, 10)),
   ];
   static const shadowButton = [
-    BoxShadow(color: Color(0x2B1D9E75), blurRadius: 16, offset: Offset(0, 6)),
+    BoxShadow(color: Color(0x330757B8), blurRadius: 16, offset: Offset(0, 6)),
+  ];
+  static const shadowAccentButton = [
+    BoxShadow(color: Color(0x40FF1F2D), blurRadius: 16, offset: Offset(0, 6)),
   ];
 
   // Icon sizes

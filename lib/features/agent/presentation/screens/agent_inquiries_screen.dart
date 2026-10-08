@@ -291,7 +291,10 @@ class _AgentInquiryTab extends ConsumerWidget {
         contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
         title: const Text(
           'Decline inquiry',
-          style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.grey900),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.grey900,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -299,7 +302,11 @@ class _AgentInquiryTab extends ConsumerWidget {
           children: [
             const Text(
               'Optionally add a reason for the renter:',
-              style: TextStyle(fontSize: 13, color: AppColors.grey600, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.grey600,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 14),
             MkTextField(
@@ -316,7 +323,10 @@ class _AgentInquiryTab extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.grey600)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.grey600),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -332,7 +342,10 @@ class _AgentInquiryTab extends ConsumerWidget {
             },
             child: const Text(
               'Decline',
-              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -384,11 +397,7 @@ class _OwnerContactStripState extends ConsumerState<_OwnerContactStrip> {
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.key_rounded,
-                size: 16,
-                color: AppColors.info,
-              ),
+              const Icon(Icons.key_rounded, size: 16, color: AppColors.info),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

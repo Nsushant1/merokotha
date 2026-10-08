@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/theme/app_decorations.dart';
 
-/// Unified card primitive — every card in the app composes from this.
+/// Unified card primitive — every card composes from this.
 ///
-/// [MkCard]: plain tappable/static card (white, 20px radius, hairline,
-/// soft shadow). [MkSectionCard]: titled section with uppercase eyebrow
-/// label, hairline divider, and 20px body padding.
+/// [MkCard]: white 20px radius, hairline border, soft blue shadow.
+/// [MkSectionCard]: titled section with uppercase eyebrow + divider.
+/// [MkHeroCard]: blue→dark gradient with red wash (promo / headers).
+/// [MkSpecPill]: icon + label pill for room specs (3 Room / 2 Bath).
 class MkCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -71,15 +73,97 @@ class MkSectionCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title.toUpperCase(),
-                    style: textTheme.labelSmall?.copyWith(letterSpacing: 0.8),
+                    style: textTheme.labelSmall?.copyWith(
+                      letterSpacing: 0.8,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 ?trailing,
               ],
             ),
           ),
-          const Divider(height: 1),
-          Padding(padding: padding, child: Column(children: children)),
+          const Divider(height: 1, color: AppColors.border),
+          Padding(
+            padding: padding,
+            child: Column(children: children),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Gradient hero card (promo banners, empty-state headers).
+class MkHeroCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final VoidCallback? onTap;
+
+  const MkHeroCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(AppSizes.radiusLg);
+    final body = Container(
+      width: double.infinity,
+      padding: padding,
+      decoration: AppDecorations.promoBanner,
+      child: child,
+    );
+    if (onTap == null) return body;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: radius,
+      child: InkWell(onTap: onTap, borderRadius: radius, child: body),
+    );
+  }
+}
+
+/// Small spec pill: light-blue well with dark-blue icon + label.
+/// Used for room specs, nearby times, facility counts.
+class MkSpecPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color? background;
+  final Color? foreground;
+
+  const MkSpecPill({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.background,
+    this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: background ?? AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: foreground ?? AppColors.primaryDark),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: foreground ?? AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );

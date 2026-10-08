@@ -27,11 +27,20 @@ class AdminUserDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSizes.pagePadding),
             child: Column(
               children: [
-                ShimmerBox(height: 260, borderRadius: BorderRadius.circular(AppSizes.radiusLg)),
+                ShimmerBox(
+                  height: 260,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                ),
                 const SizedBox(height: 16),
-                ShimmerBox(height: 160, borderRadius: BorderRadius.circular(AppSizes.radiusLg)),
+                ShimmerBox(
+                  height: 160,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                ),
                 const SizedBox(height: 16),
-                ShimmerBox(height: 220, borderRadius: BorderRadius.circular(AppSizes.radiusLg)),
+                ShimmerBox(
+                  height: 220,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                ),
               ],
             ),
           ),

@@ -71,7 +71,7 @@ class ChatInputBar extends StatelessWidget {
               return _RoundIconTap(
                 onTap: onSend,
                 icon: Icons.send_rounded,
-                background: hasText ? AppColors.primary : AppColors.grey100,
+                background: hasText ? AppColors.accent : AppColors.grey100,
                 iconColor: Colors.white,
                 shadow: hasText,
               );
@@ -107,15 +107,15 @@ class _RoundIconTap extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: shadow ? AppSizes.shadowButton : null,
-            ),
-            child: Icon(icon, size: 19, color: iconColor),
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: shadow ? AppSizes.shadowButton : null,
           ),
+          child: Icon(icon, size: 19, color: iconColor),
+        ),
       ),
     );
   }

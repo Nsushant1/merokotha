@@ -34,7 +34,7 @@ class InquiryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.all(AppSizes.cardPadding),
+      padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
@@ -47,7 +47,7 @@ class InquiryCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 21,
+                radius: 24,
                 backgroundColor: AppColors.primaryLight,
                 backgroundImage: inquiry.customerPhotoUrl != null
                     ? NetworkImage(inquiry.customerPhotoUrl!)
@@ -69,10 +69,7 @@ class InquiryCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      inquiry.customerName,
-                      style: textTheme.titleSmall,
-                    ),
+                    Text(inquiry.customerName, style: textTheme.titleSmall),
                     const SizedBox(height: 2),
                     Text(
                       inquiry.listingTitle,
@@ -88,10 +85,10 @@ class InquiryCard extends StatelessWidget {
           ),
 
           if (inquiry.message.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.backgroundSecondary,
                 borderRadius: BorderRadius.circular(AppSizes.radiusSm),
@@ -107,7 +104,7 @@ class InquiryCard extends StatelessWidget {
           ],
 
           if (onAccept != null || onDecline != null || onOpenChat != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Row(
               children: [
                 if (onDecline != null) ...[
@@ -116,7 +113,7 @@ class InquiryCard extends StatelessWidget {
                       label: 'Decline',
                       onPressed: onDecline,
                       variant: MkButtonVariant.danger,
-                      height: 40,
+                      height: 44,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -126,7 +123,8 @@ class InquiryCard extends StatelessWidget {
                     child: MkButton(
                       label: 'Accept',
                       onPressed: onAccept,
-                      height: 40,
+                      variant: MkButtonVariant.blue,
+                      height: 44,
                     ),
                   ),
                 if (onOpenChat != null)
@@ -134,8 +132,9 @@ class InquiryCard extends StatelessWidget {
                     child: MkButton(
                       label: 'Open chat',
                       onPressed: onOpenChat,
+                      variant: MkButtonVariant.blue,
                       prefixIcon: Icons.chat_bubble_outline_rounded,
-                      height: 40,
+                      height: 44,
                     ),
                   ),
               ],

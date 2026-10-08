@@ -12,6 +12,7 @@ import 'package:merokotha/features/landing/presentation/widgets/landing_listing_
 import 'package:merokotha/features/landing/presentation/widgets/landing_search_bar.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_toggle_view.dart';
+import 'package:merokotha/shared/widgets/promo_banner_carousel.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
 class LandingScreen extends ConsumerStatefulWidget {
@@ -24,7 +25,7 @@ class LandingScreen extends ConsumerStatefulWidget {
 class _LandingScreenState extends ConsumerState<LandingScreen> {
   String _search = '';
   String? _category;
-  bool _isGrid = false;
+  bool _isGrid = true;
 
   @override
   Widget build(BuildContext context) {
@@ -33,31 +34,65 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: LandingTheme.bg,
+        backgroundColor: AppColors.backgroundSecondary,
         body: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
-              child: _LandingHeader(onSearchChanged: (v) => setState(() => _search = v.toLowerCase())),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(color: AppColors.border, width: 1),
+                  ),
+                ),
+                child: _LandingHeader(
+                  onSearchChanged: (v) =>
+                      setState(() => _search = v.toLowerCase()),
+                ),
+              ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+            // Promo banner — same reusable carousel as Customer Home,
+            // immediately below the search header. 3s auto-scroll.
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                child: PromoBannerCarousel(),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
             SliverToBoxAdapter(
-              child: LandingCategoryRow(selected: _category, onSelect: (c) => setState(() => _category = c)),
+              child: LandingCategoryRow(
+                selected: _category,
+                onSelect: (c) => setState(() => _category = c),
+              ),
             ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 16, 16),
+                padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('AVAILABLE ROOMS', style: LandingTheme.labelSm),
+                    const Text(
+                      'Featured Listings',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                     const Spacer(),
-                    LandingToggleView(isGrid: _isGrid, onToggle: () => setState(() => _isGrid = !_isGrid)),
+                    LandingToggleView(
+                      isGrid: _isGrid,
+                      onToggle: () => setState(() => _isGrid = !_isGrid),
+                    ),
                   ],
                 ),
               ),
@@ -65,13 +100,18 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
 
             listingsAsync.when(
               loading: () => SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                 sliver: _isGrid ? const _GridSkeleton() : const _ListSkeleton(),
               ),
-              error: (e, _) => SliverFillRemaining(hasScrollBody: false, child: _ErrorState(message: '$e')),
+              error: (e, _) => SliverFillRemaining(
+                hasScrollBody: false,
+                child: _ErrorState(message: '$e'),
+              ),
               data: (list) {
                 final listings = list.where((l) {
-                  final matchQ = _search.isEmpty || l.title.toLowerCase().contains(_search);
+                  final matchQ =
+                      _search.isEmpty ||
+                      l.title.toLowerCase().contains(_search);
                   final matchC = _category == null || l.roomType == _category;
                   return matchQ && matchC;
                 }).toList();
@@ -79,25 +119,37 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                 if (listings.isEmpty) {
                   return SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _EmptyState(hasFilters: _search.isNotEmpty || _category != null),
+                    child: _EmptyState(
+                      hasFilters: _search.isNotEmpty || _category != null,
+                    ),
                   );
                 }
 
-                final columns = MkBreakpoints.isMobile(context) ? 2 : 3;
+                final columns = MkBreakpoints.isDesktop(context)
+                    ? 3
+                    : MkBreakpoints.isTablet(context)
+                    ? 3
+                    : 2;
                 return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                   sliver: _isGrid
                       ? SliverGrid(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: columns,
-                            mainAxisSpacing: 14,
-                            crossAxisSpacing: 14,
-                            childAspectRatio: 0.72,
-                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                mainAxisSpacing: 14,
+                                crossAxisSpacing: 14,
+                                childAspectRatio: 0.72,
+                              ),
                           delegate: SliverChildBuilderDelegate(
                             (ctx, i) => LandingGridCard(
                               listing: listings[i],
-                              onTap: () => context.push(AppRoutes.roomDetail.replaceAll(':id', listings[i].id)),
+                              onTap: () => context.push(
+                                AppRoutes.roomDetail.replaceAll(
+                                  ':id',
+                                  listings[i].id,
+                                ),
+                              ),
                             ),
                             childCount: listings.length,
                           ),
@@ -108,7 +160,12 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: LandingListCard(
                                 listing: listings[i],
-                                onTap: () => context.push(AppRoutes.roomDetail.replaceAll(':id', listings[i].id)),
+                                onTap: () => context.push(
+                                  AppRoutes.roomDetail.replaceAll(
+                                    ':id',
+                                    listings[i].id,
+                                  ),
+                                ),
                               ),
                             ),
                             childCount: listings.length,
@@ -119,7 +176,9 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: _SignInCta(onTap: () => context.push(AppRoutes.login)),
+        bottomNavigationBar: _SignInCta(
+          onTap: () => context.push(AppRoutes.login),
+        ),
       ),
     );
   }
@@ -135,7 +194,7 @@ class _LandingHeader extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -143,28 +202,48 @@ class _LandingHeader extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.asset('assets/merokotha.png', width: 36, height: 36, fit: BoxFit.cover),
+                  child: Image.asset(
+                    'assets/merokotha.png',
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  'Mero Kotha',
-                  style: Theme.of(context).textTheme.titleLarge,
+                RichText(
+                  text: TextSpan(
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                    children: const [
+                      TextSpan(
+                        text: 'Mero ',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                      TextSpan(
+                        text: 'Kotha',
+                        style: TextStyle(color: AppColors.accent),
+                      ),
+                    ],
+                  ),
                 ),
                 const Spacer(),
                 _SignInChip(onTap: () => context.push(AppRoutes.login)),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 22),
             Text(
               'Find your next home.',
-              style: Theme.of(context).textTheme.displaySmall,
+              style: Theme.of(
+                context,
+              ).textTheme.displaySmall?.copyWith(color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(
               'Discover rooms, flats & apartments across Nepal.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             LandingSearchBar(onChanged: onSearchChanged),
           ],
         ),
@@ -211,27 +290,49 @@ class _SignInCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 14, 20, 14 + MediaQuery.paddingOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        14,
+        20,
+        14 + MediaQuery.paddingOf(context).bottom,
+      ),
       decoration: BoxDecoration(
-        color: LandingTheme.surface,
-        border: const Border(top: BorderSide(color: LandingTheme.hairline)),
+        color: Colors.white,
+        border: const Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 16, offset: const Offset(0, -4)),
+          BoxShadow(
+            color: AppColors.primaryDark.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
         ],
       ),
       child: SizedBox(
         height: AppSizes.buttonHeight,
         child: Material(
-          color: LandingTheme.accent,
           borderRadius: BorderRadius.circular(AppSizes.radiusMd),
           child: InkWell(
             borderRadius: BorderRadius.circular(AppSizes.radiusMd),
             onTap: onTap,
-            child: Center(
-              child: Text(
-                'Sign in to inquire',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: AppColors.accentGradient,
+                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x40FF1F2D),
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  'Get Started',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -257,9 +358,14 @@ class _EmptyState extends StatelessWidget {
             Container(
               width: 84,
               height: 84,
-              decoration: BoxDecoration(color: LandingTheme.bgWarm, borderRadius: BorderRadius.circular(24)),
+              decoration: BoxDecoration(
+                color: LandingTheme.bgWarm,
+                borderRadius: BorderRadius.circular(24),
+              ),
               child: Icon(
-                hasFilters ? Icons.search_off_rounded : Icons.home_work_outlined,
+                hasFilters
+                    ? Icons.search_off_rounded
+                    : Icons.home_work_outlined,
                 size: 38,
                 color: LandingTheme.accentMuted,
               ),
@@ -303,7 +409,11 @@ class _ErrorState extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 6),
-            Text(message, textAlign: TextAlign.center, style: LandingTheme.bodyMd),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: LandingTheme.bodyMd,
+            ),
           ],
         ),
       ),
@@ -334,7 +444,10 @@ class _GridSkeleton extends StatelessWidget {
             clipBehavior: Clip.hardEdge,
             child: Column(
               children: [
-                const Expanded(flex: 6, child: ShimmerBox(borderRadius: BorderRadius.zero)),
+                const Expanded(
+                  flex: 6,
+                  child: ShimmerBox(borderRadius: BorderRadius.zero),
+                ),
                 Expanded(
                   flex: 4,
                   child: Padding(
@@ -371,8 +484,8 @@ class _ListSkeleton extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: ShimmerLoading(
             child: Container(
-              height: 108,
-              padding: const EdgeInsets.all(8),
+              height: 152,
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: LandingTheme.surface,
                 borderRadius: BorderRadius.circular(LandingTheme.r),
@@ -380,8 +493,12 @@ class _ListSkeleton extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const ShimmerBox(width: 92, height: 92, borderRadius: BorderRadius.all(Radius.circular(12))),
-                  const SizedBox(width: 12),
+                  const ShimmerBox(
+                    width: 120,
+                    height: 124,
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),

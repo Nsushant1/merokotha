@@ -135,13 +135,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   Color get _accent => _isOwner
       ? AppColors.ownerPrimary
       : _isAgent
-          ? AppColors.agentPrimary
-          : AppColors.customerPrimary;
+      ? AppColors.agentPrimary
+      : AppColors.customerPrimary;
   Color get _accentLight => _isOwner
       ? AppColors.ownerLight
       : _isAgent
-          ? AppColors.agentLight
-          : AppColors.customerLight;
+      ? AppColors.agentLight
+      : AppColors.customerLight;
 
   @override
   Widget build(BuildContext context) {
@@ -239,8 +239,8 @@ class _HeaderPanel extends StatelessWidget {
     final chips = isOwner
         ? ['List for free', 'Reach tenants', 'Manage inquiries']
         : isAgent
-            ? ['Post for owners', 'Manage listings', 'Handle inquiries']
-            : ['Browse listings', 'Save favourites', 'Contact owners'];
+        ? ['Post for owners', 'Manage listings', 'Handle inquiries']
+        : ['Browse listings', 'Save favourites', 'Contact owners'];
 
     return Container(
       width: double.infinity,
@@ -266,8 +266,8 @@ class _HeaderPanel extends StatelessWidget {
                   isOwner
                       ? Icons.house_rounded
                       : isAgent
-                          ? Icons.badge_rounded
-                          : Icons.search_rounded,
+                      ? Icons.badge_rounded
+                      : Icons.search_rounded,
                   size: 13,
                   color: accent,
                 ),
@@ -276,8 +276,8 @@ class _HeaderPanel extends StatelessWidget {
                   isOwner
                       ? 'Room Owner'
                       : isAgent
-                          ? 'Agent'
-                          : 'Room Seeker',
+                      ? 'Agent'
+                      : 'Room Seeker',
                   style: GoogleFonts.dmSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -295,8 +295,8 @@ class _HeaderPanel extends StatelessWidget {
             isOwner
                 ? 'List your\nplace in minutes'
                 : isAgent
-                    ? 'Post rooms\nfor owners'
-                    : 'Find your\nperfect room',
+                ? 'Post rooms\nfor owners'
+                : 'Find your\nperfect room',
             style: GoogleFonts.dmSans(
               fontSize: 32,
               fontWeight: FontWeight.w800,

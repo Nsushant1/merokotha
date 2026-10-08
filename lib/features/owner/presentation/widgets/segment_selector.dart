@@ -26,7 +26,7 @@ class SegmentSelector<T> extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.only(right: isLast ? 0 : 8),
             child: Material(
-              color: isSelected ? AppColors.primaryLight : Colors.white,
+              color: isSelected ? AppColors.accent : Colors.white,
               borderRadius: BorderRadius.circular(AppSizes.radiusMd),
               child: InkWell(
                 onTap: () => onChanged(v),
@@ -36,7 +36,7 @@ class SegmentSelector<T> extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.border,
+                      color: isSelected ? AppColors.accent : AppColors.border,
                       width: isSelected ? 1.6 : 1.2,
                     ),
                   ),
@@ -45,8 +45,10 @@ class SegmentSelector<T> extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                      color: isSelected ? AppColors.primary : AppColors.grey600,
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                      color: isSelected ? Colors.white : AppColors.textPrimary,
                     ),
                   ),
                 ),

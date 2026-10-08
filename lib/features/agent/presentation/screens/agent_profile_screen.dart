@@ -59,7 +59,9 @@ class AgentProfileScreen extends ConsumerWidget {
       ),
     );
     if (confirm != true || !context.mounted) return;
-    await ref.read(userRepositoryProvider).updateRole(user.id, UserRole.customer);
+    await ref
+        .read(userRepositoryProvider)
+        .updateRole(user.id, UserRole.customer);
     if (context.mounted) context.go(AppRoutes.customerHome);
   }
 

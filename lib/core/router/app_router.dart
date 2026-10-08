@@ -36,6 +36,9 @@ import 'package:merokotha/features/admin/presentation/screens/admin_users_screen
 import 'package:merokotha/features/admin/presentation/screens/admin_user_detail_screen.dart';
 import 'package:merokotha/features/admin/presentation/screens/admin_listings_screen.dart';
 import 'package:merokotha/features/admin/presentation/screens/admin_inquiries_screen.dart';
+import 'package:merokotha/features/admin/presentation/screens/admin_ads_screen.dart';
+import 'package:merokotha/features/admin/presentation/screens/admin_ad_form_screen.dart';
+import 'package:merokotha/shared/models/ad_model.dart';
 
 part 'app_router.g.dart';
 
@@ -74,7 +77,10 @@ GoRouter appRouter(Ref ref) {
         builder: (_, _) => const LandingScreen(),
       ),
       GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashScreen()),
-      GoRoute(path: AppRoutes.login, builder: (_, _) => const GoogleLoginScreen()),
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (_, _) => const GoogleLoginScreen(),
+      ),
       GoRoute(
         path: AppRoutes.roleSelect,
         builder: (_, _) => const RoleSelectScreen(),
@@ -159,6 +165,14 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.adminInquiries,
         builder: (_, _) => const AdminInquiriesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAds,
+        builder: (_, _) => const AdminAdsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAdForm,
+        builder: (_, state) => AdminAdFormScreen(ad: state.extra as AdModel?),
       ),
       GoRoute(
         path: AppRoutes.adminUserDetail,

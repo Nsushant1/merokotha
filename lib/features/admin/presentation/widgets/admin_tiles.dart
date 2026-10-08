@@ -119,7 +119,11 @@ class AdminUserTile extends StatelessWidget {
                     onTap: onUnban!,
                   )
                 else if (!user.isBanned && !user.isAdmin && onBan != null)
-                  _SmallAction(label: 'Ban', color: AppColors.error, onTap: onBan!),
+                  _SmallAction(
+                    label: 'Ban',
+                    color: AppColors.error,
+                    onTap: onBan!,
+                  ),
                 const SizedBox(width: 2),
                 const Icon(
                   Icons.chevron_right_rounded,
@@ -198,7 +202,10 @@ class AdminListingTile extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          PriceBadge(amount: listing.rentPerMonth, fontSize: 12),
+                          PriceBadge(
+                            amount: listing.rentPerMonth,
+                            fontSize: 12,
+                          ),
                           const SizedBox(width: 8),
                           _statusBadge(listing.status),
                         ],

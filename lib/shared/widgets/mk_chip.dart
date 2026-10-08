@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/theme/app_decorations.dart';
 
-/// Single selectable pill used for ALL filter / category / facility chips
-/// across landing, search, upload, and inquiry filters.
+/// Selectable pill matching design.jpeg filter chips:
+/// unselected white with hairline border + dark text (40px tall),
+/// selected solid red gradient with white text + red shadow.
 class MkChip extends StatelessWidget {
   final String label;
   final bool selected;
@@ -29,26 +31,30 @@ class MkChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.radiusFull),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.center,
           decoration: selected
               ? AppDecorations.pillSelected
               : AppDecorations.pill(),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
                 Icon(
                   icon,
-                  size: 15,
-                  color: selected ? Colors.white : Theme.of(context).colorScheme.primary,
+                  size: 16,
+                  color: selected ? Colors.white : AppColors.primary,
                 ),
                 const SizedBox(width: 6),
               ],
               Text(
                 label,
                 style: textTheme.labelMedium?.copyWith(
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                  color: selected ? Colors.white : null,
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected ? Colors.white : AppColors.textPrimary,
                 ),
               ),
             ],
@@ -59,8 +65,7 @@ class MkChip extends StatelessWidget {
   }
 }
 
-/// Horizontal chip row with standardized 36–40px height, 8px gaps,
-/// and responsive page padding.
+/// Horizontal chip row with 40px height, 8px gaps, page padding.
 class MkChipRow extends StatelessWidget {
   final List<Widget> children;
 

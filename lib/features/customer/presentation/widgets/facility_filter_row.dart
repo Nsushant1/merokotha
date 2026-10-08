@@ -38,10 +38,10 @@ class FacilityFilterRow extends StatelessWidget {
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-              color: isOn ? AppColors.customerLight : Colors.white,
+              color: isOn ? AppColors.accentLight : Colors.white,
               borderRadius: BorderRadius.circular(AppSizes.radiusFull),
               border: Border.all(
-                color: isOn ? AppColors.customerPrimary : AppColors.grey100,
+                color: isOn ? AppColors.accent : AppColors.border,
               ),
             ),
             child: Row(
@@ -50,14 +50,14 @@ class FacilityFilterRow extends StatelessWidget {
                 Icon(
                   f.$3,
                   size: 14,
-                  color: isOn ? AppColors.customerPrimary : AppColors.grey400,
+                  color: isOn ? AppColors.accentDark : AppColors.grey400,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   f.$2,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isOn ? AppColors.customerPrimary : AppColors.grey600,
+                    color: isOn ? AppColors.accentDark : AppColors.grey600,
                     fontWeight: isOn ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),

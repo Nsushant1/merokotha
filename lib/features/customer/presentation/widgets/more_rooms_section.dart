@@ -48,10 +48,7 @@ class MoreRoomsSection extends ConsumerWidget {
                       style: textTheme.titleLarge,
                     ),
                   ),
-                  Text(
-                    '${listings.length} found',
-                    style: textTheme.bodySmall,
-                  ),
+                  Text('${listings.length} found', style: textTheme.bodySmall),
                 ],
               ),
 
@@ -157,10 +154,7 @@ class _RoomGridCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(
                             AppSizes.radiusSm,
                           ),
-                          border: Border.all(
-                            color: AppColors.border,
-                            width: 1,
-                          ),
+                          border: Border.all(color: AppColors.border, width: 1),
                         ),
                         child: Text(
                           listing.roomTypeLabel,
@@ -195,9 +189,7 @@ class _RoomGridCard extends StatelessWidget {
                                 ? Icons.favorite_rounded
                                 : Icons.favorite_border_rounded,
                             size: 16,
-                            color: isFav
-                                ? AppColors.error
-                                : AppColors.grey400,
+                            color: isFav ? AppColors.error : AppColors.grey400,
                           ),
                         ),
                       ),
@@ -301,13 +293,9 @@ class _RoomGridCard extends StatelessWidget {
   }
 
   Widget get _placeholder => Container(
-        color: AppColors.surfaceContainer,
-        child: const Center(
-          child: Icon(
-            Icons.home_outlined,
-            size: 28,
-            color: AppColors.grey200,
-          ),
-        ),
-      );
+    color: AppColors.surfaceContainer,
+    child: const Center(
+      child: Icon(Icons.home_outlined, size: 28, color: AppColors.grey200),
+    ),
+  );
 }

@@ -191,7 +191,9 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
         );
         urls.add(await task.ref.getDownloadURL());
       } on FirebaseException catch (e) {
-        debugPrint('Photo upload failed for image $i [${e.code}]: ${e.message}');
+        debugPrint(
+          'Photo upload failed for image $i [${e.code}]: ${e.message}',
+        );
         rethrow;
       }
     }
@@ -274,7 +276,9 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
             'photoUrls': photoUrls,
           });
         } on FirebaseException catch (e) {
-          debugPrint('Agent listing $id photo step failed [${e.code}]: ${e.message}');
+          debugPrint(
+            'Agent listing $id photo step failed [${e.code}]: ${e.message}',
+          );
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -338,11 +342,14 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
       if (_pickedImages.isNotEmpty) {
         try {
           final photoUrls = await _uploadImages(listingId);
-          await ref.read(agentRepositoryProvider).updateAgentListing(listingId, {
-            'photoUrls': photoUrls,
-          });
+          await ref.read(agentRepositoryProvider).updateAgentListing(
+            listingId,
+            {'photoUrls': photoUrls},
+          );
         } on FirebaseException catch (e) {
-          debugPrint('Agent listing $listingId photo update failed [${e.code}]: ${e.message}');
+          debugPrint(
+            'Agent listing $listingId photo update failed [${e.code}]: ${e.message}',
+          );
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -419,12 +426,16 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
     final uploadState = ref.watch(agentUploadProvider);
     final existingPhotos = widget.listing?.photoUrls ?? [];
     final locationSet =
-        _pickedLocation != null || (_isEdit && widget.listing?.geoPoint != null);
+        _pickedLocation != null ||
+        (_isEdit && widget.listing?.geoPoint != null);
 
     ref.listen(agentUploadProvider, (_, next) {
       if (next.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     });
@@ -536,7 +547,10 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: _roomType,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey400),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.grey400,
+                    ),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -554,7 +568,10 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
                       ),
                     ),
                     items: _roomTypes
@@ -757,8 +774,8 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
                             child: Text(
                               locationSet
                                   ? _pickedLocation != null
-                                      ? 'Pinned: ${_pickedLocation!.latitude.toStringAsFixed(4)}, ${_pickedLocation!.longitude.toStringAsFixed(4)}'
-                                      : 'Location already set — tap to update'
+                                        ? 'Pinned: ${_pickedLocation!.latitude.toStringAsFixed(4)}, ${_pickedLocation!.longitude.toStringAsFixed(4)}'
+                                        : 'Location already set — tap to update'
                                   : AppStrings.pinLocation,
                               style: TextStyle(
                                 fontSize: 14,
@@ -788,7 +805,9 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
 
               MkButton(
                 label: _isEdit ? 'Save changes' : AppStrings.publishListing,
-                onPressed: (_isSubmitting || uploadState.isLoading) ? null : _submit,
+                onPressed: (_isSubmitting || uploadState.isLoading)
+                    ? null
+                    : _submit,
                 isLoading: uploadState.isLoading || _isSubmitting,
                 prefixIcon: _isEdit
                     ? Icons.save_rounded

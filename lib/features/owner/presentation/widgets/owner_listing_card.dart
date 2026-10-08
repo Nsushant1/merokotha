@@ -95,7 +95,7 @@ class OwnerListingCard extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -109,9 +109,9 @@ class OwnerListingCard extends StatelessWidget {
                 Row(
                   children: [
                     const Icon(
-                      Icons.location_on_outlined,
+                      Icons.location_on_rounded,
                       size: 13,
-                      color: AppColors.grey400,
+                      color: AppColors.accent,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -129,9 +129,9 @@ class OwnerListingCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Rs ${listing.rentPerMonth.toStringAsFixed(0)}/mo',
+                      'Rs. ${listing.rentPerMonth.toStringAsFixed(0)}',
                       style: textTheme.titleSmall?.copyWith(
-                        color: AppColors.primary,
+                        color: AppColors.price,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -181,10 +181,7 @@ class _StatusMenuBtn extends StatelessWidget {
   final ListingModel listing;
   final void Function(ListingStatus) onStatusChange;
 
-  const _StatusMenuBtn({
-    required this.listing,
-    required this.onStatusChange,
-  });
+  const _StatusMenuBtn({required this.listing, required this.onStatusChange});
 
   @override
   Widget build(BuildContext context) {
@@ -204,8 +201,8 @@ class _StatusMenuBtn extends StatelessWidget {
         : Icons.play_circle_outline_rounded;
 
     return Container(
-      width: 28,
-      height: 28,
+      width: 34,
+      height: 34,
       decoration: BoxDecoration(
         color: iconColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
@@ -213,9 +210,9 @@ class _StatusMenuBtn extends StatelessWidget {
       child: PopupMenuButton<ListingStatus>(
         onSelected: onStatusChange,
         padding: EdgeInsets.zero,
-        iconSize: 16,
-        icon: Icon(icon, size: 16, color: iconColor),
-        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+        iconSize: 18,
+        icon: Icon(icon, size: 18, color: iconColor),
+        constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
         itemBuilder: (_) => [
           PopupMenuItem(
             value: isActive ? ListingStatus.paused : ListingStatus.active,
@@ -239,11 +236,11 @@ class _ImagePlaceholder extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: AppColors.grey50,
+      color: AppColors.primaryLight,
       child: const Icon(
         Icons.house_outlined,
         size: 48,
-        color: AppColors.grey400,
+        color: AppColors.primary,
       ),
     );
   }
@@ -273,8 +270,8 @@ class _IconBtn extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Icon(icon, size: 16, color: color),
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, size: 18, color: color),
           ),
         ),
       ),

@@ -5,4 +5,4 @@ export 'status_badge.dart';
 export 'mk_card.dart';
 export 'mk_chip.dart';
 export 'mk_search_field.dart';
-export 'mk_screen_header.dart';
+export 'promo_banner_carousel.dart';

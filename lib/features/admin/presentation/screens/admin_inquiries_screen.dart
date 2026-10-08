@@ -118,7 +118,7 @@ class _InquiryTab extends ConsumerWidget {
             return ListView.separated(
               padding: const EdgeInsets.all(AppSizes.pagePadding),
               itemCount: list.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (_, i) => _AdminInquiryCard(list[i]),
             );
           },
@@ -133,7 +133,7 @@ class _AdminInquiryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.md),
+      padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
@@ -149,9 +149,9 @@ class _AdminInquiryCard extends StatelessWidget {
               UserAvatar(
                 name: inquiry.customerName,
                 photoUrl: inquiry.customerPhotoUrl,
-                size: 36,
+                size: 40,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,7 +231,7 @@ class _AdminInquiryCard extends StatelessWidget {
           // Message preview
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.backgroundSecondary,
               borderRadius: BorderRadius.circular(AppSizes.radiusMd),

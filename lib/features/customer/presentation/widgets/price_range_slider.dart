@@ -62,10 +62,10 @@ class _PriceRangeSliderState extends State<PriceRangeSlider> {
         ),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            activeTrackColor: AppColors.customerPrimary,
-            inactiveTrackColor: AppColors.grey100,
-            thumbColor: AppColors.customerPrimary,
-            overlayColor: AppColors.customerLight,
+            activeTrackColor: AppColors.accent,
+            inactiveTrackColor: AppColors.grey200,
+            thumbColor: AppColors.accent,
+            overlayColor: AppColors.accentLight,
             trackHeight: 3,
           ),
           child: RangeSlider(

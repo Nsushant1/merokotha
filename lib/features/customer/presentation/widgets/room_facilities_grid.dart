@@ -24,19 +24,24 @@ class RoomFacilitiesGrid extends StatelessWidget {
     children: facilities.map((f) {
       final icon = _facilityIcons[f] ?? Icons.check_circle_outlined;
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.grey50,
+          color: AppColors.primaryLight,
           borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+          border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: AppColors.grey600),
-            const SizedBox(width: 5),
+            Icon(icon, size: 14, color: AppColors.primaryDark),
+            const SizedBox(width: 6),
             Text(
               f[0].toUpperCase() + f.substring(1),
-              style: const TextStyle(fontSize: 12, color: AppColors.grey600),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
           ],
         ),

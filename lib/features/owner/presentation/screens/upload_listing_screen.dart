@@ -175,7 +175,9 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
         continue;
       }
       final size = await file.length();
-      debugPrint('Uploading photo $i for listing $listingId (${(size / 1024).toStringAsFixed(0)} KB)');
+      debugPrint(
+        'Uploading photo $i for listing $listingId (${(size / 1024).toStringAsFixed(0)} KB)',
+      );
       try {
         final ref = storage.ref().child('listings/$listingId/image_$i.jpg');
         final task = await ref.putFile(
@@ -186,7 +188,9 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
       } on FirebaseException catch (e) {
         // Log the real code (unauthorized, bucket-not-found, etc.)
         // instead of swallowing it — the caller surfaces e.code.
-        debugPrint('Photo upload failed for image $i [${e.code}]: ${e.message}');
+        debugPrint(
+          'Photo upload failed for image $i [${e.code}]: ${e.message}',
+        );
         rethrow;
       }
     }
@@ -268,7 +272,9 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
             'photoUrls': photoUrls,
           });
         } on FirebaseException catch (e) {
-          debugPrint('Owner listing $id photo step failed [${e.code}]: ${e.message}');
+          debugPrint(
+            'Owner listing $id photo step failed [${e.code}]: ${e.message}',
+          );
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -334,7 +340,9 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
             'photoUrls': photoUrls,
           });
         } on FirebaseException catch (e) {
-          debugPrint('Owner listing $listingId photo update failed [${e.code}]: ${e.message}');
+          debugPrint(
+            'Owner listing $listingId photo update failed [${e.code}]: ${e.message}',
+          );
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -371,14 +379,19 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final uploadState = ref.watch(uploadListingProvider);    final existingPhotos = widget.listing?.photoUrls ?? [];
+    final uploadState = ref.watch(uploadListingProvider);
+    final existingPhotos = widget.listing?.photoUrls ?? [];
     final locationSet =
-        _pickedLocation != null || (_isEdit && widget.listing?.geoPoint != null);
+        _pickedLocation != null ||
+        (_isEdit && widget.listing?.geoPoint != null);
 
     ref.listen(uploadListingProvider, (_, next) {
       if (next.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     });
@@ -426,7 +439,10 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: _roomType,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey400),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.grey400,
+                    ),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -444,7 +460,10 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
                       ),
                     ),
                     items: _roomTypes
@@ -647,8 +666,8 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
                             child: Text(
                               locationSet
                                   ? _pickedLocation != null
-                                      ? 'Pinned: ${_pickedLocation!.latitude.toStringAsFixed(4)}, ${_pickedLocation!.longitude.toStringAsFixed(4)}'
-                                      : 'Location already set — tap to update'
+                                        ? 'Pinned: ${_pickedLocation!.latitude.toStringAsFixed(4)}, ${_pickedLocation!.longitude.toStringAsFixed(4)}'
+                                        : 'Location already set — tap to update'
                                   : AppStrings.pinLocation,
                               style: TextStyle(
                                 fontSize: 14,
@@ -678,7 +697,9 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
 
               MkButton(
                 label: _isEdit ? 'Save changes' : AppStrings.publishListing,
-                onPressed: (_isSubmitting || uploadState.isLoading) ? null : _submit,
+                onPressed: (_isSubmitting || uploadState.isLoading)
+                    ? null
+                    : _submit,
                 isLoading: uploadState.isLoading || _isSubmitting,
                 prefixIcon: _isEdit
                     ? Icons.save_rounded

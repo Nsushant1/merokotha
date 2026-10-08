@@ -20,10 +20,26 @@ class AdminBottomNav extends StatelessWidget {
   const AdminBottomNav({super.key, required this.currentIndex});
 
   static const _items = [
-    (icon: Icons.dashboard_outlined, active: Icons.dashboard_rounded, label: 'Dashboard'),
-    (icon: Icons.people_outline_rounded, active: Icons.people_rounded, label: 'Users'),
-    (icon: Icons.home_work_outlined, active: Icons.home_work_rounded, label: 'Listings'),
-    (icon: Icons.inbox_outlined, active: Icons.inbox_rounded, label: 'Inquiries'),
+    (
+      icon: Icons.dashboard_outlined,
+      active: Icons.dashboard_rounded,
+      label: 'Dashboard',
+    ),
+    (
+      icon: Icons.people_outline_rounded,
+      active: Icons.people_rounded,
+      label: 'Users',
+    ),
+    (
+      icon: Icons.home_work_outlined,
+      active: Icons.home_work_rounded,
+      label: 'Listings',
+    ),
+    (
+      icon: Icons.inbox_outlined,
+      active: Icons.inbox_rounded,
+      label: 'Inquiries',
+    ),
   ];
 
   void _onTap(BuildContext context, int i) {
@@ -152,7 +168,11 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
                   child: const SizedBox(
                     width: 40,
                     height: 40,
-                    child: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.white),
+                    child: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -167,7 +187,11 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: AdminColors.accent,
               borderRadius: BorderRadius.circular(AppSizes.radiusSm),
             ),
-            child: const Icon(Icons.shield_rounded, size: 16, color: AdminColors.primary),
+            child: const Icon(
+              Icons.shield_rounded,
+              size: 16,
+              color: AdminColors.primary,
+            ),
           ),
           const SizedBox(width: 10),
           Text(

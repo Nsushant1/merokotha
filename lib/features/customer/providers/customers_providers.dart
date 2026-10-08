@@ -31,8 +31,9 @@ class SearchFilterNotifier extends _$SearchFilterNotifier {
   @override
   SearchFilter build() => const SearchFilter();
 
-  void setQuery(String q) =>
-      state = state.copyWith(query: q.isEmpty ? null : q);
+  void setQuery(String q) => q.isEmpty
+      ? state = state.copyWith(clearQuery: true)
+      : state = state.copyWith(query: q);
 
   void setCategory({String? categoryL1Id}) {
     if (categoryL1Id == null) {
@@ -199,7 +200,7 @@ Future<List<ListingModel>> mapListings(Ref ref) {
 
 final similarListingsProvider =
     FutureProvider.family<List<ListingModel>, String>((ref, excludeId) {
-  return ref
-      .watch(listingsRepositoryProvider)
-      .getSimilarListings(excludeId);
-});
+      return ref
+          .watch(listingsRepositoryProvider)
+          .getSimilarListings(excludeId);
+    });

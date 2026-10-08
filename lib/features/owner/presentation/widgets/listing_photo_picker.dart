@@ -49,7 +49,10 @@ class ListingPhotoPicker extends StatelessWidget {
           child: images.isNotEmpty
               ? _NewImagesView(images: images)
               : existingPhotoUrl != null && existingPhotoCount > 0
-              ? _ExistingPreview(url: existingPhotoUrl!, count: existingPhotoCount)
+              ? _ExistingPreview(
+                  url: existingPhotoUrl!,
+                  count: existingPhotoCount,
+                )
               : const _EmptyPlaceholder(),
         ),
       ),
@@ -152,10 +155,7 @@ class _ExistingPreview extends StatelessWidget {
               width: 100,
               height: 100,
               color: AppColors.grey100,
-              child: const Icon(
-                Icons.house_outlined,
-                color: AppColors.grey400,
-              ),
+              child: const Icon(Icons.house_outlined, color: AppColors.grey400),
             ),
           ),
         ),

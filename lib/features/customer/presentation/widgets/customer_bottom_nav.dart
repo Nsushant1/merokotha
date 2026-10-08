@@ -6,6 +6,8 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/chat/providers/chat_providers.dart';
 import 'package:merokotha/shared/widgets/mk_bottom_nav.dart';
 
+// Index map: 0 = Home, 1 = Saved, 2 = + (search), 3 = Messages, 4 = Profile.
+// Matches design.jpeg: Home / Saved / + / Messages / Profile.
 class CustomerBottomNav extends ConsumerWidget {
   final int currentIndex;
   const CustomerBottomNav({super.key, required this.currentIndex});
@@ -16,7 +18,8 @@ class CustomerBottomNav extends ConsumerWidget {
 
     return MkBottomNav(
       currentIndex: currentIndex,
-      accentColor: AppColors.customerPrimary,
+      accentColor: AppColors.accent,
+      onCenterTap: () => context.push(AppRoutes.search),
       items: [
         const MkBottomNavItem(
           icon: Icons.home_outlined,
@@ -24,20 +27,20 @@ class CustomerBottomNav extends ConsumerWidget {
           label: 'Home',
         ),
         const MkBottomNavItem(
-          icon: Icons.search_outlined,
-          activeIcon: Icons.search_rounded,
-          label: 'Search',
+          icon: Icons.favorite_outline_rounded,
+          activeIcon: Icons.favorite_rounded,
+          label: 'Saved',
+        ),
+        const MkBottomNavItem(
+          icon: Icons.add_rounded,
+          activeIcon: Icons.add_rounded,
+          label: '+',
         ),
         MkBottomNavItem(
           icon: Icons.chat_bubble_outline_rounded,
           activeIcon: Icons.chat_bubble_rounded,
           label: 'Messages',
           badgeCount: unread,
-        ),
-        const MkBottomNavItem(
-          icon: Icons.favorite_outline_rounded,
-          activeIcon: Icons.favorite_rounded,
-          label: 'Saved',
         ),
         const MkBottomNavItem(
           icon: Icons.person_outline_rounded,
@@ -50,11 +53,9 @@ class CustomerBottomNav extends ConsumerWidget {
           case 0:
             context.push(AppRoutes.customerHome);
           case 1:
-            context.push(AppRoutes.search);
-          case 2:
-            context.push(AppRoutes.chatList);
-          case 3:
             context.push(AppRoutes.favourites);
+          case 3:
+            context.push(AppRoutes.chatList);
           case 4:
             context.push(AppRoutes.customerProfile);
         }

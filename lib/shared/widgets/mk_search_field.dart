@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 
-/// Unified search input — one visual pattern for landing, customer home,
-/// search, admin, and map screens.
-///
-/// [MkSearchField.readOnly]: fake button-style search (navigates on tap).
-/// [MkSearchField.editable]: real TextField bound to [onChanged].
+/// Search input matching design.jpeg: white 14px-radius card, hairline
+/// border, soft blue shadow, dark search icon, grey-blue hint.
 class MkSearchField extends StatelessWidget {
   final String hint;
   final ValueChanged<String>? onChanged;
@@ -37,30 +34,45 @@ class MkSearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final decoration = BoxDecoration(
-      color: AppColors.backgroundSecondary,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(AppSizes.radiusMd),
       border: Border.all(color: AppColors.border, width: 1.2),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0D063B7A),
+          blurRadius: 14,
+          offset: Offset(0, 5),
+        ),
+      ],
     );
 
-    final prefix = const Icon(
+    const prefix = Icon(
       Icons.search_rounded,
-      size: 20,
-      color: AppColors.grey400,
+      size: 21,
+      color: AppColors.textPrimary,
     );
 
     if (readOnly) {
       return GestureDetector(
         onTap: onTap,
         child: Container(
-          height: AppSizes.inputHeight,
-          padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+          height: 54,
+          padding: const EdgeInsets.fromLTRB(16, 0, 7, 0),
           decoration: decoration,
           child: Row(
             children: [
               prefix,
               const SizedBox(width: 10),
               Expanded(
-                child: Text(hint, style: textTheme.bodyMedium),
+                child: Text(
+                  hint,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textTertiary,
+                    fontSize: 14,
+                  ),
+                ),
               ),
               ?suffix,
             ],
@@ -70,7 +82,7 @@ class MkSearchField extends StatelessWidget {
     }
 
     return Container(
-      height: AppSizes.inputHeight,
+      height: 54,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: decoration,
       child: Row(
@@ -81,7 +93,10 @@ class MkSearchField extends StatelessWidget {
             child: TextField(
               controller: controller,
               onChanged: onChanged,
-              style: textTheme.bodyLarge,
+              style: textTheme.bodyLarge?.copyWith(
+                color: AppColors.textPrimary,
+                fontSize: 15,
+              ),
               decoration: InputDecoration(
                 hintText: hint,
                 border: InputBorder.none,
@@ -89,6 +104,10 @@ class MkSearchField extends StatelessWidget {
                 focusedBorder: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textTertiary,
+                ),
               ),
             ),
           ),
@@ -99,26 +118,36 @@ class MkSearchField extends StatelessWidget {
   }
 }
 
-/// Circular primary action suffix used inside [MkSearchField.readOnly]
-/// (e.g. the filter button on customer home).
+/// Red gradient circular filter button inside search (design.jpeg).
 class MkSearchSuffixButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const MkSearchSuffixButton({super.key, required this.icon, required this.onTap});
+  const MkSearchSuffixButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 38,
-        height: 38,
+        width: 40,
+        height: 40,
         decoration: const BoxDecoration(
-          color: AppColors.primary,
+          gradient: AppColors.accentGradient,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x40FF1F2D),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 17, color: Colors.white),
+        child: Icon(icon, size: 18, color: Colors.white),
       ),
     );
   }

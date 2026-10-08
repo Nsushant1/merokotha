@@ -21,11 +21,7 @@ class AppBackScope extends StatelessWidget {
   final String homeRoute;
   final Widget child;
 
-  const AppBackScope({
-    super.key,
-    required this.homeRoute,
-    required this.child,
-  });
+  const AppBackScope({super.key, required this.homeRoute, required this.child});
 
   @override
   Widget build(BuildContext context) {

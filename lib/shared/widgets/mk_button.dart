@@ -2,7 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 
-enum MkButtonVariant { primary, secondary, outline, ghost, danger }
+enum MkButtonVariant {
+  /// Main conversion CTA — red gradient (Get Started, Apply Filters,
+  /// Contact Owner, Publish, Send Inquiry). Matches design.jpeg.
+  primary,
+
+  /// Alias of [primary] kept for existing call sites.
+  accent,
+
+  /// Structural blue action (Accept, Open Chat, secondary flows).
+  blue,
+  secondary,
+  outline,
+  ghost,
+  danger,
+}
 
 class MkButton extends StatelessWidget {
   final String label;
@@ -31,7 +45,9 @@ class MkButton extends StatelessWidget {
 
     final spinnerColor = switch (variant) {
       MkButtonVariant.primary => Colors.white,
-      MkButtonVariant.danger => AppColors.error,
+      MkButtonVariant.accent => Colors.white,
+      MkButtonVariant.blue => Colors.white,
+      MkButtonVariant.danger => Colors.white,
       _ => AppColors.primary,
     };
 
@@ -39,7 +55,10 @@ class MkButton extends StatelessWidget {
         ? SizedBox(
             width: 19,
             height: 19,
-            child: CircularProgressIndicator(strokeWidth: 2.2, color: spinnerColor),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.2,
+              color: spinnerColor,
+            ),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
@@ -53,10 +72,17 @@ class MkButton extends StatelessWidget {
           );
 
     final size = Size(fullWidth ? double.infinity : 0, h);
-    const textStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2);
+    const textStyle = TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.2,
+    );
 
     switch (variant) {
       case MkButtonVariant.primary:
+      case MkButtonVariant.accent:
+        // Main CTA — brand red gradient. Matches every primary
+        // button in design.jpeg.
         return _TapScale(
           onTap: isLoading ? null : onPressed,
           child: Container(
@@ -66,11 +92,43 @@ class MkButton extends StatelessWidget {
               borderRadius: radius,
               gradient: onPressed == null && !isLoading
                   ? null
-                  : const LinearGradient(
-                      colors: [AppColors.primary, AppColors.primaryDark],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                  : AppColors.accentGradient,
+              color: onPressed == null && !isLoading ? AppColors.grey100 : null,
+              boxShadow: onPressed == null ? null : AppSizes.shadowAccentButton,
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                borderRadius: radius,
+                onTap: isLoading ? null : onPressed,
+                splashColor: Colors.white.withValues(alpha: 0.15),
+                highlightColor: Colors.white.withValues(alpha: 0.08),
+                child: Center(
+                  child: DefaultTextStyle(
+                    style: textStyle.copyWith(color: Colors.white),
+                    child: IconTheme(
+                      data: const IconThemeData(color: Colors.white),
+                      child: child,
                     ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+      case MkButtonVariant.blue:
+        // Structural blue action (Accept, secondary flows).
+        return _TapScale(
+          onTap: isLoading ? null : onPressed,
+          child: Container(
+            width: fullWidth ? double.infinity : null,
+            height: h,
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              gradient: onPressed == null && !isLoading
+                  ? null
+                  : AppColors.brandGradient,
               color: onPressed == null && !isLoading ? AppColors.grey100 : null,
               boxShadow: onPressed == null ? null : AppSizes.shadowButton,
             ),
@@ -103,7 +161,7 @@ class MkButton extends StatelessWidget {
             onPressed: isLoading ? null : onPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryLight,
-              foregroundColor: AppColors.primary,
+              foregroundColor: AppColors.primaryDark,
               disabledBackgroundColor: AppColors.grey50,
               shape: RoundedRectangleBorder(borderRadius: radius),
               elevation: 0,
@@ -120,7 +178,7 @@ class MkButton extends StatelessWidget {
           child: OutlinedButton(
             onPressed: isLoading ? null : onPressed,
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.grey900,
+              foregroundColor: AppColors.textPrimary,
               backgroundColor: Colors.white,
               side: const BorderSide(color: AppColors.borderStrong, width: 1.5),
               shape: RoundedRectangleBorder(borderRadius: radius),
@@ -146,15 +204,18 @@ class MkButton extends StatelessWidget {
         );
 
       case MkButtonVariant.danger:
+        // Destructive — solid brand red (Logout). White text for
+        // contrast, matching design.jpeg profile/logout button.
         return SizedBox(
           width: size.width,
           height: h,
           child: ElevatedButton(
             onPressed: isLoading ? null : onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.errorLight,
-              foregroundColor: AppColors.error,
-              disabledBackgroundColor: AppColors.grey50,
+              backgroundColor: AppColors.accent,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: AppColors.grey100,
+              disabledForegroundColor: AppColors.textTertiary,
               shape: RoundedRectangleBorder(borderRadius: radius),
               elevation: 0,
               textStyle: textStyle,

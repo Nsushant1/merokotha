@@ -7,8 +7,8 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/chat/providers/chat_providers.dart';
 import 'package:merokotha/shared/widgets/mk_bottom_nav.dart';
 
-// Index map: 0 = Home, 1 = Listings, 2 = Add, 3 = Messages, 4 = Profile
-
+// Index map: 0 = Home, 1 = Listings, 2 = + (Add), 3 = Messages, 4 = Profile.
+// Matches design.jpeg center + FAB.
 class OwnerBottomNav extends ConsumerWidget {
   final int currentIndex;
   const OwnerBottomNav({super.key, required this.currentIndex});
@@ -19,11 +19,12 @@ class OwnerBottomNav extends ConsumerWidget {
 
     return MkBottomNav(
       currentIndex: currentIndex,
-      accentColor: AppColors.ownerPrimary,
+      accentColor: AppColors.accent,
+      onCenterTap: () => context.push(AppRoutes.uploadListing),
       items: [
         const MkBottomNavItem(
-          icon: Icons.dashboard_outlined,
-          activeIcon: Icons.dashboard_rounded,
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home_rounded,
           label: 'Home',
         ),
         const MkBottomNavItem(
@@ -32,9 +33,9 @@ class OwnerBottomNav extends ConsumerWidget {
           label: 'Listings',
         ),
         const MkBottomNavItem(
-          icon: Icons.add_circle_outline_rounded,
-          activeIcon: Icons.add_circle_rounded,
-          label: 'Add',
+          icon: Icons.add_rounded,
+          activeIcon: Icons.add_rounded,
+          label: '+',
         ),
         MkBottomNavItem(
           icon: Icons.chat_bubble_outline_rounded,
@@ -54,8 +55,6 @@ class OwnerBottomNav extends ConsumerWidget {
             context.push(AppRoutes.ownerHome);
           case 1:
             context.push(AppRoutes.myListings);
-          case 2:
-            context.push(AppRoutes.uploadListing);
           case 3:
             context.push(AppRoutes.chatList);
           case 4:

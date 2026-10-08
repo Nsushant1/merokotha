@@ -1,5 +1,4 @@
 export 'listing_card.dart';
-export 'filter_chip_row.dart';
 export 'facility_filter_row.dart';
 export 'price_range_slider.dart';
 export 'inquiry_status_tracker.dart';

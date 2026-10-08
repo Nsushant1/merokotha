@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
+import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
@@ -45,17 +46,41 @@ class _RoomDetailSkeleton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               const SizedBox(height: 20),
-              ShimmerBox(height: 22, width: 220, borderRadius: BorderRadius.circular(4)),
+              ShimmerBox(
+                height: 22,
+                width: 220,
+                borderRadius: BorderRadius.circular(4),
+              ),
               const SizedBox(height: 10),
-              ShimmerBox(height: 14, width: 150, borderRadius: BorderRadius.circular(4)),
+              ShimmerBox(
+                height: 14,
+                width: 150,
+                borderRadius: BorderRadius.circular(4),
+              ),
               const SizedBox(height: 20),
-              ShimmerBox(height: 26, width: 130, borderRadius: BorderRadius.circular(4)),
+              ShimmerBox(
+                height: 26,
+                width: 130,
+                borderRadius: BorderRadius.circular(4),
+              ),
               const SizedBox(height: 24),
-              ShimmerBox(height: 14, width: double.infinity, borderRadius: BorderRadius.circular(4)),
+              ShimmerBox(
+                height: 14,
+                width: double.infinity,
+                borderRadius: BorderRadius.circular(4),
+              ),
               const SizedBox(height: 8),
-              ShimmerBox(height: 14, width: double.infinity, borderRadius: BorderRadius.circular(4)),
+              ShimmerBox(
+                height: 14,
+                width: double.infinity,
+                borderRadius: BorderRadius.circular(4),
+              ),
               const SizedBox(height: 8),
-              ShimmerBox(height: 14, width: 200, borderRadius: BorderRadius.circular(4)),
+              ShimmerBox(
+                height: 14,
+                width: 200,
+                borderRadius: BorderRadius.circular(4),
+              ),
             ],
           ),
         ),
@@ -108,105 +133,139 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
 
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(AppSizes.pagePadding),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  listing.title,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.grey900,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.customerLight,
-                                  borderRadius: BorderRadius.circular(
-                                    AppSizes.radiusFull,
-                                  ),
-                                ),
-                                child: Text(
-                                  listing.roomTypeLabel,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.customerPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            listing.title,
+                            style: const TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.4,
+                              height: 1.25,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                           const SizedBox(height: 8),
-
-                          if (listing.address != null)
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.location_on_outlined,
-                                  size: 14,
-                                  color: AppColors.grey400,
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    listing.address!,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.grey400,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          const SizedBox(height: 16),
-
                           Row(
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  PriceBadge(
-                                    amount: listing.rentPerMonth,
-                                    fontSize: 20,
-                                  ),
-
-                                ],
+                              ListingTypeBadge(
+                                label: listing.roomType == 'land'
+                                    ? 'For Sale'
+                                    : 'For Rent',
+                                forSale: listing.roomType == 'land',
                               ),
-                              const Spacer(),
+                              const SizedBox(width: 8),
+                              if (listing.address != null)
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on_rounded,
+                                        size: 14,
+                                        color: AppColors.accent,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          listing.address!,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                child: PriceBadge(
+                                  amount: listing.rentPerMonth,
+                                  fontSize: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    'Floor ${listing.floor}/${listing.totalFloors}',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.grey600,
-                                    ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.visibility_outlined,
+                                        size: 14,
+                                        color: AppColors.grey400,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${listing.viewCount} views',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.grey400,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    listing.furnishingLabel,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.grey600,
-                                    ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.access_time_rounded,
+                                        size: 14,
+                                        color: AppColors.grey400,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Listed ${Formatters.timeAgo(listing.createdAt)}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.grey400,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ],
                           ),
 
-                          MkDivider(),
+                          const SizedBox(height: 14),
+
+                          // Spec pills (design.jpeg: 3 Room / 2 Bathroom / 1 Parking).
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              MkSpecPill(
+                                icon: Icons.meeting_room_outlined,
+                                label: listing.roomTypeLabel,
+                              ),
+                              MkSpecPill(
+                                icon: Icons.layers_outlined,
+                                label:
+                                    'Floor ${listing.floor}/${listing.totalFloors}',
+                              ),
+                              MkSpecPill(
+                                icon: Icons.chair_outlined,
+                                label: listing.furnishingLabel,
+                              ),
+                            ],
+                          ),
+
+                          const MkDivider(),
 
                           RoomInfoRow(
                             icon: Icons.calendar_today_outlined,
@@ -246,7 +305,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                           MkDivider(),
 
                           if (listing.geoPoint != null) ...[
-                            MkSectionTitle('Location'),
+                            const MkSectionTitle('Location'),
                             const SizedBox(height: 10),
                             if (listing.nearbyLandmarks != null)
                               Padding(
@@ -256,7 +315,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                                     const Icon(
                                       Icons.near_me_outlined,
                                       size: 14,
-                                      color: AppColors.grey400,
+                                      color: AppColors.textTertiary,
                                     ),
                                     const SizedBox(width: 4),
                                     Expanded(
@@ -264,7 +323,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                                         listing.nearbyLandmarks!,
                                         style: const TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.grey400,
+                                          color: AppColors.textSecondary,
                                         ),
                                       ),
                                     ),
@@ -275,41 +334,42 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                               lat: listing.geoPoint!.latitude,
                               lng: listing.geoPoint!.longitude,
                             ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: OutlinedButton.icon(
+                                onPressed: () =>
+                                    context.push(AppRoutes.customerMap),
+                                icon: const Icon(
+                                  Icons.navigation_rounded,
+                                  size: 18,
+                                  color: AppColors.accent,
+                                ),
+                                label: const Text(
+                                  'Get Directions',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.accent,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                    color: AppColors.accent,
+                                    width: 1.5,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppSizes.radiusMd,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 20),
-                            MkDivider(),
+                            const MkDivider(),
                           ],
-
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.visibility_outlined,
-                                size: 14,
-                                color: AppColors.grey400,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${listing.viewCount} views',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.grey400,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Icon(
-                                Icons.access_time_rounded,
-                                size: 14,
-                                color: AppColors.grey400,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Listed ${Formatters.timeAgo(listing.createdAt)}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.grey400,
-                                ),
-                              ),
-                            ],
-                          ),
 
                           const SizedBox(height: 24),
                         ],
@@ -318,14 +378,10 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                   ),
 
                   SliverToBoxAdapter(
-                    child: MoreRoomsSection(
-                      excludeListingId: widget.listingId,
-                    ),
+                    child: MoreRoomsSection(excludeListingId: widget.listingId),
                   ),
 
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 120),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
 

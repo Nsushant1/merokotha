@@ -90,9 +90,9 @@ class _QuickActionButton extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.grey800,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: AppColors.grey800),
                   textAlign: TextAlign.center,
                 ),
               ],

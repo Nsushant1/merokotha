@@ -13,31 +13,70 @@ class MkDivider extends StatelessWidget {
   );
 }
 
-/// Bold section heading with optional accent bar on the left.
+/// Section heading matching design.jpeg: 17px w800 dark title left,
+/// optional blue "View All →" action right. Set [showAccent] for the
+/// 4px blue left bar variant used on dense feeds.
 class MkSectionTitle extends StatelessWidget {
   final String text;
   final bool showAccent;
   final Color? accentColor;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   const MkSectionTitle(
     this.text, {
     super.key,
     this.showAccent = false,
     this.accentColor,
+    this.actionLabel,
+    this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
+    final title = Text(
+      text,
+      style: const TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.3,
+        height: 1.3,
+        color: AppColors.textPrimary,
+      ),
+    );
+
+    final action = (actionLabel != null && onAction != null)
+        ? GestureDetector(
+            onTap: onAction,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  actionLabel!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 15,
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
+          )
+        : null;
+
     if (!showAccent) {
-      return Text(
-        text,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.2,
-          height: 1.3,
-          color: AppColors.grey900,
-        ),
+      if (action == null) return title;
+      return Row(
+        children: [
+          Expanded(child: title),
+          action,
+        ],
       );
     }
 
@@ -47,23 +86,13 @@ class MkSectionTitle extends StatelessWidget {
           width: 4,
           height: 22,
           decoration: BoxDecoration(
-            color: accentColor ?? AppColors.primary,
+            color: accentColor ?? AppColors.accent,
             borderRadius: BorderRadius.circular(AppSizes.radiusFull),
           ),
         ),
         const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
-              height: 1.3,
-              color: AppColors.grey900,
-            ),
-          ),
-        ),
+        Expanded(child: title),
+        ?action,
       ],
     );
   }

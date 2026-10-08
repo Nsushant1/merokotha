@@ -28,10 +28,7 @@ class OwnerGreeting extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          name.split(' ').first,
-          style: textTheme.displayMedium,
-        ),
+        Text(name.split(' ').first, style: textTheme.displayMedium),
       ],
     );
   }

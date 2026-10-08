@@ -9,9 +9,15 @@ class OwnerStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final active = listings.where((l) => l.status == ListingStatus.active).length;
-    final paused = listings.where((l) => l.status == ListingStatus.paused).length;
-    final rented = listings.where((l) => l.status == ListingStatus.rented).length;
+    final active = listings
+        .where((l) => l.status == ListingStatus.active)
+        .length;
+    final paused = listings
+        .where((l) => l.status == ListingStatus.paused)
+        .length;
+    final rented = listings
+        .where((l) => l.status == ListingStatus.rented)
+        .length;
 
     return Row(
       children: [

@@ -43,7 +43,11 @@ class RoomPhotoSection extends StatelessWidget {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         placeholder: (_, _) => ShimmerLoading(
-                          child: ShimmerBox(width: double.infinity, height: 268, borderRadius: BorderRadius.zero),
+                          child: ShimmerBox(
+                            width: double.infinity,
+                            height: 268,
+                            borderRadius: BorderRadius.zero,
+                          ),
                         ),
                         errorWidget: (_, _, _) => _placeholder,
                       ),
@@ -79,7 +83,10 @@ class RoomPhotoSection extends StatelessWidget {
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
           left: 26,
-          child: _CircleBtn(icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
+          child: _CircleBtn(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: onBack,
+          ),
         ),
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,

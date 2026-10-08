@@ -149,10 +149,12 @@ class _FormView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(AppSizes.md),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.customerLight,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                border: Border.all(color: AppColors.border),
+                boxShadow: AppSizes.shadowCard,
               ),
               child: Row(
                 children: [
@@ -161,20 +163,24 @@ class _FormView extends StatelessWidget {
                     child: listing.photoUrls.isNotEmpty
                         ? CachedNetworkImage(
                             imageUrl: listing.photoUrls.first,
-                            width: 60,
-                            height: 60,
+                            width: 64,
+                            height: 64,
                             fit: BoxFit.cover,
                             placeholder: (_, _) => ShimmerLoading(
-                              child: ShimmerBox(width: 60, height: 60, borderRadius: BorderRadius.zero),
+                              child: ShimmerBox(
+                                width: 64,
+                                height: 64,
+                                borderRadius: BorderRadius.zero,
+                              ),
                             ),
                           )
                         : Container(
-                            width: 60,
-                            height: 60,
-                            color: AppColors.grey100,
+                            width: 64,
+                            height: 64,
+                            color: AppColors.primaryLight,
                             child: const Icon(
                               Icons.home_outlined,
-                              color: AppColors.grey400,
+                              color: AppColors.primary,
                             ),
                           ),
                   ),
@@ -186,9 +192,9 @@ class _FormView extends StatelessWidget {
                         Text(
                           listing.title,
                           style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.grey900,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -207,32 +213,40 @@ class _FormView extends StatelessWidget {
             const Text(
               'Preferred move-in date',
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.grey800,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             GestureDetector(
               onTap: onPickDate,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
+                  horizontal: 16,
+                  vertical: 16,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                  border: Border.all(color: AppColors.grey100),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 18,
-                      color: AppColors.customerPrimary,
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 18,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Text(
                       Formatters.date(moveInDate),
                       style: const TextStyle(

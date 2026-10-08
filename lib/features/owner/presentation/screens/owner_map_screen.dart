@@ -219,7 +219,11 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                       color: AppColors.ownerPrimary,
                       borderRadius: BorderRadius.circular(AppSizes.radiusFull),
                       boxShadow: const [
-                        BoxShadow(color: Color(0x331D9E75), blurRadius: 12, offset: Offset(0, 4)),
+                        BoxShadow(
+                          color: Color(0x331D9E75),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
                       ],
                     ),
                     child: Text(
@@ -372,7 +376,9 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                           const SizedBox(height: 4),
                           PriceBadge(amount: _selectedListing!.rentPerMonth),
                           const SizedBox(height: 4),
-                          StatusBadge.fromListingStatus(_selectedListing!.status),
+                          StatusBadge.fromListingStatus(
+                            _selectedListing!.status,
+                          ),
                         ],
                       ),
                     ),
@@ -385,7 +391,6 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
       bottomNavigationBar: const OwnerBottomNav(currentIndex: 4),
     );
   }
-
 }
 
 class _TrianglePainter extends CustomPainter {
@@ -406,4 +411,3 @@ class _TrianglePainter extends CustomPainter {
   @override
   bool shouldRepaint(_TrianglePainter old) => old.color != color;
 }
-

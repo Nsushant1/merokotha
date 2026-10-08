@@ -316,7 +316,11 @@ class _ListingPreviewCard extends StatelessWidget {
                       height: 76,
                       fit: BoxFit.cover,
                       placeholder: (_, _) => ShimmerLoading(
-                        child: ShimmerBox(width: 76, height: 76, borderRadius: BorderRadius.zero),
+                        child: ShimmerBox(
+                          width: 76,
+                          height: 76,
+                          borderRadius: BorderRadius.zero,
+                        ),
                       ),
                       errorWidget: (_, _, _) => _imgPlaceholder,
                     )
@@ -406,4 +410,3 @@ class _ListingPreviewCard extends StatelessWidget {
     child: const Icon(Icons.image_outlined, color: AppColors.grey100, size: 28),
   );
 }
-

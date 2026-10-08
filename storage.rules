@@ -115,6 +115,22 @@ service firebase.storage {
 
 
     // ────────────────────────────────────────────────────────────
+    // AD BANNERS
+    // Path: ads/{fileName}
+    // ────────────────────────────────────────────────────────────
+
+    match /ads/{fileName} {
+
+      // Public so landing page can show banners to logged-out visitors
+      allow read: if true;
+
+      // Only superAdmin can upload/delete banner images
+      allow create, update: if isStorageAdmin() && isValidImage();
+      allow delete: if isStorageAdmin();
+    }
+
+
+    // ────────────────────────────────────────────────────────────
     // CATCH-ALL DENY
     // Anything not matched above is denied
     // ────────────────────────────────────────────────────────────

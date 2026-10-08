@@ -34,7 +34,7 @@ class FacilitiesSelector extends StatelessWidget {
         final (label, icon) = option;
         final isSelected = selected.contains(label);
         return Material(
-          color: isSelected ? AppColors.primaryLight : Colors.white,
+          color: isSelected ? AppColors.accentLight : Colors.white,
           borderRadius: BorderRadius.circular(AppSizes.radiusFull),
           child: InkWell(
             borderRadius: BorderRadius.circular(AppSizes.radiusFull),
@@ -48,7 +48,7 @@ class FacilitiesSelector extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppSizes.radiusFull),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
+                  color: isSelected ? AppColors.accent : AppColors.border,
                   width: isSelected ? 1.6 : 1.2,
                 ),
               ),
@@ -58,15 +58,21 @@ class FacilitiesSelector extends StatelessWidget {
                   Icon(
                     icon,
                     size: 16,
-                    color: isSelected ? AppColors.primary : AppColors.grey600,
+                    color: isSelected
+                        ? AppColors.accentDark
+                        : AppColors.textTertiary,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     label,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isSelected ? AppColors.primary : AppColors.grey600,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.accentDark
+                          : AppColors.textSecondary,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                     ),
                   ),
                 ],

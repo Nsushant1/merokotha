@@ -39,7 +39,7 @@ class OwnerHomeScreen extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        color: AppColors.primary,
+        color: AppColors.accent,
         onRefresh: () async {
           ref.invalidate(ownerListingsProvider);
           ref.invalidate(pendingInquiryCountProvider);
@@ -183,51 +183,30 @@ class OwnerHomeScreen extends ConsumerWidget {
                 }
 
                 return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final l = listings[index];
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSizes.pagePadding,
-                          0,
-                          AppSizes.pagePadding,
-                          12,
-                        ),
-                        child: OwnerListingCard(
-                          listing: l,
-                          onStatusChange: (status) => ref
-                              .read(listingStatusProvider.notifier)
-                              .toggle(l.id, status),
-                          onDelete: () => _confirmDelete(context, ref, l),
-                        ),
-                      );
-                    },
-                    childCount: listings.take(3).length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final l = listings[index];
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSizes.pagePadding,
+                        0,
+                        AppSizes.pagePadding,
+                        12,
+                      ),
+                      child: OwnerListingCard(
+                        listing: l,
+                        onStatusChange: (status) => ref
+                            .read(listingStatusProvider.notifier)
+                            .toggle(l.id, status),
+                        onDelete: () => _confirmDelete(context, ref, l),
+                      ),
+                    );
+                  }, childCount: listings.take(3).length),
                 );
               },
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.uploadListing),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-        ),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          'Add listing',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.1,
-            fontSize: 14,
-          ),
         ),
       ),
       bottomNavigationBar: const OwnerBottomNav(currentIndex: 0),
@@ -291,10 +270,7 @@ class _NotificationBell extends StatelessWidget {
   final AsyncValue<int> pendingCount;
   final VoidCallback onTap;
 
-  const _NotificationBell({
-    required this.pendingCount,
-    required this.onTap,
-  });
+  const _NotificationBell({required this.pendingCount, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -487,14 +463,16 @@ class _ListingsSkeleton extends StatelessWidget {
                             ShimmerBox(
                               height: 16,
                               width: 80,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(4),
+                              ),
                             ),
                             ShimmerBox(
                               height: 28,
                               width: 120,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(4)),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(4),
+                              ),
                             ),
                           ],
                         ),

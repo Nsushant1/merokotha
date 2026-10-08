@@ -27,10 +27,7 @@ class GoogleSignInState {
   final bool isLoading;
   final String? errorMessage;
 
-  const GoogleSignInState({
-    this.isLoading = false,
-    this.errorMessage,
-  });
+  const GoogleSignInState({this.isLoading = false, this.errorMessage});
 
   GoogleSignInState copyWith({
     bool? isLoading,
@@ -53,7 +50,9 @@ class GoogleSignInNotifier extends _$GoogleSignInNotifier {
     if (state.isLoading) return false;
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final credential = await ref.read(authRepositoryProvider).signInWithGoogle();
+      final credential = await ref
+          .read(authRepositoryProvider)
+          .signInWithGoogle();
       if (credential == null) {
         state = state.copyWith(isLoading: false);
         return false;
@@ -61,7 +60,9 @@ class GoogleSignInNotifier extends _$GoogleSignInNotifier {
       state = state.copyWith(isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
-      debugPrint('GoogleSignIn failed [FirebaseAuthException ${e.code}]: ${e.message}');
+      debugPrint(
+        'GoogleSignIn failed [FirebaseAuthException ${e.code}]: ${e.message}',
+      );
       state = state.copyWith(
         isLoading: false,
         errorMessage: _mapFirebaseError(e.code),
@@ -70,7 +71,9 @@ class GoogleSignInNotifier extends _$GoogleSignInNotifier {
     } on PlatformException catch (e) {
       // Play Store builds surface SHA/OAuth misconfiguration here as
       // code=sign_in_failed, message="ApiException: 10: DEVELOPER_ERROR".
-      debugPrint('GoogleSignIn failed [PlatformException ${e.code}]: ${e.message}');
+      debugPrint(
+        'GoogleSignIn failed [PlatformException ${e.code}]: ${e.message}',
+      );
       state = state.copyWith(
         isLoading: false,
         errorMessage: _mapPlatformError(e.code, e.message),
@@ -125,7 +128,8 @@ class GoogleSignInNotifier extends _$GoogleSignInNotifier {
     if (m.contains('ApiException: 7') || code == 'network_error') {
       return 'No internet connection. Please check your network and try again.';
     }
-    if (code == 'sign_in_canceled' || code == 'sign_in_failed' && m.contains('12500')) {
+    if (code == 'sign_in_canceled' ||
+        code == 'sign_in_failed' && m.contains('12500')) {
       return 'Sign-in was cancelled. Please try again.';
     }
     return 'Google sign-in failed ($code). Please try again.';

@@ -259,7 +259,10 @@ class _InquiryTab extends ConsumerWidget {
         contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
         title: const Text(
           'Decline inquiry',
-          style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.grey900),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.grey900,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -267,7 +270,11 @@ class _InquiryTab extends ConsumerWidget {
           children: [
             const Text(
               'Optionally add a reason for the renter:',
-              style: TextStyle(fontSize: 13, color: AppColors.grey600, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.grey600,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 14),
             MkTextField(
@@ -284,7 +291,10 @@ class _InquiryTab extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.grey600)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.grey600),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -300,7 +310,10 @@ class _InquiryTab extends ConsumerWidget {
             },
             child: const Text(
               'Decline',
-              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

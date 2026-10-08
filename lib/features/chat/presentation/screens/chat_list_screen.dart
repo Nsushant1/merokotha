@@ -46,7 +46,7 @@ class ChatListScreen extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(AppSizes.pagePadding),
             itemCount: chats.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (_, i) => _ChatTile(
               chat: chats[i],
               myUid: user?.id ?? '',
@@ -61,7 +61,7 @@ class ChatListScreen extends ConsumerWidget {
           ? const AgentBottomNav(currentIndex: 3)
           : isOwner
           ? const OwnerBottomNav(currentIndex: 3)
-          : const CustomerBottomNav(currentIndex: 2),
+          : const CustomerBottomNav(currentIndex: 3),
     );
   }
 }
@@ -97,16 +97,16 @@ class _ChatTile extends StatelessWidget {
           splashColor: AppColors.primary.withValues(alpha: 0.06),
           highlightColor: AppColors.primary.withValues(alpha: 0.03),
           child: Padding(
-            padding: const EdgeInsets.all(AppSizes.md),
+            padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
             child: Row(
               children: [
                 // Avatar
                 UserAvatar(
                   name: chat.otherName(myUid),
                   photoUrl: chat.otherPhoto(myUid),
-                  size: 50,
+                  size: 54,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
 
                 // Info
                 Expanded(
@@ -224,9 +224,9 @@ class _ChatListSkeleton extends StatelessWidget {
         padding: const EdgeInsets.all(AppSizes.pagePadding),
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 6,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (_, _) => Container(
-          padding: const EdgeInsets.all(AppSizes.md),
+          padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(AppSizes.radiusLg),
@@ -235,11 +235,11 @@ class _ChatListSkeleton extends StatelessWidget {
           child: Row(
             children: [
               const ShimmerBox(
-                width: 50,
-                height: 50,
-                borderRadius: BorderRadius.all(Radius.circular(25)),
+                width: 54,
+                height: 54,
+                borderRadius: BorderRadius.all(Radius.circular(27)),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

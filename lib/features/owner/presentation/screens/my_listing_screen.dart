@@ -81,11 +81,18 @@ class MyListingsScreen extends ConsumerWidget {
         contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
         title: const Text(
           'Delete listing?',
-          style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.grey900),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.grey900,
+          ),
         ),
         content: Text(
           'Delete "${l.title}"? This cannot be undone.',
-          style: const TextStyle(fontSize: 14, color: AppColors.grey600, height: 1.4),
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.grey600,
+            height: 1.4,
+          ),
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusLg),
@@ -93,7 +100,10 @@ class MyListingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.grey600)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.grey600),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -102,7 +112,10 @@ class MyListingsScreen extends ConsumerWidget {
             },
             child: const Text(
               'Delete',
-              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

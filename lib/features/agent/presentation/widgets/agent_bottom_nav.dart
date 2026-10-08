@@ -7,8 +7,7 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/chat/providers/chat_providers.dart';
 import 'package:merokotha/shared/widgets/mk_bottom_nav.dart';
 
-// Index map: 0 = Home, 1 = Browse, 2 = Add, 3 = Inbox, 4 = Profile
-
+// Index map: 0 = Home, 1 = Browse, 2 = + (Add), 3 = Inbox, 4 = Profile.
 class AgentBottomNav extends ConsumerWidget {
   final int currentIndex;
   const AgentBottomNav({super.key, required this.currentIndex});
@@ -19,11 +18,12 @@ class AgentBottomNav extends ConsumerWidget {
 
     return MkBottomNav(
       currentIndex: currentIndex,
-      accentColor: AppColors.agentPrimary,
+      accentColor: AppColors.accent,
+      onCenterTap: () => context.push(AppRoutes.agentUpload),
       items: [
         const MkBottomNavItem(
-          icon: Icons.dashboard_outlined,
-          activeIcon: Icons.dashboard_rounded,
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home_rounded,
           label: 'Home',
         ),
         const MkBottomNavItem(
@@ -32,9 +32,9 @@ class AgentBottomNav extends ConsumerWidget {
           label: 'Browse',
         ),
         const MkBottomNavItem(
-          icon: Icons.add_circle_outline_rounded,
-          activeIcon: Icons.add_circle_rounded,
-          label: 'Add',
+          icon: Icons.add_rounded,
+          activeIcon: Icons.add_rounded,
+          label: '+',
         ),
         MkBottomNavItem(
           icon: Icons.inbox_outlined,
@@ -54,8 +54,6 @@ class AgentBottomNav extends ConsumerWidget {
             context.push(AppRoutes.agentHome);
           case 1:
             context.push(AppRoutes.customerHome);
-          case 2:
-            context.push(AppRoutes.agentUpload);
           case 3:
             context.push(AppRoutes.agentInquiries);
           case 4:

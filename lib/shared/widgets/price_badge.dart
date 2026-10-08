@@ -17,15 +17,17 @@ class PriceBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       text: TextSpan(
         children: [
           TextSpan(
-            text: 'NPR ${_format(amount)}',
+            text: 'Rs. ${_format(amount)}',
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.3,
-              color: AppColors.primary,
+              color: AppColors.price,
             ),
           ),
           if (showPerMonth)

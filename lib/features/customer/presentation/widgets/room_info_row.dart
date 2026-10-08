@@ -20,7 +20,10 @@ class RoomInfoRow extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: AppColors.grey400),
         const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.grey400)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.grey400),
+        ),
         const Spacer(),
         Text(
           value,

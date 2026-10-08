@@ -54,7 +54,11 @@ class LoginSheet extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: const Icon(Icons.key_rounded, color: AppColors.primary, size: 24),
+            child: const Icon(
+              Icons.key_rounded,
+              color: AppColors.primary,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 20),
           Text(
@@ -70,7 +74,11 @@ class LoginSheet extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Sign in to contact owners, save listings, and schedule viewings.',
-            style: GoogleFonts.dmSans(fontSize: 15, color: AppColors.grey600, height: 1.5),
+            style: GoogleFonts.dmSans(
+              fontSize: 15,
+              color: AppColors.grey600,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 28),
           MkButton(

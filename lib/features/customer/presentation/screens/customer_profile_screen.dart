@@ -11,7 +11,6 @@ import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/models/user_model.dart';
-import 'package:merokotha/shared/widgets/mk_app_bar.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
 import 'package:merokotha/shared/widgets/mk_text_field.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
@@ -28,21 +27,47 @@ class _ProfileSkeleton extends StatelessWidget {
         padding: const EdgeInsets.all(AppSizes.pagePadding),
         child: Column(
           children: [
-            const ShimmerBox(width: 88, height: 88, borderRadius: BorderRadius.all(Radius.circular(44))),
+            const ShimmerBox(
+              width: 88,
+              height: 88,
+              borderRadius: BorderRadius.all(Radius.circular(44)),
+            ),
             const SizedBox(height: 14),
-            ShimmerBox(height: 16, width: 140, borderRadius: BorderRadius.circular(4)),
+            ShimmerBox(
+              height: 16,
+              width: 140,
+              borderRadius: BorderRadius.circular(4),
+            ),
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: ShimmerBox(height: 68, borderRadius: BorderRadius.circular(AppSizes.radiusLg))),
+                Expanded(
+                  child: ShimmerBox(
+                    height: 68,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                  ),
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: ShimmerBox(height: 68, borderRadius: BorderRadius.circular(AppSizes.radiusLg))),
+                Expanded(
+                  child: ShimmerBox(
+                    height: 68,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 20),
-            ShimmerBox(height: 180, width: double.infinity, borderRadius: BorderRadius.circular(AppSizes.radiusLg)),
+            ShimmerBox(
+              height: 180,
+              width: double.infinity,
+              borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+            ),
             const SizedBox(height: 16),
-            ShimmerBox(height: 120, width: double.infinity, borderRadius: BorderRadius.circular(AppSizes.radiusLg)),
+            ShimmerBox(
+              height: 120,
+              width: double.infinity,
+              borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+            ),
           ],
         ),
       ),
@@ -183,37 +208,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
-      appBar: MkAppBar(
-        title: 'Profile',
-        showBack: false,
-        actions: [
-          if (!_isEditing)
-            TextButton(
-              onPressed: () => setState(() => _isEditing = true),
-              child: const Text(
-                'Edit',
-                style: TextStyle(
-                  color: AppColors.customerPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          if (_isEditing)
-            TextButton(
-              onPressed: () => setState(() {
-                _isEditing = false;
-                _isLoaded = false;
-                userAsync.whenData((u) {
-                  if (u != null) _loadUser(u);
-                });
-              }),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppColors.grey400),
-              ),
-            ),
-        ],
-      ),
       body: userAsync.when(
         loading: () => const _ProfileSkeleton(),
         error: (e, _) => MkErrorWidget(message: e.toString()),
@@ -222,179 +216,240 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             return const MkErrorWidget(message: 'User not found');
           }
           _loadUser(user);
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSizes.pagePadding),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  ProfileAvatarSection(
-                    user: user,
-                    roleBadgeIcon: Icons.search_rounded,
-                    roleBadgeLabel: 'Room Seeker',
-                    badgeColor: AppColors.customerPrimary,
-                    badgeBackgroundColor: AppColors.customerLight,
-                    avatarBackgroundColor: AppColors.customerLight,
-                  ),
-                  const SizedBox(height: 24),
-
-                  Row(
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: MkProfileHeader(
+                  name: user.name,
+                  email: user.phone.isNotEmpty
+                      ? user.phone
+                      : 'Mero Kotha member',
+                  photoUrl: user.photoUrl,
+                  roleLabel: 'Room Seeker',
+                  roleIcon: Icons.search_rounded,
+                  onSettings: () {},
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: Row(
                     children: [
                       Expanded(
-                        child: ProfileStatMini(
-                          label: 'Saved rooms',
-                          value: '${favIds.length}',
-                          icon: Icons.favorite_rounded,
-                          color: AppColors.error,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: ProfileStatMini(
-                          label: 'Inquiries sent',
-                          value: '—',
-                          icon: Icons.send_rounded,
-                          color: AppColors.customerPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  ProfileSectionCard(
-                    title: 'Personal information',
-                    children: [
-                      MkTextField(
-                        label: 'Full name',
-                        controller: _nameCtrl,
-                        validator: Validators.name,
-                        enabled: _isEditing,
-                        textCapitalization: TextCapitalization.words,
-                        prefixIcon: const Icon(
-                          Icons.person_outline_rounded,
-                          size: 18,
-                          color: AppColors.grey400,
-                        ),
-                      ),
-                      const SizedBox(height: AppSizes.md),
-                      MkTextField(
-                        label: 'Phone number',
-                        controller: TextEditingController(text: user.phone),
-                        enabled: false,
-                        prefixIcon: const Icon(
-                          Icons.phone_outlined,
-                          size: 18,
-                          color: AppColors.grey400,
-                        ),
-                      ),
-                      const SizedBox(height: AppSizes.md),
-                      MkTextField(
-                        label: 'Your area / city',
-                        controller: _locationCtrl,
-                        enabled: _isEditing,
-                        textCapitalization: TextCapitalization.words,
-                        prefixIcon: const Icon(
-                          Icons.location_on_outlined,
-                          size: 18,
-                          color: AppColors.grey400,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (_isEditing) ...[
-                    MkButton(
-                      label: 'Save changes',
-                      onPressed: () => _save(user),
-                      isLoading: _isSaving,
-                      variant: MkButtonVariant.primary,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  ProfileSectionCard(
-                    title: 'Quick links',
-                    children: [
-                      ProfileSettingsTile(
-                        icon: Icons.favorite_outline_rounded,
-                        label: 'Saved rooms',
-                        count: favIds.length,
-                        countColor: AppColors.customerPrimary,
-                        countBackgroundColor: AppColors.customerLight,
-                        onTap: () => context.push(AppRoutes.favourites),
-                        trailing: const Icon(
-                          Icons.chevron_right_rounded,
-                          size: 20,
-                          color: AppColors.grey400,
-                        ),
-                      ),
-                      const ProfileDivider(),
-                      ProfileSettingsTile(
-                        icon: Icons.inbox_outlined,
-                        label: 'My inquiries',
-                        onTap: () {},
-                        trailing: const Icon(
-                          Icons.chevron_right_rounded,
-                          size: 20,
-                          color: AppColors.grey400,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  ProfileSectionCard(
-                    title: 'Account',
-                    children: [
-                      ProfileSettingsTile(
-                        icon: Icons.swap_horiz_rounded,
-                        label: 'Switch to Owner mode',
-                        onTap: () => _switchRole(user),
-                        trailing: const Icon(
-                          Icons.chevron_right_rounded,
-                          size: 20,
-                          color: AppColors.grey400,
-                        ),
-                      ),
-                      const ProfileDivider(),
-                      const ProfileSettingsTile(
-                        icon: Icons.language_rounded,
-                        label: 'Language',
-                        trailing: Text(
-                          'English',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.grey400,
+                        child: Text(
+                          _isEditing ? 'Edit profile' : 'My profile',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
-                      const ProfileDivider(),
-                      const ProfileSettingsTile(
-                        icon: Icons.info_outline_rounded,
-                        label: 'App version',
-                        trailing: Text(
-                          '1.0.0',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.grey400,
+                      if (!_isEditing)
+                        TextButton(
+                          onPressed: () => setState(() => _isEditing = true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
+                          child: const Text('Edit'),
                         ),
-                      ),
+                      if (_isEditing)
+                        TextButton(
+                          onPressed: () => setState(() {
+                            _isEditing = false;
+                            _isLoaded = false;
+                            userAsync.whenData((u) {
+                              if (u != null) _loadUser(u);
+                            });
+                          }),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.textTertiary,
+                          ),
+                          child: const Text('Cancel'),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-
-                  MkButton(
-                    label: 'Sign out',
-                    onPressed: _signOut,
-                    variant: MkButtonVariant.danger,
-                    prefixIcon: Icons.logout_rounded,
-                  ),
-                  const SizedBox(height: 80),
-                ],
+                ),
               ),
-            ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSizes.pagePadding,
+                    12,
+                    AppSizes.pagePadding,
+                    0,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 24),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ProfileStatMini(
+                                label: 'Saved rooms',
+                                value: '${favIds.length}',
+                                icon: Icons.favorite_rounded,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: ProfileStatMini(
+                                label: 'Inquiries sent',
+                                value: '—',
+                                icon: Icons.send_rounded,
+                                color: AppColors.customerPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        ProfileSectionCard(
+                          title: 'Personal information',
+                          children: [
+                            MkTextField(
+                              label: 'Full name',
+                              controller: _nameCtrl,
+                              validator: Validators.name,
+                              enabled: _isEditing,
+                              textCapitalization: TextCapitalization.words,
+                              prefixIcon: const Icon(
+                                Icons.person_outline_rounded,
+                                size: 18,
+                                color: AppColors.grey400,
+                              ),
+                            ),
+                            const SizedBox(height: AppSizes.md),
+                            MkTextField(
+                              label: 'Phone number',
+                              controller: TextEditingController(
+                                text: user.phone,
+                              ),
+                              enabled: false,
+                              prefixIcon: const Icon(
+                                Icons.phone_outlined,
+                                size: 18,
+                                color: AppColors.grey400,
+                              ),
+                            ),
+                            const SizedBox(height: AppSizes.md),
+                            MkTextField(
+                              label: 'Your area / city',
+                              controller: _locationCtrl,
+                              enabled: _isEditing,
+                              textCapitalization: TextCapitalization.words,
+                              prefixIcon: const Icon(
+                                Icons.location_on_outlined,
+                                size: 18,
+                                color: AppColors.grey400,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        if (_isEditing) ...[
+                          MkButton(
+                            label: 'Save changes',
+                            onPressed: () => _save(user),
+                            isLoading: _isSaving,
+                            variant: MkButtonVariant.primary,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        ProfileSectionCard(
+                          title: 'Quick links',
+                          children: [
+                            ProfileSettingsTile(
+                              icon: Icons.favorite_outline_rounded,
+                              label: 'Saved rooms',
+                              count: favIds.length,
+                              countColor: AppColors.customerPrimary,
+                              countBackgroundColor: AppColors.customerLight,
+                              onTap: () => context.push(AppRoutes.favourites),
+                              trailing: const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20,
+                                color: AppColors.grey400,
+                              ),
+                            ),
+                            const ProfileDivider(),
+                            ProfileSettingsTile(
+                              icon: Icons.inbox_outlined,
+                              label: 'My inquiries',
+                              onTap: () {},
+                              trailing: const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20,
+                                color: AppColors.grey400,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        ProfileSectionCard(
+                          title: 'Account',
+                          children: [
+                            ProfileSettingsTile(
+                              icon: Icons.swap_horiz_rounded,
+                              label: 'Switch to Owner mode',
+                              onTap: () => _switchRole(user),
+                              trailing: const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20,
+                                color: AppColors.grey400,
+                              ),
+                            ),
+                            const ProfileDivider(),
+                            const ProfileSettingsTile(
+                              icon: Icons.language_rounded,
+                              label: 'Language',
+                              trailing: Text(
+                                'English',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.grey400,
+                                ),
+                              ),
+                            ),
+                            const ProfileDivider(),
+                            const ProfileSettingsTile(
+                              icon: Icons.info_outline_rounded,
+                              label: 'App version',
+                              trailing: Text(
+                                '1.0.0',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.grey400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        MkButton(
+                          label: 'Logout',
+                          onPressed: _signOut,
+                          variant: MkButtonVariant.danger,
+                          prefixIcon: Icons.logout_rounded,
+                        ),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),

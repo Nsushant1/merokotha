@@ -37,7 +37,11 @@ class OwnerSectionHeader extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 2),
-                Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.primary),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
               ],
             ),
           ),

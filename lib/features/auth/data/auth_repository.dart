@@ -19,12 +19,12 @@ class AuthRepository {
   final GoogleSignIn _googleSignIn;
 
   AuthRepository(this._auth, {GoogleSignIn? googleSignIn})
-      : _googleSignIn =
-            googleSignIn ??
-            GoogleSignIn(
-              scopes: const ['email', 'profile'],
-              serverClientId: kGoogleServerClientId,
-            );
+    : _googleSignIn =
+          googleSignIn ??
+          GoogleSignIn(
+            scopes: const ['email', 'profile'],
+            serverClientId: kGoogleServerClientId,
+          );
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 

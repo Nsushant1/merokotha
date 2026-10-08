@@ -113,7 +113,7 @@ final class GoogleSignInNotifierProvider
 }
 
 String _$googleSignInNotifierHash() =>
-    r'dfef0c8aed4b7840dd141a5f137f14c32bc350cf';
+    r'240e2634251496b8199373046c3f67aed742d8b6';
 
 abstract class _$GoogleSignInNotifier extends $Notifier<GoogleSignInState> {
   GoogleSignInState build();

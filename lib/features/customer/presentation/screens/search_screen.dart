@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
-import 'package:merokotha/features/customer/data/listings_repository.dart';
+import 'package:merokotha/features/customer/data/listings_repository.dart'
+    show SearchFilter;
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
@@ -42,52 +43,97 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: AppColors.grey800,
+        toolbarHeight: 64,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: GestureDetector(
+            onTap: () => context.pop(),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.backgroundSecondary,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 18,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ),
-          onPressed: () => context.pop(),
         ),
-        title: TextField(
-          controller: _searchCtrl,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Area, landmark, room type...',
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            filled: false,
-            hintStyle: TextStyle(fontSize: 15, color: AppColors.grey400),
+        title: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: TextField(
+            controller: _searchCtrl,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'Search by location, property type...',
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              filled: false,
+              hintStyle: TextStyle(fontSize: 14, color: Color(0xFF8AA0BE)),
+            ),
+            style: const TextStyle(
+              fontSize: 15,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+            onChanged: (v) => notifier.setQuery(v),
           ),
-          style: const TextStyle(fontSize: 15, color: AppColors.grey900),
-          onChanged: (v) => notifier.setQuery(v),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Stack(
+              alignment: Alignment.center,
               children: [
-                IconButton(
-                  icon: Icon(
-                    _showFilters ? Icons.tune_rounded : Icons.tune_outlined,
-                    color: filter.hasActiveFilters
-                        ? AppColors.customerPrimary
-                        : AppColors.grey600,
+                GestureDetector(
+                  onTap: () => setState(() => _showFilters = !_showFilters),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: _showFilters || filter.hasActiveFilters
+                          ? AppColors.accent
+                          : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _showFilters || filter.hasActiveFilters
+                            ? AppColors.accent
+                            : AppColors.border,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x14063B7A),
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      _showFilters ? Icons.tune_rounded : Icons.tune_outlined,
+                      size: 20,
+                      color: _showFilters || filter.hasActiveFilters
+                          ? Colors.white
+                          : AppColors.textPrimary,
+                    ),
                   ),
-                  onPressed: () => setState(() => _showFilters = !_showFilters),
                 ),
-                if (filter.hasActiveFilters)
+                if (filter.hasActiveFilters && !_showFilters)
                   Positioned(
-                    right: 8,
-                    top: 8,
+                    right: 2,
+                    top: 4,
                     child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.customerPrimary,
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
                         shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
                     ),
                   ),
@@ -97,7 +143,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppColors.grey50),
+          child: Container(height: 1, color: AppColors.border),
         ),
       ),
       body: Column(
@@ -141,11 +187,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
                 return ListView.separated(
                   padding: const EdgeInsets.all(AppSizes.pagePadding),
-                  itemCount: validListings.length,
+                  itemCount: validListings.length + 1,
                   separatorBuilder: (_, i) => const SizedBox(height: 12),
                   itemBuilder: (_, i) {
-                    final l = validListings[i];
-                    return ListingCard(
+                    if (i == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '${validListings.length} ${validListings.length == 1 ? 'place' : 'places'} found',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      );
+                    }
+                    final l = validListings[i - 1];
+                    return ListingRow(
                       listing: l,
                       isFavourited: favIds.contains(l.id),
                       onFavourite: () =>
@@ -161,7 +220,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const CustomerBottomNav(currentIndex: 1),
     );
   }
 }
@@ -178,8 +236,8 @@ class _SearchResultsSkeleton extends StatelessWidget {
         itemCount: 4,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (_, _) => Container(
-          height: 110,
-          padding: const EdgeInsets.all(10),
+          height: 148,
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(AppSizes.radiusLg),
@@ -189,20 +247,32 @@ class _SearchResultsSkeleton extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ShimmerBox(
-                width: 90,
-                height: 90,
+                width: 120,
+                height: 120,
                 borderRadius: BorderRadius.circular(AppSizes.radiusMd),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ShimmerBox(height: 14, width: 140, borderRadius: BorderRadius.circular(4)),
+                    ShimmerBox(
+                      height: 14,
+                      width: 140,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     const SizedBox(height: 10),
-                    ShimmerBox(height: 12, width: 90, borderRadius: BorderRadius.circular(4)),
+                    ShimmerBox(
+                      height: 12,
+                      width: 90,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     const SizedBox(height: 10),
-                    ShimmerBox(height: 12, width: 70, borderRadius: BorderRadius.circular(4)),
+                    ShimmerBox(
+                      height: 12,
+                      width: 70,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ],
                 ),
               ),
@@ -229,43 +299,51 @@ class _FilterPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(AppSizes.pagePadding),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // Header — bold title + red Reset (design.jpeg Filters).
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Filters',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.grey900,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                  color: AppColors.textPrimary,
                 ),
               ),
               TextButton(
                 onPressed: notifier.reset,
-                child: const Text(
-                  'Clear all',
-                  style: TextStyle(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.accent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  minimumSize: const Size(48, 32),
+                  textStyle: const TextStyle(
                     fontSize: 13,
-                    color: AppColors.customerPrimary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+                child: const Text('Reset'),
               ),
             ],
           ),
-          const Text(
-            'Price range',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey800,
-            ),
+          const SizedBox(height: 12),
+          const _FilterLabel('Property Type'),
+          const SizedBox(height: 10),
+          _PropertyTypeChips(
+            selected: filter.categoryL1Id,
+            onChanged: (id) => notifier.setCategory(categoryL1Id: id),
           ),
+          const SizedBox(height: 20),
+          const _FilterLabel('Price Range'),
+          const SizedBox(height: 4),
           PriceRangeSlider(
             minValue: filter.minRent,
             maxValue: filter.maxRent,
@@ -275,27 +353,123 @@ class _FilterPanel extends StatelessWidget {
             },
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          const Text(
-            'Facilities',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey800,
-            ),
-          ),
-          const SizedBox(height: 8),
+          const _FilterLabel('Features'),
+          const SizedBox(height: 10),
           FacilityFilterRow(
             selected: filter.facilities,
             onChanged: notifier.setFacilities,
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
 
-          // Done button
-          MkButton(label: 'Apply filters', onPressed: onClose, height: 46),
+          // Sticky CTA — solid red (design Filters).
+          MkButton(label: 'Apply Filters', onPressed: onClose, height: 52),
         ],
+      ),
+    );
+  }
+}
+
+class _FilterLabel extends StatelessWidget {
+  final String text;
+  const _FilterLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.1,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+}
+
+class _PropertyTypeChips extends StatelessWidget {
+  final String? selected;
+  final ValueChanged<String?> onChanged;
+
+  const _PropertyTypeChips({required this.selected, required this.onChanged});
+
+  static const _types = [
+    ('house', 'House'),
+    ('apartment', 'Apartment'),
+    ('flat', 'Flat'),
+    ('room', 'Room'),
+    ('land', 'Land'),
+    ('shop', 'Shop'),
+    ('office', 'Commercial'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _TypeChip(
+          label: 'All',
+          selected: selected == null,
+          onTap: () => onChanged(null),
+        ),
+        for (final t in _types)
+          _TypeChip(
+            label: t.$2,
+            selected: selected == t.$1,
+            onTap: () => onChanged(selected == t.$1 ? null : t.$1),
+          ),
+      ],
+    );
+  }
+}
+
+class _TypeChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TypeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.accent : Colors.white,
+          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+          border: Border.all(
+            color: selected ? AppColors.accent : AppColors.border,
+          ),
+          boxShadow: selected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x33FF1F2D),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            color: selected ? Colors.white : AppColors.textPrimary,
+          ),
+        ),
       ),
     );
   }

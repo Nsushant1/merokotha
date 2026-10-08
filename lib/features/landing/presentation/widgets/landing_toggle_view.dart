@@ -26,7 +26,9 @@ class LandingToggleView extends StatelessWidget {
             border: Border.all(color: LandingTheme.hairline, width: 1),
           ),
           child: Icon(
-            isGrid ? Icons.format_list_bulleted_rounded : Icons.grid_view_rounded,
+            isGrid
+                ? Icons.format_list_bulleted_rounded
+                : Icons.grid_view_rounded,
             color: LandingTheme.accent,
             size: 16,
           ),

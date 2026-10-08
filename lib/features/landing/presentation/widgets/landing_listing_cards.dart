@@ -14,7 +14,11 @@ class LandingGridCard extends StatelessWidget {
   final ListingModel listing;
   final VoidCallback onTap;
 
-  const LandingGridCard({super.key, required this.listing, required this.onTap});
+  const LandingGridCard({
+    super.key,
+    required this.listing,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +107,11 @@ class LandingListCard extends StatelessWidget {
   final ListingModel listing;
   final VoidCallback onTap;
 
-  const LandingListCard({super.key, required this.listing, required this.onTap});
+  const LandingListCard({
+    super.key,
+    required this.listing,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -116,16 +124,16 @@ class LandingListCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: radius,
         child: Container(
-          height: 136,
-          padding: const EdgeInsets.all(12),
+          height: 152,
+          padding: const EdgeInsets.all(14),
           decoration: AppDecorations.card,
           child: Row(
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                 child: SizedBox(
-                  width: 112,
-                  height: 112,
+                  width: 120,
+                  height: 124,
                   child: listing.photoUrls.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: listing.photoUrls.first,
@@ -136,7 +144,7 @@ class LandingListCard extends StatelessWidget {
                       : const _PhotoFallback(),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +156,7 @@ class LandingListCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.titleSmall,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
                         const Icon(
@@ -174,7 +182,9 @@ class LandingListCard extends StatelessWidget {
                       children: [
                         Text(
                           'Rs. ${LandingTheme.formatPrice(listing.rentPerMonth)}',
-                          style: textTheme.titleMedium,
+                          style: textTheme.titleMedium?.copyWith(
+                            color: AppColors.price,
+                          ),
                         ),
                         const SizedBox(width: 4),
                         Text('/month', style: textTheme.bodySmall),
@@ -208,11 +218,7 @@ class _PhotoFallback extends StatelessWidget {
     return Container(
       color: AppColors.backgroundSecondary,
       child: const Center(
-        child: Icon(
-          Icons.home_outlined,
-          color: AppColors.grey400,
-          size: 28,
-        ),
+        child: Icon(Icons.home_outlined, color: AppColors.grey400, size: 28),
       ),
     );
   }
@@ -224,18 +230,26 @@ class _TypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLand = text.toLowerCase() == 'land';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+        color: isLand ? AppColors.accent : AppColors.primary,
+        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Text(
-        text.toUpperCase(),
+        isLand ? 'FOR SALE' : 'FOR RENT',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: Colors.white,
           fontSize: 10,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
           letterSpacing: 0.6,
         ),
       ),
@@ -260,7 +274,7 @@ class _PriceTag extends StatelessWidget {
       child: Text(
         'Rs. ${LandingTheme.formatPrice(amount)}',
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: AppColors.grey900,
+          color: AppColors.price,
           fontWeight: FontWeight.w800,
         ),
       ),

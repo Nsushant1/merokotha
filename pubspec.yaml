@@ -4,7 +4,7 @@ description: "MeroKotha - Find and list rental rooms in Nepal."
 publish_to: 'none' 
 
 sdk: ">=3.11.3 <4.0.0"
-version: 1.0.0+7
+version: 1.0.0+9
 
 environment:
   sdk: ^3.11.3
@@ -19,7 +19,6 @@ dependencies:
   firebase_auth: ^6.3.0
   firebase_storage: ^13.2.0
   cloud_firestore: ^6.2.0
-  firebase_messaging: ^16.1.3
   go_router: ^17.1.0
   image_picker: ^1.2.1
   cached_network_image: ^3.4.1
@@ -28,11 +27,11 @@ dependencies:
   intl: ^0.20.2
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
-  permission_handler: ^12.0.1
   firebase_app_check: ^0.4.3
   url_launcher: ^6.3.2
   google_fonts: ^8.0.2
   google_sign_in: ^6.2.1
+  share_plus: ^13.3.1
 
 dev_dependencies:
   flutter_test:
@@ -51,3 +50,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/merokotha.png
+    - assets/kitta.png
+    - assets/himavolt.png
+    - assets/design/splash_screen_image.jpg

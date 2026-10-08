@@ -47,8 +47,8 @@ class StatusBadge extends StatelessWidget {
 
   factory StatusBadge.declined() => const StatusBadge(
     label: 'Declined',
-    color: AppColors.error,
-    backgroundColor: AppColors.errorLight,
+    color: AppColors.accentDark,
+    backgroundColor: AppColors.accentLight,
   );
 
   factory StatusBadge.fromListingStatus(ListingStatus status) {
@@ -79,6 +79,53 @@ class StatusBadge extends StatelessWidget {
           letterSpacing: 0.2,
           height: 1.1,
           color: color,
+        ),
+      ),
+    );
+  }
+}
+
+/// Solid overlay badge used on listing photos — matches design.jpeg:
+/// red pill for sale, blue pill for rent, white bold text.
+class ListingTypeBadge extends StatelessWidget {
+  final String label;
+  final bool forSale;
+
+  const ListingTypeBadge({
+    super.key,
+    required this.label,
+    required this.forSale,
+  });
+
+  factory ListingTypeBadge.forSale() =>
+      const ListingTypeBadge(label: 'For Sale', forSale: true);
+
+  factory ListingTypeBadge.forRent() =>
+      const ListingTypeBadge(label: 'For Rent', forSale: false);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: forSale ? AppColors.accent : AppColors.primary,
+        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+          height: 1.1,
+          color: Colors.white,
         ),
       ),
     );

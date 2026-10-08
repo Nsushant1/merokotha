@@ -19,7 +19,9 @@ class GoogleLoginScreen extends ConsumerStatefulWidget {
 
 class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
   Future<void> _signInWithGoogle() async {
-    final success = await ref.read(googleSignInProvider.notifier).signInWithGoogle();
+    final success = await ref
+        .read(googleSignInProvider.notifier)
+        .signInWithGoogle();
     if (!success || !mounted) return;
 
     // Use the synchronous FirebaseAuth user, not the async stream provider
@@ -31,13 +33,17 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
     // Firestore/App Check failures here must not be mistaken for login
     // failures; fall back to role selection so the user is not stuck.
     try {
-      final userExists = await ref.read(userRepositoryProvider).userExists(firebaseUser.uid);
+      final userExists = await ref
+          .read(userRepositoryProvider)
+          .userExists(firebaseUser.uid);
       if (!mounted) return;
 
       if (!userExists) {
         context.go(AppRoutes.roleSelect);
       } else {
-        final user = await ref.read(userRepositoryProvider).getUser(firebaseUser.uid);
+        final user = await ref
+            .read(userRepositoryProvider)
+            .getUser(firebaseUser.uid);
         if (!mounted) return;
         if (user?.isAdmin == true) {
           context.go(AppRoutes.adminHome);
@@ -65,85 +71,108 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
     return AppBackScope(
       homeRoute: AppRoutes.landing,
       child: Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Spacer(),
-                  Container(
-                    width: 84,
-                    height: 84,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.asset(
-                        'assets/merokotha.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    'Welcome to MeroKotha',
-                    textAlign: TextAlign.center,
-                    style: textTheme.displayMedium,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Sign in to list rooms, save favourites, and chat with owners.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: AppColors.grey600,
-                    ),
-                  ),
-                  const Spacer(),
-                  MkButton(
-                    label: 'Continue with Google',
-                    onPressed: signInState.isLoading ? null : _signInWithGoogle,
-                    isLoading: signInState.isLoading,
-                    prefixIcon: Icons.g_mobiledata_rounded,
-                  ),
-                  const SizedBox(height: 16),
-                  if (signInState.errorMessage != null)
+        backgroundColor: AppColors.backgroundSecondary,
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(),
                     Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: AppColors.errorLight,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                        border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.25),
-                          width: 1,
-                        ),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: AppColors.border),
+                        boxShadow: AppSizes.shadowCard,
                       ),
-                      child: Text(
-                        signInState.errorMessage!,
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.error,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(23),
+                        child: Image.asset(
+                          'assets/merokotha.png',
+                          width: 76,
+                          height: 76,
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 28),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: textTheme.displaySmall?.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
+                        children: const [
+                          TextSpan(text: 'Welcome to '),
+                          TextSpan(
+                            text: 'Mero ',
+                            style: TextStyle(color: AppColors.primary),
+                          ),
+                          TextSpan(
+                            text: 'Kotha',
+                            style: TextStyle(color: AppColors.accent),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Sign in to list rooms, save favourites, and chat with owners.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium,
+                    ),
+                    const Spacer(),
+                    MkButton(
+                      label: 'Continue with Google',
+                      onPressed: signInState.isLoading
+                          ? null
+                          : _signInWithGoogle,
+                      isLoading: signInState.isLoading,
+                      variant: MkButtonVariant.outline,
+                      prefixIcon: Icons.g_mobiledata_rounded,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'By continuing you agree to our Terms & Privacy Policy.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodySmall?.copyWith(fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
+                    if (signInState.errorMessage != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorLight,
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusMd,
+                          ),
+                          border: Border.all(
+                            color: AppColors.error.withValues(alpha: 0.25),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          signInState.errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ));
+    );
   }
 }

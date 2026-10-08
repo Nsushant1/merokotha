@@ -10,32 +10,8 @@ import 'package:merokotha/shared/widgets/mk_app_bar.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
-class _FavouritesGridSkeleton extends StatelessWidget {
-  const _FavouritesGridSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return ShimmerLoading(
-      child: GridView.builder(
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.72,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: 4,
-        itemBuilder: (_, _) => ShimmerBox(
-          width: double.infinity,
-          height: double.infinity,
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        ),
-      ),
-    );
-  }
-}
-
+/// Saved properties list matching design.jpeg list rows:
+/// dense horizontal rows with red/blue badges + red prices.
 class FavouritesScreen extends ConsumerWidget {
   const FavouritesScreen({super.key});
 
@@ -46,14 +22,49 @@ class FavouritesScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
-      appBar: const MkAppBar(title: 'Saved rooms'),
+      appBar: const MkAppBar(title: 'Saved Properties'),
       body: favListingsAsync.when(
-        loading: () => const _FavouritesGridSkeleton(),
+        loading: () => ShimmerLoading(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(AppSizes.pagePadding),
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 5,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (_, _) => Container(
+              height: 148,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
+                children: [
+                  ShimmerBox(width: 120, height: 120),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ShimmerBox(height: 14, width: 140),
+                        SizedBox(height: 8),
+                        ShimmerBox(height: 12, width: 90),
+                        SizedBox(height: 8),
+                        ShimmerBox(height: 13, width: 70),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         error: (e, _) => MkErrorWidget(message: e.toString()),
         data: (listings) {
           if (listings.isEmpty) {
             return MkEmptyState(
-              title: 'No saved rooms',
+              title: 'No saved places yet',
               subtitle:
                   'Tap the heart on any listing to save it here for later',
               icon: Icons.favorite_outline_rounded,
@@ -62,18 +73,26 @@ class FavouritesScreen extends ConsumerWidget {
             );
           }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(AppSizes.pagePadding),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.72,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: listings.length,
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+            itemCount: listings.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (_, i) {
-              final l = listings[i];
-              return ListingCard(
+              if (i == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    '${listings.length} saved ${listings.length == 1 ? 'place' : 'places'}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                );
+              }
+              final l = listings[i - 1];
+              return ListingRow(
                 listing: l,
                 isFavourited: favIds.contains(l.id),
                 onFavourite: () =>
@@ -85,7 +104,7 @@ class FavouritesScreen extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: const CustomerBottomNav(currentIndex: 3),
+      bottomNavigationBar: const CustomerBottomNav(currentIndex: 1),
     );
   }
 }
