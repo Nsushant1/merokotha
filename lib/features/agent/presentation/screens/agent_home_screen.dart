@@ -8,6 +8,7 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/agent/presentation/widgets/agent_bottom_nav.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/shared/widgets/mk_app_bar.dart';
+import 'package:merokotha/shared/widgets/promo_banner_carousel.dart';
 
 /// Agent dashboard shell (Phase 2).
 /// Full posting / listings / inbox flows land in later phases.
@@ -100,7 +101,12 @@ class AgentHomeScreen extends ConsumerWidget {
                   );
                 },
               ),
+              // ── Promo banner (external destinations, 3s auto-scroll) ──
+              // Same reusable carousel as Landing / Customer / Owner home.
+              const SizedBox(height: 16),
+              const PromoBannerCarousel(),
               const SizedBox(height: 20),
+
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,

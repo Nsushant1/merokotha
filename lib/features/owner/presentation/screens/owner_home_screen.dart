@@ -66,6 +66,20 @@ class OwnerHomeScreen extends ConsumerWidget {
               ),
             ),
 
+            // ── Promo banner (external destinations, 3s auto-scroll) ──
+            // Same reusable carousel as Landing / Customer / Agent home.
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.pagePadding,
+                  0,
+                  AppSizes.pagePadding,
+                  0,
+                ),
+                child: const PromoBannerCarousel(),
+              ),
+            ),
+
             // ── Stats ──
             SliverToBoxAdapter(
               child: Padding(

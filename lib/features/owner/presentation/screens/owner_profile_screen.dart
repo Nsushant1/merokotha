@@ -13,7 +13,7 @@ import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/profile_section.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
-import 'package:merokotha/features/auth/data/auth_repository.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/core/utils/validators.dart';
 
 class OwnerProfileScreen extends ConsumerStatefulWidget {
@@ -27,6 +27,7 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
 
   bool _isEditing = false;
   bool _isSaving = false;
@@ -36,6 +37,7 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _locationCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -43,6 +45,7 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
     if (!_isLoaded) {
       _nameCtrl.text = user.name;
       _locationCtrl.text = user.location ?? '';
+      _phoneCtrl.text = user.phone;
       _isLoaded = true;
     }
   }
@@ -173,7 +176,9 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
       ),
     );
     if (confirm != true || !mounted) return;
-    await ref.read(authRepositoryProvider).signOut();
+    // Clears session state only; the saved Firestore role/profile stays
+    // so the next sign-in restores it directly.
+    await signOutAndClearSession(ref);
     if (mounted) context.go(AppRoutes.login);
   }
 
@@ -279,9 +284,7 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
                             const SizedBox(height: AppSizes.md),
                             MkTextField(
                               label: 'Phone number',
-                              controller: TextEditingController(
-                                text: user.phone,
-                              ),
+                              controller: _phoneCtrl,
                               enabled: false,
                               prefixIcon: const Icon(
                                 Icons.phone_outlined,

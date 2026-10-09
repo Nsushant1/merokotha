@@ -8,6 +8,7 @@ import 'package:merokotha/features/customer/data/listings_repository.dart'
     show SearchFilter;
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
+import 'package:merokotha/features/customer/providers/room_view_mode_provider.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
@@ -35,6 +36,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final notifier = ref.read(searchFilterProvider.notifier);
     final resultsAsync = ref.watch(searchResultsProvider);
     final favIds = ref.watch(favouriteIdsProvider).asData?.value ?? [];
+    final isGrid = ref.watch(roomViewModeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
@@ -185,35 +187,44 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   );
                 }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.all(AppSizes.pagePadding),
-                  itemCount: validListings.length + 1,
-                  separatorBuilder: (_, i) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) {
-                    if (i == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          '${validListings.length} ${validListings.length == 1 ? 'place' : 'places'} found',
-                          style: const TextStyle(
+                return CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSizes.pagePadding,
+                          AppSizes.pagePadding,
+                          AppSizes.pagePadding,
+                          12,
+                        ),
+                        child: RoomSectionHeader(
+                          title:
+                              '${validListings.length} ${validListings.length == 1 ? 'place' : 'places'} found',
+                          titleStyle: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textSecondary,
                           ),
+                          isGrid: isGrid,
+                          onToggle: () =>
+                              ref.read(roomViewModeProvider.notifier).toggle(),
                         ),
-                      );
-                    }
-                    final l = validListings[i - 1];
-                    return ListingRow(
-                      listing: l,
-                      isFavourited: favIds.contains(l.id),
-                      onFavourite: () =>
+                      ),
+                    ),
+                    RoomFeedSlivers(
+                      listings: validListings,
+                      isGrid: isGrid,
+                      favouriteIds: favIds,
+                      onFavourite: (l) =>
                           ref.read(favouriteProvider.notifier).toggle(l),
-                      onTap: () => context.push(
+                      onTap: (l) => context.push(
                         AppRoutes.roomDetail.replaceAll(':id', l.id),
                       ),
-                    );
-                  },
+                    ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: AppSizes.pagePadding),
+                    ),
+                  ],
                 );
               },
             ),

@@ -4,7 +4,7 @@ description: "MeroKotha - Find and list rental rooms in Nepal."
 publish_to: 'none' 
 
 sdk: ">=3.11.3 <4.0.0"
-version: 1.0.0+9
+version: 1.0.0+10
 
 environment:
   sdk: ^3.11.3
@@ -12,7 +12,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
   flutter_riverpod: ^3.3.1
   riverpod_annotation: ^4.0.2
   firebase_core: ^4.6.0

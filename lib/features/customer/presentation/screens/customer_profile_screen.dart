@@ -5,9 +5,9 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/validators.dart';
-import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/models/user_model.dart';
@@ -87,6 +87,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
 
   bool _isEditing = false;
   bool _isSaving = false;
@@ -96,6 +97,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _locationCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -103,6 +105,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     if (!_isLoaded) {
       _nameCtrl.text = user.name;
       _locationCtrl.text = user.location ?? '';
+      _phoneCtrl.text = user.phone;
       _isLoaded = true;
     }
   }
@@ -197,7 +200,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       ),
     );
     if (confirm != true || !mounted) return;
-    await ref.read(authRepositoryProvider).signOut();
+    // Clears session state only; the saved Firestore role/profile stays
+    // so the next sign-in restores it directly.
+    await signOutAndClearSession(ref);
     if (mounted) context.go(AppRoutes.login);
   }
 
@@ -329,9 +334,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                             const SizedBox(height: AppSizes.md),
                             MkTextField(
                               label: 'Phone number',
-                              controller: TextEditingController(
-                                text: user.phone,
-                              ),
+                              controller: _phoneCtrl,
                               enabled: false,
                               prefixIcon: const Icon(
                                 Icons.phone_outlined,

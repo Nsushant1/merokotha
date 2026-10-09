@@ -6,9 +6,9 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/agent/presentation/widgets/agent_bottom_nav.dart';
-import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/widgets/mk_app_bar.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
@@ -99,7 +99,9 @@ class AgentProfileScreen extends ConsumerWidget {
       ),
     );
     if (confirm != true || !context.mounted) return;
-    await ref.read(authRepositoryProvider).signOut();
+    // Clears session state only; the saved Firestore role/profile stays
+    // so the next sign-in restores it directly.
+    await signOutAndClearSession(ref);
     if (context.mounted) context.go(AppRoutes.login);
   }
 

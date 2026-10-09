@@ -7,6 +7,8 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
+import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/widgets/app_back_scope.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
 
@@ -30,6 +32,8 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
     final firebaseUser = ref.read(authRepositoryProvider).currentUser;
     if (firebaseUser == null) return;
 
+    final pendingRole = GoRouterState.of(context).extra;
+
     // Firestore/App Check failures here must not be mistaken for login
     // failures; fall back to role selection so the user is not stuck.
     try {
@@ -38,8 +42,30 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
           .userExists(firebaseUser.uid);
       if (!mounted) return;
 
+      // Guest tapped Message Owner before signing in: resume straight
+      // into that room's inquiry flow instead of losing the selection.
+      final pending = ref.read(pendingInquiryProvider);
+      if (pending != null && userExists) {
+        ref.read(pendingInquiryProvider.notifier).clear();
+        if (!mounted) return;
+        context.pushReplacement(
+          AppRoutes.inquire.replaceAll(':id', pending.id),
+          extra: pending,
+        );
+        return;
+      }
+
       if (!userExists) {
-        context.go(AppRoutes.roleSelect);
+        // A role chosen on the role-selection screen (reached before login
+        // from Landing) is carried through, so onboarding starts pre-filled.
+        // Push (not go) keeps the room route mounted so a pending guest
+        // inquiry survives for onboarding to resume after profile setup.
+        // New users without a role pick one during onboarding's guard.
+        if (pendingRole is UserRole) {
+          context.push(AppRoutes.onboarding, extra: pendingRole);
+        } else {
+          context.go(AppRoutes.roleSelect);
+        }
       } else {
         final user = await ref
             .read(userRepositoryProvider)
@@ -70,6 +96,7 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
     // no matter how this page was reached (push, go, or auth redirect).
     return AppBackScope(
       homeRoute: AppRoutes.landing,
+      popWhenPossible: true,
       child: Scaffold(
         backgroundColor: AppColors.backgroundSecondary,
         body: SafeArea(

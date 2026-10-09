@@ -7,10 +7,21 @@ import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/constants/app_strings.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/auth/presentation/widgets/role_card.dart';
+import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/shared/models/user_model.dart';
+import 'package:merokotha/shared/widgets/app_back_scope.dart';
+import 'package:merokotha/shared/widgets/mk_app_bar.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
 
-final _selectedRoleProvider = StateProvider<UserRole?>((ref) => null);
+final _selectedRoleProvider = StateProvider.autoDispose<UserRole?>(
+  (ref) => null,
+);
+
+/// Clears the selected role so returning to this screen (back from login
+/// or a fresh visit) always starts with nothing selected.
+void _clearSelection(WidgetRef ref) {
+  ref.read(_selectedRoleProvider.notifier).state = null;
+}
 
 // Secret admin code — change this in production
 const _adminSecretCode = 'admin123';
@@ -23,116 +34,162 @@ class RoleSelectScreen extends ConsumerWidget {
     final selected = ref.watch(_selectedRoleProvider);
 
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
+    // Reached either by pushing from Landing or by the auth redirect, so
+    // back (button or system) always lands on Landing — never a blank page
+    // or the previous authenticated screen. Leaving clears the selection.
+    return AppBackScope(
+      homeRoute: AppRoutes.landing,
+      popWhenPossible: true,
+      onBeforeHome: () => _clearSelection(ref),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: MkAppBar(
+          title: 'Choose role',
+          // Always shown: this page can be the stack root (auth redirect),
+          // where MkAppBar's implicit canPop check would hide the button.
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: MkCircleButton(
+              icon: Icons.arrow_back_ios_new_rounded,
+              onTap: () {
+                _clearSelection(ref);
+                context.canPop()
+                    ? context.pop()
+                    : context.go(AppRoutes.landing);
+              },
+            ),
+          ),
+        ),
+        body: SafeArea(
+          top: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSizes.pagePaddingLarge),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
 
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        width: 1,
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.tune_rounded,
+                        color: AppColors.primary,
+                        size: 24,
                       ),
                     ),
-                    child: const Icon(
-                      Icons.tune_rounded,
-                      color: AppColors.primary,
-                      size: 24,
+                    const SizedBox(height: 24),
+
+                    Text(AppStrings.chooseRole, style: textTheme.displayMedium),
+                    const SizedBox(height: 8),
+                    Text(
+                      'This helps us personalise your experience.\nYou can switch roles later from your profile.',
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: AppColors.grey600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
 
-                  Text(AppStrings.chooseRole, style: textTheme.displayMedium),
-                  const SizedBox(height: 8),
-                  Text(
-                    'This helps us personalise your experience.\nYou can switch roles later from your profile.',
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: AppColors.grey600,
+                    const SizedBox(height: 32),
+
+                    RoleCard(
+                      title: AppStrings.owner,
+                      description: AppStrings.ownerDesc,
+                      icon: Icons.house_rounded,
+                      isSelected: selected == UserRole.owner,
+                      color: AppColors.ownerPrimary,
+                      lightColor: AppColors.ownerLight,
+                      onTap: () =>
+                          ref.read(_selectedRoleProvider.notifier).state =
+                              UserRole.owner,
                     ),
-                  ),
 
-                  const SizedBox(height: 32),
+                    const SizedBox(height: AppSizes.md),
 
-                  RoleCard(
-                    title: AppStrings.owner,
-                    description: AppStrings.ownerDesc,
-                    icon: Icons.house_rounded,
-                    isSelected: selected == UserRole.owner,
-                    color: AppColors.ownerPrimary,
-                    lightColor: AppColors.ownerLight,
-                    onTap: () =>
-                        ref.read(_selectedRoleProvider.notifier).state =
-                            UserRole.owner,
-                  ),
+                    RoleCard(
+                      title: AppStrings.customer,
+                      description: AppStrings.customerDesc,
+                      icon: Icons.search_rounded,
+                      isSelected: selected == UserRole.customer,
+                      color: AppColors.customerPrimary,
+                      lightColor: AppColors.customerLight,
+                      onTap: () =>
+                          ref.read(_selectedRoleProvider.notifier).state =
+                              UserRole.customer,
+                    ),
 
-                  const SizedBox(height: AppSizes.md),
+                    const SizedBox(height: AppSizes.md),
 
-                  RoleCard(
-                    title: AppStrings.customer,
-                    description: AppStrings.customerDesc,
-                    icon: Icons.search_rounded,
-                    isSelected: selected == UserRole.customer,
-                    color: AppColors.customerPrimary,
-                    lightColor: AppColors.customerLight,
-                    onTap: () =>
-                        ref.read(_selectedRoleProvider.notifier).state =
-                            UserRole.customer,
-                  ),
+                    RoleCard(
+                      title: AppStrings.agent,
+                      description: AppStrings.agentDesc,
+                      icon: Icons.badge_rounded,
+                      isSelected: selected == UserRole.agent,
+                      color: AppColors.agentPrimary,
+                      lightColor: AppColors.agentLight,
+                      onTap: () =>
+                          ref.read(_selectedRoleProvider.notifier).state =
+                              UserRole.agent,
+                    ),
 
-                  const SizedBox(height: AppSizes.md),
+                    const SizedBox(height: 24),
 
-                  RoleCard(
-                    title: AppStrings.agent,
-                    description: AppStrings.agentDesc,
-                    icon: Icons.badge_rounded,
-                    isSelected: selected == UserRole.agent,
-                    color: AppColors.agentPrimary,
-                    lightColor: AppColors.agentLight,
-                    onTap: () =>
-                        ref.read(_selectedRoleProvider.notifier).state =
-                            UserRole.agent,
-                  ),
+                    _HiddenAdminButton(
+                      onAdminSelected: () =>
+                          ref.read(_selectedRoleProvider.notifier).state =
+                              UserRole.superAdmin,
+                      selected: selected,
+                    ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: AppSizes.md),
 
-                  _HiddenAdminButton(
-                    onAdminSelected: () =>
-                        ref.read(_selectedRoleProvider.notifier).state =
-                            UserRole.superAdmin,
-                    selected: selected,
-                  ),
+                    MkButton(
+                      label: AppStrings.continueText,
+                      onPressed: selected == null
+                          ? null
+                          : () => _continue(context, ref, selected),
+                    ),
 
-                  const SizedBox(height: AppSizes.md),
-
-                  MkButton(
-                    label: AppStrings.continueText,
-                    onPressed: selected == null
-                        ? null
-                        : () =>
-                              context.go(AppRoutes.onboarding, extra: selected),
-                  ),
-
-                  const SizedBox(height: AppSizes.md),
-                ],
+                    const SizedBox(height: AppSizes.md),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  /// Continue from role selection.
+  ///
+  /// Signed-in users (e.g. arrived via the auth redirect or splash) go
+  /// to onboarding. Not signed in yet — which is the case when
+  /// coming from Landing — authenticate first, carrying the chosen role so
+  /// onboarding opens pre-filled with it after sign-in. Push (not go)
+  /// keeps any underlying route (e.g. a room with a pending guest
+  /// inquiry) mounted so post-auth flows can resume it.
+  void _continue(BuildContext context, WidgetRef ref, UserRole? role) {
+    if (role == null) return;
+    final signedIn = ref.read(authStateProvider).value != null;
+    if (signedIn) {
+      context.push(AppRoutes.onboarding, extra: role);
+    } else {
+      context.push(AppRoutes.login, extra: role);
+    }
+    // The role travels via `extra`; the picker resets so that backing
+    // out of login returns to a cleared selection.
+    _clearSelection(ref);
   }
 }
 

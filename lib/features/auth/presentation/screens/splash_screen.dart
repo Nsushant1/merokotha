@@ -61,30 +61,38 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
-    final userExists = await ref
-        .read(userRepositoryProvider)
-        .userExists(firebaseUser.uid);
-
-    if (!mounted) return;
-
-    if (!userExists) {
-      context.go(AppRoutes.roleSelect);
-    } else {
-      final user = await ref
+    // A Firestore failure (e.g. offline) must not freeze the splash:
+    // fall back to the public landing screen and let later screens retry.
+    // Role selection only appears when no valid saved role exists.
+    try {
+      final userExists = await ref
           .read(userRepositoryProvider)
-          .getUser(firebaseUser.uid);
+          .userExists(firebaseUser.uid);
 
       if (!mounted) return;
 
-      if (user?.isAdmin == true) {
-        context.go(AppRoutes.adminHome);
-      } else if (user?.isAgent == true) {
-        context.go(AppRoutes.agentHome);
-      } else if (user?.isOwner == true) {
-        context.go(AppRoutes.ownerHome);
+      if (!userExists) {
+        context.go(AppRoutes.roleSelect);
       } else {
-        context.go(AppRoutes.customerHome);
+        final user = await ref
+            .read(userRepositoryProvider)
+            .getUser(firebaseUser.uid);
+
+        if (!mounted) return;
+
+        if (user?.isAdmin == true) {
+          context.go(AppRoutes.adminHome);
+        } else if (user?.isAgent == true) {
+          context.go(AppRoutes.agentHome);
+        } else if (user?.isOwner == true) {
+          context.go(AppRoutes.ownerHome);
+        } else {
+          context.go(AppRoutes.customerHome);
+        }
       }
+    } catch (_) {
+      if (!mounted) return;
+      context.go(AppRoutes.landing);
     }
   }
 

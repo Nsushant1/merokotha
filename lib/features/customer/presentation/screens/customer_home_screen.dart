@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
+import 'package:merokotha/features/customer/providers/room_view_mode_provider.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/theme/app_decorations.dart';
-import 'package:merokotha/shared/widgets/mk_section_title.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
@@ -21,6 +21,8 @@ class CustomerHomeScreen extends ConsumerWidget {
     final userAsync = ref.watch(currentUserProvider);
     final listingsAsync = ref.watch(activeListingsProvider);
     final favIds = ref.watch(favouriteIdsProvider).asData?.value ?? [];
+    final isGrid = ref.watch(roomViewModeProvider);
+    final selectedL1 = ref.watch(searchFilterProvider).categoryL1Id;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
@@ -225,7 +227,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                   children: [
                     const SizedBox(height: 16),
                     _CategoryChipRow(
-                      selected: ref.watch(searchFilterProvider).categoryL1Id,
+                      selected: selectedL1,
                       onSelect: (id) => ref
                           .read(searchFilterProvider.notifier)
                           .setCategory(categoryL1Id: id),
@@ -246,11 +248,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                   ),
                 ),
                 data: (allListings) {
-                  // Category chip filter applied client-side; watched once
-                  // here (not nested inside another provider watch).
-                  final selectedL1 = ref
-                      .watch(searchFilterProvider)
-                      .categoryL1Id;
+                  // Category chip filter applied client-side on the single
+                  // [searchFilterProvider] watch above.
                   final listings = selectedL1 == null
                       ? allListings
                       : allListings
@@ -276,35 +275,26 @@ class CustomerHomeScreen extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                             horizontal: AppSizes.pagePadding,
                           ),
-                          child: MkSectionTitle(
-                            'All rooms (${listings.length})',
+                          child: RoomSectionHeader(
+                            title: 'All rooms (${listings.length})',
                             actionLabel: 'View All',
                             onAction: () => context.push(AppRoutes.search),
+                            isGrid: isGrid,
+                            onToggle: () => ref
+                                .read(roomViewModeProvider.notifier)
+                                .toggle(),
                           ),
                         ),
                       ),
                       const SliverToBoxAdapter(child: SizedBox(height: 14)),
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSizes.pagePadding,
-                        ),
-                        sliver: SliverList.separated(
-                          itemCount: listings.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (_, i) {
-                            final l = listings[i];
-                            return ListingRow(
-                              listing: l,
-                              isFavourited: favIds.contains(l.id),
-                              onFavourite: () => ref
-                                  .read(favouriteProvider.notifier)
-                                  .toggle(l),
-                              onTap: () => context.push(
-                                AppRoutes.roomDetail.replaceAll(':id', l.id),
-                              ),
-                            );
-                          },
+                      RoomFeedSlivers(
+                        listings: listings,
+                        isGrid: isGrid,
+                        favouriteIds: favIds,
+                        onFavourite: (l) =>
+                            ref.read(favouriteProvider.notifier).toggle(l),
+                        onTap: (l) => context.push(
+                          AppRoutes.roomDetail.replaceAll(':id', l.id),
                         ),
                       ),
                     ],

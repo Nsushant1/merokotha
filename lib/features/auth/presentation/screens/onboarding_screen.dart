@@ -9,6 +9,7 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/validators.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
 
@@ -83,13 +84,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   Future<void> _save() async {
+    // No valid role (reached without picking one): send back to role
+    // selection instead of silently defaulting to customer.
+    final role = _role;
+    if (role == null) {
+      context.go(AppRoutes.roleSelect);
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     setState(() => _isSaving = true);
     try {
       final fbUser = ref.read(authStateProvider).value;
       if (fbUser == null) throw Exception('Not authenticated');
-      final role = _role ?? UserRole.customer;
       final now = DateTime.now();
       final user = UserModel(
         id: fbUser.uid,
@@ -104,6 +111,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       );
       await ref.read(userRepositoryProvider).createUser(user);
       if (!mounted) return;
+      // Guest signed in via Message Owner: resume into that room's
+      // inquiry flow now that the profile exists.
+      final pending = ref.read(pendingInquiryProvider);
+      if (pending != null) {
+        ref.read(pendingInquiryProvider.notifier).clear();
+        if (!mounted) return;
+        context.go(
+          AppRoutes.inquire.replaceAll(':id', pending.id),
+          extra: pending,
+        );
+        return;
+      }
       if (role == UserRole.owner) {
         context.go(AppRoutes.ownerHome);
       } else if (role == UserRole.agent) {

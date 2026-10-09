@@ -127,31 +127,3 @@ class MkCircleButton extends StatelessWidget {
     );
   }
 }
-
-/// Red text button for app-bar trailing actions (Reset, Clear).
-class MkBarTextAction extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  final Color color;
-
-  const MkBarTextAction({
-    super.key,
-    required this.label,
-    required this.onTap,
-    this.color = AppColors.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        foregroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minimumSize: const Size(48, 40),
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-      ),
-      child: Text(label),
-    );
-  }
-}

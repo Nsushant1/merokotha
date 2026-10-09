@@ -6,6 +6,7 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/formatters.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 import 'package:merokotha/shared/widgets/login_sheet.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
@@ -73,6 +74,9 @@ class RoomBottomCTA extends ConsumerWidget {
             variant: MkButtonVariant.accent,
             onPressed: () {
               if (userAsync.asData?.value == null) {
+                // Remember the room so post-sign-in can resume straight
+                // into its inquiry flow instead of losing the selection.
+                ref.read(pendingInquiryProvider.notifier).set(listing);
                 showLoginSheet(context);
                 return;
               }

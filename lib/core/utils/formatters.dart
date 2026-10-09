@@ -26,10 +26,6 @@ class Formatters {
     return DateFormat('HH:mm').format(date);
   }
 
-  static String dateShort(DateTime date) {
-    return DateFormat('dd MMM').format(date);
-  }
-
   static String timeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
     if (diff.inSeconds < 60) return 'Just now';

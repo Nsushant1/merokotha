@@ -45,9 +45,6 @@ class AdModel {
 
   bool get isActive => status == 'active';
 
-  bool get showsOnLanding => placement == 'all' || placement == 'landing';
-  bool get showsOnHome => placement == 'all' || placement == 'home';
-
   factory AdModel.fromMap(Map<String, dynamic> map, String id) {
     return AdModel(
       id: id,

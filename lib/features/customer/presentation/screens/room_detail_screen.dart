@@ -7,6 +7,7 @@ import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/widgets/mk_section_title.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
@@ -91,6 +92,14 @@ class _RoomDetailSkeleton extends StatelessWidget {
 
 class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
   int _photoIndex = 0;
+
+  @override
+  void dispose() {
+    // Leaving the room drops any unsent guest inquiry intent set via
+    // Message Owner, so a later unrelated sign-in can't resume it.
+    ref.read(pendingInquiryProvider.notifier).clear();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

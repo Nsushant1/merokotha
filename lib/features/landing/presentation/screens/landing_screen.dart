@@ -6,6 +6,7 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/responsive.dart';
+import 'package:merokotha/features/customer/presentation/widgets/room_feed.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_category_row.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_listing_cards.dart';
@@ -130,54 +131,115 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                     : MkBreakpoints.isTablet(context)
                     ? 3
                     : 2;
-                return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-                  sliver: _isGrid
-                      ? SliverGrid(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: columns,
-                                mainAxisSpacing: 14,
-                                crossAxisSpacing: 14,
-                                childAspectRatio: 0.72,
-                              ),
-                          delegate: SliverChildBuilderDelegate(
-                            (ctx, i) => LandingGridCard(
-                              listing: listings[i],
-                              onTap: () => context.push(
-                                AppRoutes.roomDetail.replaceAll(
-                                  ':id',
-                                  listings[i].id,
-                                ),
-                              ),
-                            ),
-                            childCount: listings.length,
-                          ),
-                        )
-                      : SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (ctx, i) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: LandingListCard(
-                                listing: listings[i],
-                                onTap: () => context.push(
-                                  AppRoutes.roomDetail.replaceAll(
-                                    ':id',
-                                    listings[i].id,
+                void openDetail(String id) =>
+                    context.push(AppRoutes.roomDetail.replaceAll(':id', id));
+                // Same repeating pattern as the customer feed: chunks of 3
+                // in list mode (4 in grid mode) with the custom Pitambari /
+                // Floor Cleaner banners interleaved — no extra API calls,
+                // rooms are only re-sliced from [listings].
+                final blocks = buildRoomFeedBlocks(
+                  listings,
+                  verticalChunkSize: _isGrid ? 4 : 3,
+                );
+                final feedSlivers = <Widget>[];
+                for (final block in blocks) {
+                  switch (block) {
+                    case RoomChunkBlock(:final rooms):
+                      if (rooms.isEmpty) break;
+                      feedSlivers.add(
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                          sliver: _isGrid
+                              ? SliverGrid(
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: columns,
+                                        mainAxisSpacing: 14,
+                                        crossAxisSpacing: 14,
+                                        childAspectRatio: 0.72,
+                                      ),
+                                  delegate: SliverChildBuilderDelegate(
+                                    (ctx, i) => LandingGridCard(
+                                      listing: rooms[i],
+                                      onTap: () => openDetail(rooms[i].id),
+                                    ),
+                                    childCount: rooms.length,
+                                  ),
+                                )
+                              : SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (ctx, i) => Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
+                                      child: LandingListCard(
+                                        listing: rooms[i],
+                                        onTap: () => openDetail(rooms[i].id),
+                                      ),
+                                    ),
+                                    childCount: rooms.length,
                                   ),
                                 ),
-                              ),
-                            ),
-                            childCount: listings.length,
+                        ),
+                      );
+                      feedSlivers.add(
+                        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                      );
+                    case AdBlock():
+                      feedSlivers.add(
+                        const SliverToBoxAdapter(child: SizedBox(height: 4)),
+                      );
+                      feedSlivers.add(
+                        const SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                            child: InFeedPromoCarousel(),
                           ),
                         ),
+                      );
+                      feedSlivers.add(
+                        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                      );
+                    case HorizontalGridBlock(:final rooms):
+                      if (rooms.isEmpty) break;
+                      feedSlivers.add(
+                        SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: 248,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              itemCount: rooms.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(width: 14),
+                              itemBuilder: (_, i) => SizedBox(
+                                width: 220,
+                                child: LandingGridCard(
+                                  listing: rooms[i],
+                                  onTap: () => openDetail(rooms[i].id),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                      feedSlivers.add(
+                        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                      );
+                  }
+                }
+                feedSlivers.add(
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
                 );
+                return SliverMainAxisGroup(slivers: feedSlivers);
               },
             ),
           ],
         ),
         bottomNavigationBar: _SignInCta(
-          onTap: () => context.push(AppRoutes.login),
+          onTap: () => context.push(AppRoutes.roleSelect),
         ),
       ),
     );
@@ -228,7 +290,7 @@ class _LandingHeader extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                _SignInChip(onTap: () => context.push(AppRoutes.login)),
+                _SignInChip(onTap: () => context.push(AppRoutes.roleSelect)),
               ],
             ),
             const SizedBox(height: 22),

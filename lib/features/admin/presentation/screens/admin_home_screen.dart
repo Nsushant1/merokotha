@@ -7,8 +7,8 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
-import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 
 import 'package:merokotha/features/admin/providers/admin_providers.dart';
 import 'package:merokotha/features/admin/presentation/widgets/admin_widgets.dart';
@@ -31,7 +31,7 @@ class AdminHomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.white),
             onPressed: () async {
-              await ref.read(authRepositoryProvider).signOut();
+              await signOutAndClearSession(ref);
               if (context.mounted) context.go(AppRoutes.login);
             },
           ),

@@ -24,6 +24,7 @@ class MoreRoomsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final similarAsync = ref.watch(similarListingsProvider(excludeListingId));
     final userAsync = ref.watch(currentUserProvider);
+    final favIds = ref.watch(favouriteIdsProvider).asData?.value ?? [];
     final textTheme = Theme.of(context).textTheme;
 
     return similarAsync.when(
@@ -66,9 +67,7 @@ class MoreRoomsSection extends ConsumerWidget {
                 itemCount: listings.length,
                 itemBuilder: (ctx, i) {
                   final listing = listings[i];
-                  final isFav = ref.watch(
-                    isListingFavouritedProvider(listing.id),
-                  );
+                  final isFav = favIds.contains(listing.id);
                   return _RoomGridCard(
                     listing: listing,
                     isFav: isFav,
