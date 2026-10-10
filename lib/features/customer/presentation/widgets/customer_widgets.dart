@@ -3,7 +3,6 @@ export 'room_feed.dart';
 export 'facility_filter_row.dart';
 export 'price_range_slider.dart';
 export 'inquiry_status_tracker.dart';
-export 'customer_bottom_nav.dart';
 export 'room_photo_section.dart';
 export 'room_info_row.dart';
 export 'room_facilities_grid.dart';

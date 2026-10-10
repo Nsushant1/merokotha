@@ -5,6 +5,7 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
+import 'package:merokotha/features/home/presentation/widgets/home_bottom_nav.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
@@ -68,7 +69,7 @@ class FavouritesScreen extends ConsumerWidget {
                   'Tap the heart on any listing to save it here for later',
               icon: Icons.favorite_outline_rounded,
               actionLabel: 'Browse rooms',
-              onAction: () => context.go(AppRoutes.customerHome),
+              onAction: () => context.go(AppRoutes.home),
             );
           }
 
@@ -103,7 +104,7 @@ class FavouritesScreen extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: const CustomerBottomNav(currentIndex: 1),
+      bottomNavigationBar: const HomeBottomNav(currentIndex: 1),
     );
   }
 }

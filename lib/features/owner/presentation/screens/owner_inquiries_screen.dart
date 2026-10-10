@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:merokotha/features/owner/presentation/widgets/owner_widgets.dart';
-import 'package:merokotha/shared/widgets/owner_bottom_nav.dart';
+import 'package:merokotha/features/home/presentation/widgets/home_bottom_nav.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
@@ -93,7 +93,7 @@ class _OwnerInquiriesScreenState extends ConsumerState<OwnerInquiriesScreen>
           ),
         ],
       ),
-      bottomNavigationBar: const OwnerBottomNav(currentIndex: 3),
+      bottomNavigationBar: const HomeBottomNav(currentIndex: 3),
     );
   }
 }
@@ -224,10 +224,10 @@ class _InquiryTab extends ConsumerWidget {
     InquiryModel inq,
   ) async {
     try {
-      // Find or create the chat (idempotent)
+      // Find or create the chat (idempotent, no status rewrite or notify)
       final chatId = await ref
           .read(inquiryRepositoryProvider)
-          .acceptInquiry(
+          .resolveChatId(
             inquiryId: inq.id,
             inquiry: inq,
             ownerName: user.name,

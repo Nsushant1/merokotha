@@ -360,7 +360,7 @@ class _SuccessView extends StatelessWidget {
           const SizedBox(height: 12),
           MkButton(
             label: 'Browse more rooms',
-            onPressed: () => context.go(AppRoutes.customerHome),
+            onPressed: () => context.go(AppRoutes.home),
             variant: MkButtonVariant.ghost,
           ),
         ],

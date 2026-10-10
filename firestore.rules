@@ -37,30 +37,13 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) == false;
     }
 
-    // Is the signed-in user an owner role (and not banned)?
-    function isOwnerRole() {
-      return notBanned() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
-    }
-
-    // Is the signed-in user a customer role (and not banned)?
-    function isCustomerRole() {
-      return notBanned() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'customer';
-    }
-
-    // Is the signed-in user an agent role (and not banned)?
-    // Agents self-register as unverified; only verified agents may post.
-    function isAgentRole() {
-      return notBanned() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'agent';
-    }
-
     // Is the signed-in user an admin-verified agent?
-    // Only verified agents may post rooms on behalf of owners.
+    // Agent privilege derives from `agentStatus` (set only via an approved
+    // application), never from the legacy `role` field. Only verified agents
+    // may post rooms on behalf of owners.
     function isVerifiedAgent() {
-      return isAgentRole() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isVerified', false) == true;
+      return notBanned() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('agentStatus', 'none') == 'verified';
     }
 
     // Does the update only touch the listed fields?
@@ -144,14 +127,16 @@ service cloud.firestore {
       // FIXED: self-update is limited to profile fields only.
       // Previously any user could set role='superAdmin', clear isBanned,
       // or change phone/createdAt on their own doc (privilege escalation).
-      // Role switch owner<->customer<->agent (profile screens) still works;
-      // superAdmin can update any user (ban/unban and role changes).
+      // `agentStatus` is likewise immutable self-side: only an admin
+      // decision (application approval) may change it.
+      // superAdmin can update any user (ban/unban, role and agentStatus).
       allow update: if isAdmin();
       allow update: if isMe(userId) && notBanned()
         && onlyFields(['name', 'location', 'photoUrl', 'fcmToken', 'fcmTokens', 'role', 'updatedAt'])
         && request.resource.data.role in ['owner', 'customer', 'agent']
         && request.resource.data.phone == resource.data.phone
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.get('agentStatus', 'none') == resource.data.get('agentStatus', 'none');
 
       // Only superAdmin can delete user documents
       allow delete: if isAdmin();
@@ -183,11 +168,13 @@ service cloud.firestore {
       // superAdmin can always read everything
       allow read: if isAdmin();
 
-      // Only owner-role users (not banned) can create a listing
-      // The listing must be their own (ownerId == their uid)
+      // Any non-banned signed-in user can post a listing as themselves
+      // (ownerId == their uid, no agentId) — browsing and posting are
+      // capabilities of one account, not separate roles.
       // Listing goes active immediately — no payment required
-      allow create: if isOwnerRole()
+      allow create: if isAuth() && notBanned()
         && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.get('agentId', null) == null
         && request.resource.data.keys().hasAll([
             'ownerId', 'ownerName', 'title',
             'rentPerMonth', 'status', 'createdAt'
@@ -286,10 +273,12 @@ service cloud.firestore {
         resource.data.ownerId   == request.auth.uid
       ));
 
-      // Only a non-banned customer can create an inquiry
-      // They can only create inquiries as themselves
-      allow create: if isCustomerRole()
+      // Any non-banned signed-in user can inquire on someone else's
+      // listing, as themselves. Self-inquiry (ownerId == customerId) is
+      // rejected — previously impossible only because roles were exclusive.
+      allow create: if isAuth() && notBanned()
         && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.ownerId != request.auth.uid
         && request.resource.data.keys().hasAll([
             'listingId', 'customerId', 'ownerId',
             'message', 'status', 'createdAt'
@@ -307,6 +296,61 @@ service cloud.firestore {
 
       // Nobody can delete inquiries from the client
       // (superAdmin can if needed)
+      allow delete: if isAdmin();
+    }
+
+
+    // ────────────────────────────────────────────────────────────
+    // AGENT APPLICATIONS
+    // /agentApplications/{userId}
+    // ────────────────────────────────────────────────────────────
+    //
+    // One document per applicant (id == applicant uid). Submitting an
+    // application grants nothing — agent privileges unlock only when an
+    // admin approves it (flipping users/{uid}.agentStatus to 'verified').
+
+    match /agentApplications/{userId} {
+
+      // The applicant and superAdmin can read the application.
+      allow get: if isAdmin() || isMe(userId);
+      allow list: if isAdmin();
+
+      // The applicant files their own pending application. Re-applying
+      // after a rejection overwrites the same document (still pending).
+      // Status is always 'pending' on applicant writes — approval lives
+      // exclusively on the admin path below.
+      allow create: if isMe(userId) && notBanned()
+        && request.resource.data.keys().hasAll([
+            'uid', 'fullName', 'phone', 'location', 'status', 'createdAt'
+          ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() > 0
+        && request.resource.data.location is string
+        && request.resource.data.location.size() > 0
+        && request.resource.data.status == 'pending';
+
+      // Re-application edits core fields but never the decision. `reason`
+      // is included so a re-filed application clears the old verdict.
+      allow update: if isMe(userId) && notBanned()
+        && onlyFields([
+            'fullName', 'phone', 'location', 'notes', 'reason',
+            'status', 'createdAt', 'updatedAt'
+          ])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      // Admin decision (approve/reject). The companion
+      // users/{uid}.agentStatus flip is a separate admin write.
+      allow update: if isAdmin()
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status in ['approved', 'rejected'];
+
+      // Only superAdmin can delete applications
       allow delete: if isAdmin();
     }
 

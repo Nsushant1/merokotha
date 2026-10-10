@@ -116,15 +116,6 @@ class AdminRepository {
     });
   }
 
-  /// Marks an agent as admin-verified (or revokes verification).
-  /// Posting privileges for agents require isVerified == true.
-  Future<void> setVerified(String uid, bool verified) async {
-    await _users.doc(uid).update({
-      'isVerified': verified,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
   Stream<List<ListingModel>> watchAllListings() {
     return _listings
         .orderBy('createdAt', descending: true)

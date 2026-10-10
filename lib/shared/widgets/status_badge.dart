@@ -97,12 +97,6 @@ class ListingTypeBadge extends StatelessWidget {
     required this.forSale,
   });
 
-  factory ListingTypeBadge.forSale() =>
-      const ListingTypeBadge(label: 'For Sale', forSale: true);
-
-  factory ListingTypeBadge.forRent() =>
-      const ListingTypeBadge(label: 'For Rent', forSale: false);
-
   @override
   Widget build(BuildContext context) {
     return Container(

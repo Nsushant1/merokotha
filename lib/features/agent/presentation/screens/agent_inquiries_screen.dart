@@ -257,10 +257,10 @@ class _AgentInquiryTab extends ConsumerWidget {
     InquiryModel inq,
   ) async {
     try {
-      // Find or create the chat (idempotent)
+      // Find or create the chat (idempotent, no status rewrite or notify)
       final chatId = await ref
           .read(inquiryRepositoryProvider)
-          .acceptInquiry(
+          .resolveChatId(
             inquiryId: inq.id,
             inquiry: inq,
             ownerName: user.name,

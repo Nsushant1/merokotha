@@ -7,11 +7,14 @@ import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/chat/providers/chat_providers.dart';
 import 'package:merokotha/shared/widgets/mk_bottom_nav.dart';
 
-// Index map: 0 = Home, 1 = Listings, 2 = + (Add), 3 = Messages, 4 = Profile.
-// Matches design.jpeg center + FAB.
-class OwnerBottomNav extends ConsumerWidget {
+// Index map: 0 = Home, 1 = Saved, 2 = My Listings, 3 = Messages,
+// 4 = Profile. Shared by every regular user: browsing and posting are
+// capabilities of one account, so a single nav covers both. Posting a
+// room stays one tap away via My Listings (+), the Home post card, and
+// the upload route.
+class HomeBottomNav extends ConsumerWidget {
   final int currentIndex;
-  const OwnerBottomNav({super.key, required this.currentIndex});
+  const HomeBottomNav({super.key, required this.currentIndex});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,7 +23,6 @@ class OwnerBottomNav extends ConsumerWidget {
     return MkBottomNav(
       currentIndex: currentIndex,
       accentColor: AppColors.accent,
-      onCenterTap: () => context.push(AppRoutes.uploadListing),
       items: [
         const MkBottomNavItem(
           icon: Icons.home_outlined,
@@ -28,14 +30,14 @@ class OwnerBottomNav extends ConsumerWidget {
           label: 'Home',
         ),
         const MkBottomNavItem(
-          icon: Icons.list_alt_outlined,
-          activeIcon: Icons.list_alt_rounded,
-          label: 'Listings',
+          icon: Icons.favorite_outline_rounded,
+          activeIcon: Icons.favorite_rounded,
+          label: 'Saved',
         ),
         const MkBottomNavItem(
-          icon: Icons.add_rounded,
-          activeIcon: Icons.add_rounded,
-          label: '+',
+          icon: Icons.house_outlined,
+          activeIcon: Icons.house_rounded,
+          label: 'Listings',
         ),
         MkBottomNavItem(
           icon: Icons.chat_bubble_outline_rounded,
@@ -52,13 +54,15 @@ class OwnerBottomNav extends ConsumerWidget {
       onTap: (i) {
         switch (i) {
           case 0:
-            context.push(AppRoutes.ownerHome);
+            context.push(AppRoutes.home);
           case 1:
+            context.push(AppRoutes.favourites);
+          case 2:
             context.push(AppRoutes.myListings);
           case 3:
             context.push(AppRoutes.chatList);
           case 4:
-            context.push(AppRoutes.ownerProfile);
+            context.push(AppRoutes.profile);
         }
       },
     );

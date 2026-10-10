@@ -63,7 +63,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     // A Firestore failure (e.g. offline) must not freeze the splash:
     // fall back to the public landing screen and let later screens retry.
-    // Role selection only appears when no valid saved role exists.
+    // New users complete a short profile form; everyone else lands by
+    // privilege (admin, verified agent) or on the shared home.
     try {
       final userExists = await ref
           .read(userRepositoryProvider)
@@ -72,7 +73,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (!mounted) return;
 
       if (!userExists) {
-        context.go(AppRoutes.roleSelect);
+        context.go(AppRoutes.onboarding);
       } else {
         final user = await ref
             .read(userRepositoryProvider)
@@ -82,12 +83,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
         if (user?.isAdmin == true) {
           context.go(AppRoutes.adminHome);
-        } else if (user?.isAgent == true) {
+        } else if (user?.isVerifiedAgent == true) {
           context.go(AppRoutes.agentHome);
-        } else if (user?.isOwner == true) {
-          context.go(AppRoutes.ownerHome);
         } else {
-          context.go(AppRoutes.customerHome);
+          context.go(AppRoutes.home);
         }
       }
     } catch (_) {

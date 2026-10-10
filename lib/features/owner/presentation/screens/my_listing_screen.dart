@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:merokotha/shared/widgets/owner_bottom_nav.dart';
+import 'package:merokotha/features/home/presentation/widgets/home_bottom_nav.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
@@ -68,7 +68,7 @@ class MyListingsScreen extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: const OwnerBottomNav(currentIndex: 1),
+      bottomNavigationBar: const HomeBottomNav(currentIndex: 2),
     );
   }
 

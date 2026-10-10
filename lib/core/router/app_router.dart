@@ -5,26 +5,24 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:merokotha/features/auth/presentation/screens/splash_screen.dart';
 import 'package:merokotha/features/auth/presentation/screens/google_login_screen.dart';
-import 'package:merokotha/features/auth/presentation/screens/role_select_screen.dart';
 import 'package:merokotha/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/home/presentation/screens/agent_application_screen.dart';
+import 'package:merokotha/features/home/presentation/screens/home_screen.dart';
+import 'package:merokotha/features/home/presentation/screens/my_inquiries_screen.dart';
+import 'package:merokotha/features/home/presentation/screens/profile_screen.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
-import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 
 import 'package:merokotha/features/landing/presentation/screens/landing_screen.dart';
-import 'package:merokotha/features/owner/presentation/screens/owner_home_screen.dart';
 import 'package:merokotha/features/owner/presentation/screens/upload_listing_screen.dart';
 import 'package:merokotha/features/owner/presentation/screens/owner_inquiries_screen.dart';
 import 'package:merokotha/features/owner/presentation/screens/owner_map_screen.dart';
-import 'package:merokotha/features/owner/presentation/screens/owner_profile_screen.dart';
-import 'package:merokotha/features/customer/presentation/screens/customer_home_screen.dart';
 import 'package:merokotha/features/customer/presentation/screens/search_screen.dart';
 import 'package:merokotha/features/customer/presentation/screens/customer_map_screen.dart';
 import 'package:merokotha/features/customer/presentation/screens/room_detail_screen.dart';
 import 'package:merokotha/features/customer/presentation/screens/favourites_screen.dart';
 import 'package:merokotha/features/customer/presentation/screens/inquire_screen.dart';
-import 'package:merokotha/features/customer/presentation/screens/customer_profile_screen.dart';
 import 'package:merokotha/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:merokotha/features/chat/presentation/screens/chat_thread_screen.dart';
 import 'package:merokotha/features/agent/presentation/screens/agent_home_screen.dart';
@@ -46,9 +44,9 @@ part 'app_router.g.dart';
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
   final authState = ref.watch(authStateProvider);
-  // Role is async; guards that need it only apply once loaded. Data stays
-  // protected by Firestore rules regardless of navigation state.
-  final role = ref.watch(currentUserProvider).asData?.value?.role;
+  // Profile is async; guards that need it only apply once loaded. Data
+  // stays protected by Firestore rules regardless of navigation state.
+  final user = ref.watch(currentUserProvider).asData?.value;
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
@@ -63,7 +61,6 @@ GoRouter appRouter(Ref ref) {
         AppRoutes.landing,
         AppRoutes.login,
         AppRoutes.splash,
-        AppRoutes.roleSelect,
         AppRoutes.onboarding,
       ];
 
@@ -74,18 +71,23 @@ GoRouter appRouter(Ref ref) {
       }
 
       // Admin screens are never reachable without the superAdmin role.
-      // Other roles keep cross-access to owner/customer/agent screens:
-      // listings data is public and users may switch roles from profile,
-      // so per-role walls there would only add friction without security.
+      // Verified agents land on their own interface; everyone else lands
+      // on the shared home. There are no walls between regular
+      // capabilities — browsing and posting belong to one account.
       if (isLoggedIn && loc.startsWith('/admin')) {
-        if (role == null) return null; // profile still loading — decide later
-        if (role != UserRole.superAdmin) {
-          return switch (role) {
-            UserRole.owner => AppRoutes.ownerHome,
-            UserRole.agent => AppRoutes.agentHome,
-            UserRole.customer => AppRoutes.customerHome,
-            UserRole.superAdmin => null,
-          };
+        if (user == null) return null; // profile still loading — decide later
+        if (!user.isAdmin) {
+          return user.isVerifiedAgent ? AppRoutes.agentHome : AppRoutes.home;
+        }
+      }
+
+      // The Agent interface requires an approved application. Unverified
+      // visitors (including pending applicants) go to the shared home,
+      // where the profile explains their application status.
+      if (isLoggedIn && loc.startsWith('/agent')) {
+        if (user == null) return null; // profile still loading — decide later
+        if (!user.isVerifiedAgent && !user.isAdmin) {
+          return AppRoutes.home;
         }
       }
 
@@ -102,16 +104,21 @@ GoRouter appRouter(Ref ref) {
         builder: (_, _) => const GoogleLoginScreen(),
       ),
       GoRoute(
-        path: AppRoutes.roleSelect,
-        builder: (_, _) => const RoleSelectScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.onboarding,
         builder: (_, _) => const OnboardingScreen(),
       ),
+      GoRoute(path: AppRoutes.home, builder: (_, _) => const HomeScreen()),
       GoRoute(
-        path: AppRoutes.ownerHome,
-        builder: (_, _) => const OwnerHomeScreen(),
+        path: AppRoutes.profile,
+        builder: (_, _) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.myInquiries,
+        builder: (_, _) => const MyInquiriesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.applyAgent,
+        builder: (_, _) => const AgentApplicationScreen(),
       ),
       GoRoute(
         path: AppRoutes.uploadListing,
@@ -130,14 +137,6 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.ownerMap,
         builder: (_, _) => const OwnerMapScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.ownerProfile,
-        builder: (_, _) => const OwnerProfileScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.customerHome,
-        builder: (_, _) => const CustomerHomeScreen(),
-      ),
       GoRoute(path: AppRoutes.search, builder: (_, _) => const SearchScreen()),
       GoRoute(
         path: AppRoutes.customerMap,
@@ -146,10 +145,6 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.favourites,
         builder: (_, _) => const FavouritesScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.customerProfile,
-        builder: (_, _) => const CustomerProfileScreen(),
       ),
       GoRoute(
         path: AppRoutes.roomDetail,

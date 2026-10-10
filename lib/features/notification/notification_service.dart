@@ -177,20 +177,6 @@ class NotificationService {
   // PUBLIC METHODS
   // ────────────────────────────────────────────────────────────────
 
-  // ── New inquiry received (shown to owner) ──
-  Future<void> showNewInquiry({
-    required String customerName,
-    required String listingTitle,
-  }) async {
-    await _show(
-      id: 1001,
-      title: 'New inquiry received',
-      body: '$customerName is interested in "$listingTitle"',
-      channelId: _inquiryChannelId,
-      channelName: 'Inquiries',
-    );
-  }
-
   // ── Inquiry accepted (shown to customer) ──
   Future<void> showInquiryAccepted({required String listingTitle}) async {
     await _show(

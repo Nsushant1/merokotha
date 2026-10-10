@@ -28,7 +28,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   final _phoneCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
   bool _isSaving = false;
-  UserRole? _role;
 
   late final AnimationController _animCtrl;
   late final Animation<double> _fade;
@@ -67,15 +66,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final extra = GoRouterState.of(context).extra;
-    // superAdmin can never be self-selected: ignore a crafted extra.
-    // Admin accounts are provisioned out-of-band; rules remain the boundary.
-    if (extra is UserRole && extra != UserRole.superAdmin) _role = extra;
-  }
-
-  @override
   void dispose() {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
@@ -86,13 +76,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   Future<void> _save() async {
-    // No valid role (reached without picking one): send back to role
-    // selection instead of silently defaulting to customer.
-    final role = _role;
-    if (role == null) {
-      context.go(AppRoutes.roleSelect);
-      return;
-    }
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     setState(() => _isSaving = true);
@@ -100,12 +83,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       final fbUser = ref.read(authStateProvider).value;
       if (fbUser == null) throw Exception('Not authenticated');
       final now = DateTime.now();
+      // One account for everything: browsing and posting are capabilities,
+      // not roles. The stored role is a legacy-compatible default; agent
+      // privileges come only from an approved application (agentStatus).
       final user = UserModel(
         id: fbUser.uid,
         name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         phone: _phoneCtrl.text.trim(),
-        role: role,
+        role: UserRole.customer,
         photoUrl: fbUser.photoURL,
         location: _locationCtrl.text.trim(),
         createdAt: now,
@@ -125,15 +111,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         );
         return;
       }
-      // No client path can create a superAdmin (Firestore rules reject it);
-      // any unexpected role falls back to the customer home.
-      if (role == UserRole.owner) {
-        context.go(AppRoutes.ownerHome);
-      } else if (role == UserRole.agent) {
-        context.go(AppRoutes.agentHome);
-      } else {
-        context.go(AppRoutes.customerHome);
-      }
+      context.go(AppRoutes.home);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -151,18 +129,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     }
   }
 
-  bool get _isOwner => _role == UserRole.owner;
-  bool get _isAgent => _role == UserRole.agent;
-  Color get _accent => _isOwner
-      ? AppColors.ownerPrimary
-      : _isAgent
-      ? AppColors.agentPrimary
-      : AppColors.customerPrimary;
-  Color get _accentLight => _isOwner
-      ? AppColors.ownerLight
-      : _isAgent
-      ? AppColors.agentLight
-      : AppColors.customerLight;
+  Color get _accent => AppColors.customerPrimary;
+  Color get _accentLight => AppColors.customerLight;
 
   @override
   Widget build(BuildContext context) {
@@ -181,8 +149,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   SlideTransition(
                     position: _headerSlide,
                     child: _HeaderPanel(
-                      isOwner: _isOwner,
-                      isAgent: _isAgent,
                       accent: _accent,
                       accentLight: _accentLight,
                     ),
@@ -211,20 +177,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                               height: 54,
                             ),
                             const SizedBox(height: 18),
-                            Center(
-                              child: GestureDetector(
-                                onTap: () => context.go(AppRoutes.roleSelect),
-                                child: Text(
-                                  'Change role selection',
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 13,
-                                    color: AppColors.grey400,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: AppColors.grey400,
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -243,25 +195,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 // ── Header panel ─────────────────────────────────────────────────────────────
 
 class _HeaderPanel extends StatelessWidget {
-  final bool isOwner;
-  final bool isAgent;
   final Color accent;
   final Color accentLight;
 
-  const _HeaderPanel({
-    required this.isOwner,
-    this.isAgent = false,
-    required this.accent,
-    required this.accentLight,
-  });
+  const _HeaderPanel({required this.accent, required this.accentLight});
 
   @override
   Widget build(BuildContext context) {
-    final chips = isOwner
-        ? ['List for free', 'Reach tenants', 'Manage inquiries']
-        : isAgent
-        ? ['Post for owners', 'Manage listings', 'Handle inquiries']
-        : ['Browse listings', 'Save favourites', 'Contact owners'];
+    const chips = ['Browse listings', 'Save favourites', 'Contact owners'];
 
     return Container(
       width: double.infinity,
@@ -283,22 +224,10 @@ class _HeaderPanel extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  isOwner
-                      ? Icons.house_rounded
-                      : isAgent
-                      ? Icons.badge_rounded
-                      : Icons.search_rounded,
-                  size: 13,
-                  color: accent,
-                ),
+                Icon(Icons.search_rounded, size: 13, color: accent),
                 const SizedBox(width: 6),
                 Text(
-                  isOwner
-                      ? 'Room Owner'
-                      : isAgent
-                      ? 'Agent'
-                      : 'Room Seeker',
+                  'Room Seeker',
                   style: GoogleFonts.dmSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -313,11 +242,7 @@ class _HeaderPanel extends StatelessWidget {
           const SizedBox(height: 22),
 
           Text(
-            isOwner
-                ? 'List your\nplace in minutes'
-                : isAgent
-                ? 'Post rooms\nfor owners'
-                : 'Find your\nperfect room',
+            'Find your\nperfect room',
             style: GoogleFonts.dmSans(
               fontSize: 32,
               fontWeight: FontWeight.w800,

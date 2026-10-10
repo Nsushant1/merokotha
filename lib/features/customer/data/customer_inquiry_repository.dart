@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:merokotha/features/notification/notification_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:merokotha/shared/models/inquiry_model.dart';
@@ -13,20 +12,6 @@ class CustomerInquiryRepository {
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection('inquiries');
-
-  // Send a new inquiry + notify the owner (local notification)
-  Future<String> sendInquiry(InquiryModel inquiry) async {
-    final ref = await _col.add(inquiry.toMap());
-
-    // Show local notification to the current user (customer)
-    // confirming their inquiry was sent
-    await NotificationService().showNewInquiry(
-      customerName: 'You',
-      listingTitle: inquiry.listingTitle,
-    );
-
-    return ref.id;
-  }
 
   // Watch all inquiries sent by this customer
   Stream<List<InquiryModel>> watchMyInquiries(String customerId) {

@@ -7,27 +7,28 @@ class AppRoutes {
   // Auth
   static const splash = '/splash';
   static const login = '/login';
-  static const roleSelect = '/role-select';
   static const onboarding = '/onboarding';
 
-  // Owner
-  static const ownerHome = '/owner/home';
+  // Shared home + profile — one account browses and posts, no roles.
+  static const home = '/home';
+  static const profile = '/profile';
+  static const myInquiries = '/my-inquiries';
+  static const applyAgent = '/apply-agent';
+
+  // Owner capabilities (paths kept stable; open to every signed-in user)
   static const uploadListing = '/owner/upload';
   static const myListings = '/owner/listings';
   static const ownerInquiries = '/owner/inquiries';
   static const ownerMap = '/owner/map';
-  static const ownerProfile = '/owner/profile';
 
-  // Customer
-  static const customerHome = '/customer/home';
+  // Customer capabilities
   static const search = '/customer/search';
   static const customerMap = '/customer/map';
   static const roomDetail = '/customer/room/:id';
   static const favourites = '/customer/favourites';
   static const inquire = '/customer/inquire/:id';
-  static const customerProfile = '/customer/profile';
 
-  // Agent (third role: dashboard shell in Phase 2, full flows in later phases)
+  // Agent (separate interface, requires approved application)
   static const agentHome = '/agent/home';
   static const agentUpload = '/agent/upload';
   static const agentListings = '/agent/listings';

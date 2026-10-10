@@ -239,7 +239,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
           ],
         ),
         bottomNavigationBar: _SignInCta(
-          onTap: () => context.push(AppRoutes.roleSelect),
+          onTap: () => context.push(AppRoutes.login),
         ),
       ),
     );
@@ -290,7 +290,7 @@ class _LandingHeader extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                _SignInChip(onTap: () => context.push(AppRoutes.roleSelect)),
+                _SignInChip(onTap: () => context.push(AppRoutes.login)),
               ],
             ),
             const SizedBox(height: 22),

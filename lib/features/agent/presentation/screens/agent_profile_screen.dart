@@ -6,62 +6,15 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/agent/presentation/widgets/agent_bottom_nav.dart';
-import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
-import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 
-/// Agent profile shell (Phase 2): verification status, role switch, sign out.
+/// Agent profile: verification status, browsing shortcut, sign out.
+/// Verified agents reach the shared home via Browse; there is no role to
+/// switch — agent access derives from the approved application.
 class AgentProfileScreen extends ConsumerWidget {
   const AgentProfileScreen({super.key});
-
-  Future<void> _switchToCustomer(
-    BuildContext context,
-    WidgetRef ref,
-    UserModel user,
-  ) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text(
-          'Switch to Room Seeker?',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        content: const Text(
-          'You will be switched to Room Seeker mode.',
-          style: TextStyle(fontSize: 14, color: AppColors.grey600, height: 1.4),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.grey600),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Switch',
-              style: TextStyle(
-                color: AppColors.customerPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true || !context.mounted) return;
-    await ref
-        .read(userRepositoryProvider)
-        .updateRole(user.id, UserRole.customer);
-    if (context.mounted) context.go(AppRoutes.customerHome);
-  }
 
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
     final confirm = await showDialog<bool>(
@@ -176,29 +129,21 @@ class AgentProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            user.isVerified
-                                ? Icons.verified_rounded
-                                : Icons.hourglass_top_rounded,
+                            Icons.verified_rounded,
                             size: 16,
-                            color: user.isVerified
-                                ? AppColors.success
-                                : AppColors.warning,
+                            color: AppColors.success,
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           Text(
-                            user.isVerified
-                                ? 'Verified by admin'
-                                : 'Awaiting admin verification',
+                            'Verified by admin',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: user.isVerified
-                                  ? AppColors.success
-                                  : AppColors.warning,
+                              color: AppColors.success,
                             ),
                           ),
                         ],
@@ -208,10 +153,10 @@ class AgentProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 MkButton(
-                  label: 'Switch to Room Seeker mode',
-                  onPressed: () => _switchToCustomer(context, ref, user),
+                  label: 'Browse rooms',
+                  onPressed: () => context.push(AppRoutes.home),
                   variant: MkButtonVariant.secondary,
-                  prefixIcon: Icons.swap_horiz_rounded,
+                  prefixIcon: Icons.search_rounded,
                 ),
                 const SizedBox(height: 12),
                 MkButton(

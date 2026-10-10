@@ -6,7 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:merokotha/shared/widgets/owner_bottom_nav.dart';
+import 'package:merokotha/features/home/presentation/widgets/home_bottom_nav.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
@@ -386,7 +386,7 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: const OwnerBottomNav(currentIndex: 4),
+      bottomNavigationBar: const HomeBottomNav(currentIndex: 4),
     );
   }
 }

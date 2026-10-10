@@ -6,6 +6,8 @@ import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/features/admin/presentation/widgets/admin_widgets.dart';
 import 'package:merokotha/features/admin/providers/admin_providers.dart';
+import 'package:merokotha/features/home/providers/agent_application_providers.dart';
+import 'package:merokotha/shared/models/agent_application_model.dart';
 import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
@@ -175,31 +177,12 @@ class AdminUserDetailScreen extends ConsumerWidget {
                       color: AppColors.info,
                       onTap: () => _showRoleDialog(context, ref, user),
                     ),
-                    if (user.isAgent) ...[
-                      const Divider(height: 1, color: AppColors.border),
-                      if (!user.isVerified)
-                        _ActionTile(
-                          icon: Icons.verified_rounded,
-                          label: 'Verify agent',
-                          color: AppColors.success,
-                          onTap: () => ref
-                              .read(adminActionProvider.notifier)
-                              .verifyAgent(user.id)
-                              .then((_) => context.pop()),
-                        )
-                      else
-                        _ActionTile(
-                          icon: Icons.remove_moderator_outlined,
-                          label: 'Revoke agent verification',
-                          color: AppColors.warning,
-                          onTap: () => ref
-                              .read(adminActionProvider.notifier)
-                              .unverifyAgent(user.id)
-                              .then((_) => context.pop()),
-                        ),
-                    ],
                   ],
                 ),
+
+                const SizedBox(height: 16),
+
+                _AgentApplicationCard(user: user),
 
                 const SizedBox(height: 16),
 
@@ -496,6 +479,242 @@ class _InfoRow extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Agent application review for one user.
+///
+/// Driven by the `agentApplications/{uid}` document: shows submitted
+/// details while pending with Approve/Reject actions, the verdict once
+/// decided, and a hint when no application exists. Decisions flip the
+/// applicant's `agentStatus` atomically — the legacy `isVerified` flag is
+/// no longer consulted for access.
+class _AgentApplicationCard extends ConsumerWidget {
+  final UserModel user;
+  const _AgentApplicationCard({required this.user});
+
+  Future<void> _decide(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool approved,
+    String? reason,
+  }) async {
+    final ok = await ref
+        .read(agentDecisionProvider.notifier)
+        .decide(uid: user.id, approved: approved, reason: reason);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? (approved ? 'Agent approved.' : 'Application rejected.')
+              : 'Failed to save decision. Please try again.',
+        ),
+        backgroundColor: ok ? AppColors.success : AppColors.error,
+      ),
+    );
+  }
+
+  /// Returns the entered reason (possibly empty) on Reject, or null when
+  /// the dialog is cancelled — so rejecting without a reason works.
+  Future<void> _showRejectDialog(BuildContext context, WidgetRef ref) async {
+    final reasonCtrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Reject application?'),
+        content: TextField(
+          controller: reasonCtrl,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'Reason shown to the applicant (optional)',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, reasonCtrl.text.trim()),
+            child: const Text(
+              'Reject',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (result == null || !context.mounted) return;
+    await _decide(
+      context,
+      ref,
+      approved: false,
+      reason: result.isEmpty ? null : result,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appAsync = ref.watch(agentApplicationProvider(user.id));
+    return _Card(
+      title: 'Agent application',
+      children: [
+        appAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          ),
+          error: (e, _) => Text(
+            'Failed to load: $e',
+            style: const TextStyle(fontSize: 13, color: AppColors.error),
+          ),
+          data: (app) {
+            if (app == null) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'No application filed.',
+                    style: TextStyle(fontSize: 13, color: AppColors.grey600),
+                  ),
+                  if (user.isAgent) ...[
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Legacy role-agent account. Ask the user to apply from Profile, or change their role.',
+                      style: TextStyle(fontSize: 12, color: AppColors.grey400),
+                    ),
+                  ],
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _InfoRow(label: 'Name', value: app.fullName),
+                const Divider(height: 1, color: AppColors.border),
+                _InfoRow(label: 'Phone', value: app.phone),
+                const Divider(height: 1, color: AppColors.border),
+                _InfoRow(label: 'Location', value: app.location),
+                if (app.notes?.isNotEmpty ?? false) ...[
+                  const Divider(height: 1, color: AppColors.border),
+                  _InfoRow(label: 'Notes', value: app.notes!),
+                ],
+                const Divider(height: 1, color: AppColors.border),
+                _InfoRow(
+                  label: 'Status',
+                  value: app.status.name,
+                  valueColor: switch (app.status) {
+                    AgentApplicationStatus.approved => AppColors.success,
+                    AgentApplicationStatus.rejected => AppColors.error,
+                    AgentApplicationStatus.pending => AppColors.warning,
+                  },
+                ),
+                if (app.status == AgentApplicationStatus.rejected &&
+                    (app.reason?.isNotEmpty ?? false)) ...[
+                  const Divider(height: 1, color: AppColors.border),
+                  _InfoRow(label: 'Reason', value: app.reason!),
+                ],
+                if (app.status == AgentApplicationStatus.pending) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _DecisionButton(
+                          label: 'Approve',
+                          color: AppColors.success,
+                          onTap: () => _decide(context, ref, approved: true),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _DecisionButton(
+                          label: 'Reject',
+                          color: AppColors.error,
+                          outlined: true,
+                          onTap: () => _showRejectDialog(context, ref),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (app.status != AgentApplicationStatus.pending) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _DecisionButton(
+                          label: app.status == AgentApplicationStatus.approved
+                              ? 'Revoke access'
+                              : 'Approve',
+                          color: app.status == AgentApplicationStatus.approved
+                              ? AppColors.error
+                              : AppColors.success,
+                          outlined: true,
+                          onTap: () =>
+                              app.status == AgentApplicationStatus.approved
+                              ? _showRejectDialog(context, ref)
+                              : _decide(context, ref, approved: true),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _DecisionButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool outlined;
+  final VoidCallback onTap;
+
+  const _DecisionButton({
+    required this.label,
+    required this.color,
+    this.outlined = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: outlined ? Colors.transparent : color,
+      borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+            border: Border.all(color: color),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: outlined ? color : Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _RoleBadgeDetail extends StatelessWidget {

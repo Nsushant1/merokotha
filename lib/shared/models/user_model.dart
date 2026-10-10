@@ -2,12 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum UserRole { owner, customer, agent, superAdmin }
 
+/// Agent privilege lifecycle, independent of [UserRole].
+///
+/// Every user can browse and post as themselves; only users whose application
+/// was approved (`verified`) may use the separate Agent interface. The legacy
+/// `role == agent && isVerified` combination is no longer consulted for
+/// access — it is preserved on documents only for backward compatibility.
+enum AgentStatus { none, pending, verified }
+
 class UserModel {
   final String id;
   final String name;
   final String email;
   final String phone;
   final UserRole role;
+  final AgentStatus agentStatus;
   final String? photoUrl;
   final String? location;
   final String? fcmToken;
@@ -27,6 +36,7 @@ class UserModel {
     this.email = '',
     required this.phone,
     required this.role,
+    this.agentStatus = AgentStatus.none,
     this.photoUrl,
     this.location,
     this.fcmToken,
@@ -47,6 +57,10 @@ class UserModel {
       role: UserRole.values.firstWhere(
         (e) => e.name == map['role'],
         orElse: () => UserRole.customer,
+      ),
+      agentStatus: AgentStatus.values.firstWhere(
+        (e) => e.name == map['agentStatus'],
+        orElse: () => AgentStatus.none,
       ),
       photoUrl: map['photoUrl'] as String?,
       location: map['location'] as String?,
@@ -71,6 +85,7 @@ class UserModel {
       'email': email,
       'phone': phone,
       'role': role.name,
+      'agentStatus': agentStatus.name,
       'photoUrl': photoUrl,
       'location': location,
       'fcmToken': fcmToken,
@@ -87,6 +102,7 @@ class UserModel {
     String? email,
     String? phone,
     UserRole? role,
+    AgentStatus? agentStatus,
     String? photoUrl,
     String? location,
     String? fcmToken,
@@ -100,6 +116,7 @@ class UserModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       role: role ?? this.role,
+      agentStatus: agentStatus ?? this.agentStatus,
       photoUrl: photoUrl ?? this.photoUrl,
       location: location ?? this.location,
       fcmToken: fcmToken ?? this.fcmToken,
@@ -112,16 +129,18 @@ class UserModel {
   }
 
   bool get isOwner => role == UserRole.owner;
-  bool get isCustomer => role == UserRole.customer;
   bool get isAgent => role == UserRole.agent;
   bool get isAdmin => role == UserRole.superAdmin;
 
-  /// Owner or agent — both can list rooms and handle inquiries.
-  bool get isLister => isOwner || isAgent;
+  /// Whether the user passed agent verification and may use the separate
+  /// Agent interface. Derived from [agentStatus], never from [role].
+  /// (Legacy documents may carry `role == agent && isVerified == true`;
+  /// those users keep working only after an admin approves their
+  /// application, which sets [agentStatus].)
+  bool get isVerifiedAgent => agentStatus == AgentStatus.verified;
 
-  /// Admin-verified agent. Becoming an agent requires admin verification
-  /// (see plan); unverified agents can browse but cannot post.
-  bool get isVerifiedAgent => isAgent && isVerified;
+  /// A pending application blocks re-applying; a rejection allows it.
+  bool get hasPendingAgentApplication => agentStatus == AgentStatus.pending;
 
   @override
   String toString() => 'UserModel(id: $id, name: $name, role: ${role.name})';

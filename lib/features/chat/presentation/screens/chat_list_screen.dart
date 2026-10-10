@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:merokotha/shared/widgets/owner_bottom_nav.dart';
+import 'package:merokotha/features/home/presentation/widgets/home_bottom_nav.dart';
 import 'package:merokotha/features/agent/presentation/widgets/agent_bottom_nav.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
@@ -11,7 +11,6 @@ import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
-import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/chat/data/chat_model.dart';
 import 'package:merokotha/features/chat/providers/chat_providers.dart';
 
@@ -22,8 +21,7 @@ class ChatListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatsAsync = ref.watch(myChatsProvider);
     final user = ref.watch(currentUserProvider).asData?.value;
-    final isOwner = user?.isOwner ?? true;
-    final isAgent = user?.isAgent ?? false;
+    final isAgent = user?.isVerifiedAgent ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
@@ -33,12 +31,11 @@ class ChatListScreen extends ConsumerWidget {
         error: (e, _) => MkErrorWidget(message: e.toString()),
         data: (chats) {
           if (chats.isEmpty) {
-            return MkEmptyState(
+            return const MkEmptyState(
               icon: Icons.chat_bubble_outline_rounded,
               title: 'No messages yet',
-              subtitle: isOwner
-                  ? 'When you accept an inquiry, a chat thread will open here'
-                  : 'When an owner accepts your inquiry, you can chat here',
+              subtitle:
+                  'When an inquiry is accepted, the chat thread will open here',
             );
           }
 
@@ -58,9 +55,7 @@ class ChatListScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: isAgent
           ? const AgentBottomNav(currentIndex: 3)
-          : isOwner
-          ? const OwnerBottomNav(currentIndex: 3)
-          : const CustomerBottomNav(currentIndex: 3),
+          : const HomeBottomNav(currentIndex: 3),
     );
   }
 }

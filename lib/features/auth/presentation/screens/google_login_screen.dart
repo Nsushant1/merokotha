@@ -8,7 +8,6 @@ import 'package:merokotha/features/auth/data/auth_repository.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
-import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/widgets/app_back_scope.dart';
 import 'package:merokotha/shared/widgets/mk_button.dart';
 
@@ -32,10 +31,8 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
     final firebaseUser = ref.read(authRepositoryProvider).currentUser;
     if (firebaseUser == null) return;
 
-    final pendingRole = GoRouterState.of(context).extra;
-
     // Firestore/App Check failures here must not be mistaken for login
-    // failures; fall back to role selection so the user is not stuck.
+    // failures; fall back to onboarding so the user is not stuck.
     try {
       final userExists = await ref
           .read(userRepositoryProvider)
@@ -56,16 +53,9 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
       }
 
       if (!userExists) {
-        // A role chosen on the role-selection screen (reached before login
-        // from Landing) is carried through, so onboarding starts pre-filled.
         // Push (not go) keeps the room route mounted so a pending guest
         // inquiry survives for onboarding to resume after profile setup.
-        // New users without a role pick one during onboarding's guard.
-        if (pendingRole is UserRole) {
-          context.push(AppRoutes.onboarding, extra: pendingRole);
-        } else {
-          context.go(AppRoutes.roleSelect);
-        }
+        context.push(AppRoutes.onboarding);
       } else {
         final user = await ref
             .read(userRepositoryProvider)
@@ -73,17 +63,15 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
         if (!mounted) return;
         if (user?.isAdmin == true) {
           context.go(AppRoutes.adminHome);
-        } else if (user?.isAgent == true) {
+        } else if (user?.isVerifiedAgent == true) {
           context.go(AppRoutes.agentHome);
-        } else if (user?.isOwner == true) {
-          context.go(AppRoutes.ownerHome);
         } else {
-          context.go(AppRoutes.customerHome);
+          context.go(AppRoutes.home);
         }
       }
     } catch (_) {
       if (!mounted) return;
-      context.go(AppRoutes.roleSelect);
+      context.go(AppRoutes.onboarding);
     }
   }
 

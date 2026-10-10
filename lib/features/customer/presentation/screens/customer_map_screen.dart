@@ -7,7 +7,7 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/formatters.dart';
-import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
+import 'package:merokotha/features/home/presentation/widgets/home_bottom_nav.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 
 import 'dart:ui' as ui;
@@ -39,10 +39,13 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
   List<Marker> _buildMarkers(List<ListingModel> listings) {
     return listings.where((l) => l.geoPoint != null).map((l) {
       final isSelected = _selectedListing?.id == l.id;
+      // Boxes carry headroom above the pill + pointer so long prices
+      // (single-line, see _PriceMarker) never overflow the bottom, even
+      // with enlarged system text.
       return Marker(
         point: LatLng(l.geoPoint!.latitude, l.geoPoint!.longitude),
-        width: isSelected ? 90 : 80,
-        height: isSelected ? 44 : 38,
+        width: isSelected ? 104 : 92,
+        height: isSelected ? 52 : 46,
         child: GestureDetector(
           onTap: () => setState(() {
             _selectedListing = _selectedListing?.id == l.id ? null : l;
@@ -203,7 +206,7 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: const CustomerBottomNav(currentIndex: 0),
+      bottomNavigationBar: const HomeBottomNav(currentIndex: 0),
     );
   }
 }
@@ -241,6 +244,12 @@ class _PriceMarker extends StatelessWidget {
           ),
           child: Text(
             _label,
+            // Single line: a wrapping price was overflowing the fixed
+            // marker box from the bottom. Bounded by the pill, so long
+            // prices ellipsize instead of growing the pin.
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: isSelected ? 13 : 12,
               fontWeight: FontWeight.w700,
@@ -354,7 +363,9 @@ class _ListingPreviewCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      PriceBadge(amount: listing.rentPerMonth),
+                      // Bounded so long prices ellipsize instead of
+                      // overflowing the row on narrow screens.
+                      Expanded(child: PriceBadge(amount: listing.rentPerMonth)),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(

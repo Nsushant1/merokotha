@@ -34,13 +34,6 @@ class UserRepository {
     return doc.exists;
   }
 
-  Stream<UserModel?> watchUser(String uid) {
-    return _users.doc(uid).snapshots().map((doc) {
-      if (!doc.exists) return null;
-      return UserModel.fromSnapshot(doc);
-    });
-  }
-
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
     await _users.doc(uid).update({
       ...data,
@@ -83,13 +76,6 @@ class UserRepository {
         'fcmToken': token,
         'updatedAt': FieldValue.serverTimestamp(),
       });
-    });
-  }
-
-  Future<void> updateRole(String uid, UserRole role) async {
-    await _users.doc(uid).update({
-      'role': role.name,
-      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 }

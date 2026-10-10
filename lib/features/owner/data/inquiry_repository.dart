@@ -29,14 +29,6 @@ class InquiryRepository {
         .map((s) => s.docs.map((d) => InquiryModel.fromSnapshot(d)).toList());
   }
 
-  Stream<List<InquiryModel>> watchCustomerInquiries(String customerId) {
-    return _inquiries
-        .where('customerId', isEqualTo: customerId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((s) => s.docs.map((d) => InquiryModel.fromSnapshot(d)).toList());
-  }
-
   Future<String> createInquiry(InquiryModel inquiry) async {
     final ref = await _inquiries.add(inquiry.toMap());
     return ref.id;
@@ -74,6 +66,29 @@ class InquiryRepository {
     );
 
     return chatId;
+  }
+
+  /// Resolve the chat thread for an (already accepted) inquiry without
+  /// touching its status or notifying — opening a thread must be free of
+  /// side effects. Creation is idempotent via the deterministic chat id.
+  Future<String> resolveChatId({
+    required String inquiryId,
+    required InquiryModel inquiry,
+    required String ownerName,
+    String? ownerPhotoUrl,
+  }) {
+    return _chatRepository.createChat(
+      createdByUid: inquiry.ownerId,
+      inquiryId: inquiryId,
+      ownerId: inquiry.ownerId,
+      ownerName: ownerName,
+      ownerPhotoUrl: ownerPhotoUrl,
+      customerId: inquiry.customerId,
+      customerName: inquiry.customerName,
+      customerPhotoUrl: inquiry.customerPhotoUrl,
+      listingId: inquiry.listingId,
+      listingTitle: inquiry.listingTitle,
+    );
   }
 
   Future<void> declineInquiry(String id, {String? reason}) async {

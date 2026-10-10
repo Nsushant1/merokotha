@@ -10,7 +10,7 @@ import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/shared/widgets/mk_app_bar.dart';
 import 'package:merokotha/shared/widgets/promo_banner_carousel.dart';
 
-/// Agent dashboard shell (Phase 2).
+/// Agent dashboard: posting on behalf of owners and handling inquiries.
 /// Full posting / listings / inbox flows land in later phases.
 class AgentHomeScreen extends ConsumerWidget {
   const AgentHomeScreen({super.key});
@@ -58,45 +58,9 @@ class AgentHomeScreen extends ConsumerWidget {
                           color: AppColors.grey600,
                         ),
                       ),
-                      // Pending-verification banner (approved UX):
-                      // unverified agents land here, can browse,
-                      // posting unlocks after admin approval.
-                      if (user.isAgent && !user.isVerified) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(AppSizes.md),
-                          decoration: BoxDecoration(
-                            color: AppColors.warningLight,
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.radiusMd,
-                            ),
-                            border: Border.all(color: AppColors.warning),
-                          ),
-                          child: const Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.hourglass_top_rounded,
-                                size: 20,
-                                color: AppColors.warning,
-                              ),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'Awaiting admin verification — you can browse rooms, posting unlocks after approval.',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    height: 1.45,
-                                    color: AppColors.grey800,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      // Only verified agents reach this screen (router
+                      // guard); unverified visitors see their application
+                      // status on the shared home profile instead.
                     ],
                   );
                 },
@@ -133,7 +97,7 @@ class AgentHomeScreen extends ConsumerWidget {
                   _AgentAction(
                     label: 'Browse rooms',
                     icon: Icons.search_rounded,
-                    onTap: () => context.push(AppRoutes.customerHome),
+                    onTap: () => context.push(AppRoutes.home),
                   ),
                 ],
               ),
