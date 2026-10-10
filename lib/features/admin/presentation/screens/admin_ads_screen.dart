@@ -40,7 +40,7 @@ class AdminAdsScreen extends ConsumerWidget {
             return const MkEmptyState(
               title: 'No banner ads yet',
               subtitle:
-                  'Create one with the + button. They show on landing + customer home.',
+                  'Create one with the + button. They show on landing + home.',
               icon: Icons.campaign_outlined,
             );
           }

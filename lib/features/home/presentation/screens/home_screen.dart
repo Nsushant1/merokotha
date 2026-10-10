@@ -521,7 +521,7 @@ class _PostRoomCta extends StatelessWidget {
   }
 }
 
-/// First 3 own listings with status toggle + delete (from owner home).
+/// First 3 own listings with status toggle + delete.
 class _MyListingsPreview extends ConsumerWidget {
   const _MyListingsPreview();
 

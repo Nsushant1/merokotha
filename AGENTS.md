@@ -5,7 +5,7 @@ Compact context for OpenCode sessions working in this repo.
 ## Project type
 
 - Single-package Flutter app (SDK `>=3.11.3 <4.0.0`).
-- Firebase backend: Firestore, Auth (phone OTP), Storage, Messaging, App Check.
+- Firebase backend: Firestore, Auth (Google sign-in), Storage, Messaging, App Check.
 - State management: `flutter_riverpod` with code generation.
 - Routing: `go_router`.
 
@@ -21,7 +21,7 @@ flutter run
 # Analyze
 flutter analyze
 
-# Test — NOTE: only a stale smoke test exists (test/widget_test.dart) and it will fail
+# Test — single widget smoke test (test/widget_test.dart)
 flutter test
 
 # Regenerate Riverpod / routing .g.dart files after editing annotated providers
@@ -33,19 +33,19 @@ flutter pub run flutter_launcher_icons:main
 
 ## Code generation gotchas
 
-- `.g.dart` files are **tracked in git** (13 files) but also listed in `.gitignore`.
+- `.g.dart` files are **tracked in git** but also listed in `.gitignore`.
 - Editing any `@riverpod` or `@Riverpod` annotated file requires running `build_runner`.
 - Generated files will still show up in `git diff` when modified because they are tracked.
 
 ## Firebase / backend constraints
 
-- `lib/firebase_options.dart` and `android/app/google-services.json` are in `.gitignore` but tracked.
-- Firestore rules live in `firestore.rules`; they enforce three roles: `owner`, `customer`, `superAdmin`.
+- `lib/firebase_options.dart` and `android/app/google-services.json` are git-ignored local-only files (generate via FlutterFire).
+- Firestore rules live in `firestore.rules`; access is capability-based (`agentStatus: none|pending|verified`, admin `superAdmin`); legacy `role` values are display-only.
 - App Check is configured with `playIntegrity` (Android) and `appAttest` (iOS). For local emulator testing, switch both providers to `.debug` in `lib/main.dart`.
 
 ## Architecture
 
-- **Feature-first** structure under `lib/features/`: `auth`, `customer`, `owner`, `admin`, `chat`, `landing`, `notification`.
+- **Feature-first** structure under `lib/features/`: `auth`, `home` (shared home/profile/agent applications), `customer`, `owner`, `agent`, `admin`, `chat`, `landing`, `notification`.
 - **Shared** code: `lib/shared/models/`, `lib/shared/widgets/`, `lib/shared/providers/`.
 - **Core** code: `lib/core/router/`, `lib/core/theme/`, `lib/core/constants/`, `lib/core/utils/`.
 - Routes are centralized in `lib/core/router/app_routes.dart`; the router provider is in `lib/core/router/app_router.dart`.
@@ -58,7 +58,7 @@ flutter pub run flutter_launcher_icons:main
 
 ## Testing
 
-- There is no real test suite. `test/widget_test.dart` is a leftover counter-app smoke test and will fail.
+- `test/widget_test.dart` is a maintained app-shell smoke test (boots the router with mocked auth) and passes.
 
 ## No CI / automation
 

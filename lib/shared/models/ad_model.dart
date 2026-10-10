@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Admin-controlled banner ad shown on landing + customer home.
+/// Admin-controlled banner ad shown on landing + home.
 ///
 /// Firestore: `ads/{adId}` — public read, superAdmin write
 /// (see firestore.rules). Composite index:
