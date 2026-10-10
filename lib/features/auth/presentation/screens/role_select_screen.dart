@@ -23,9 +23,6 @@ void _clearSelection(WidgetRef ref) {
   ref.read(_selectedRoleProvider.notifier).state = null;
 }
 
-// Secret admin code — change this in production
-const _adminSecretCode = 'admin123';
-
 class RoleSelectScreen extends ConsumerWidget {
   const RoleSelectScreen({super.key});
 
@@ -144,15 +141,6 @@ class RoleSelectScreen extends ConsumerWidget {
 
                     const SizedBox(height: 24),
 
-                    _HiddenAdminButton(
-                      onAdminSelected: () =>
-                          ref.read(_selectedRoleProvider.notifier).state =
-                              UserRole.superAdmin,
-                      selected: selected,
-                    ),
-
-                    const SizedBox(height: AppSizes.md),
-
                     MkButton(
                       label: AppStrings.continueText,
                       onPressed: selected == null
@@ -190,126 +178,5 @@ class RoleSelectScreen extends ConsumerWidget {
     // The role travels via `extra`; the picker resets so that backing
     // out of login returns to a cleared selection.
     _clearSelection(ref);
-  }
-}
-
-class _HiddenAdminButton extends StatefulWidget {
-  final VoidCallback onAdminSelected;
-  final UserRole? selected;
-
-  const _HiddenAdminButton({
-    required this.onAdminSelected,
-    required this.selected,
-  });
-
-  @override
-  State<_HiddenAdminButton> createState() => _HiddenAdminButtonState();
-}
-
-class _HiddenAdminButtonState extends State<_HiddenAdminButton> {
-  int _tapCount = 0;
-
-  void _onTap() {
-    _tapCount++;
-    if (_tapCount >= 5) {
-      _tapCount = 0;
-      _showAdminDialog();
-    }
-  }
-
-  void _showAdminDialog() {
-    final codeController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        ),
-        title: const Text('Admin Access'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: AppColors.grey50,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.admin_panel_settings_rounded,
-                size: 30,
-                color: AppColors.grey600,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Enter admin code to proceed',
-              style: TextStyle(fontSize: 14, color: AppColors.grey600),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: codeController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'Admin code',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (codeController.text.trim() == _adminSecretCode) {
-                Navigator.pop(context);
-                widget.onAdminSelected();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✓ Admin role selected'),
-                    backgroundColor: Colors.blueGrey,
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✗ Invalid admin code'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-              }
-            },
-            child: const Text('Verify'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _onTap,
-      child: Container(
-        alignment: Alignment.center,
-        child: Text(
-          widget.selected == UserRole.superAdmin
-              ? '🔐 Admin Mode'
-              : '👤 Select role above',
-          style: TextStyle(
-            fontSize: 12,
-            color: widget.selected == UserRole.superAdmin
-                ? Colors.blueGrey
-                : AppColors.grey400,
-          ),
-        ),
-      ),
-    );
   }
 }

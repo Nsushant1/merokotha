@@ -82,8 +82,14 @@ class ListingsRepository {
     return snap.docs.map((d) => ListingModel.fromSnapshot(d)).toList();
   }
 
+  /// Best-effort view counter: display-only, so a failure (offline,
+  /// legacy document, rules rejection) must never surface to the UI.
   Future<void> incrementView(String id) async {
-    await _col.doc(id).update({'viewCount': FieldValue.increment(1)});
+    try {
+      await _col.doc(id).update({'viewCount': FieldValue.increment(1)});
+    } catch (_) {
+      // Ignore — the counter is non-critical.
+    }
   }
 
   Future<List<ListingModel>> getSimilarListings(

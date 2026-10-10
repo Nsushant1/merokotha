@@ -11,8 +11,6 @@ import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart'
 import 'package:merokotha/features/customer/presentation/widgets/customer_widgets.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
 import 'package:merokotha/shared/models/user_model.dart';
-import 'package:merokotha/shared/widgets/mk_button.dart';
-import 'package:merokotha/shared/widgets/mk_text_field.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/profile_section.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';

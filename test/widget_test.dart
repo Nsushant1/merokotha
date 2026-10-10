@@ -1,30 +1,35 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:merokotha/app.dart';
+import 'package:merokotha/features/auth/providers/auth_provider.dart';
 
+/// Smoke test for the app shell.
+///
+/// Replaces the `flutter create` counter test that previously lived here: it
+/// asserted against a counter widget this project never had, so it had been
+/// failing since the app was scaffolded.
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const ProviderScope(child: MeroKothaApp()));
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('the app boots and installs its router', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        // Firebase is not initialised in tests; the shell only needs auth to
+        // resolve to "signed out" to pick the redirect.
+        overrides: [
+          authStateProvider.overrideWith((ref) => Stream.value(null)),
+          currentUserProvider.overrideWith((ref) async => null),
+        ],
+        child: const MeroKothaApp(),
+      ),
+    );
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
+
+    // SplashScreen schedules a navigation timer on mount; let it fire, then
+    // tear the tree down so the binding is not left holding a pending timer.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }

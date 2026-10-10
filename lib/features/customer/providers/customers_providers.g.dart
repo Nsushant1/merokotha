@@ -158,7 +158,7 @@ final class SearchFilterNotifierProvider
 }
 
 String _$searchFilterNotifierHash() =>
-    r'189116ad20487e218a1ba3c3bab376f4ababcc69';
+    r'86d19906e2c6dbcc96c96871d6f7bf9a2e81b9e9';
 
 abstract class _$SearchFilterNotifier extends $Notifier<SearchFilter> {
   SearchFilter build();

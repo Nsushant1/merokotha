@@ -1,9 +1,11 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merokotha/app.dart';
+import 'package:merokotha/features/notification/messaging_service.dart';
 import 'package:merokotha/features/notification/notification_service.dart';
 import 'package:merokotha/firebase_options.dart';
 
@@ -52,6 +54,12 @@ void main() async {
   }
 
   await NotificationService().init();
+
+  // Must be registered after Firebase.initializeApp and before runApp so the
+  // isolate that receives messages while the app is backgrounded or terminated
+  // is warmed correctly. Must be a top-level function — see
+  // `firebaseMessagingBackgroundHandler`.
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(const ProviderScope(child: MeroKothaApp()));
 }

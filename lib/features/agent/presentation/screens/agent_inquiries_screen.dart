@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
+import 'package:merokotha/features/agent/data/agent_repository.dart';
 import 'package:merokotha/features/agent/presentation/widgets/agent_bottom_nav.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/data/listings_repository.dart';
@@ -13,8 +14,6 @@ import 'package:merokotha/features/owner/presentation/widgets/owner_widgets.dart
 import 'package:merokotha/shared/models/inquiry_model.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 import 'package:merokotha/shared/models/user_model.dart';
-import 'package:merokotha/shared/widgets/mk_app_bar.dart';
-import 'package:merokotha/shared/widgets/mk_text_field.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 
 /// Inbox for inquiries on the agent's listings.
@@ -368,25 +367,42 @@ class _OwnerContactStrip extends ConsumerStatefulWidget {
 }
 
 class _OwnerContactStripState extends ConsumerState<_OwnerContactStrip> {
-  Future<ListingModel?>? _listingFuture;
+  Future<({ListingModel? listing, OwnerContact? contact})>? _future;
 
   @override
   void initState() {
     super.initState();
-    _listingFuture = ref
-        .read(listingsRepositoryProvider)
-        .getListingById(widget.listingId);
+    final listings = ref.read(listingsRepositoryProvider);
+    final agents = ref.read(agentRepositoryProvider);
+    _future = Future(() async {
+      final listing = await listings.getListingById(widget.listingId);
+      OwnerContact? contact;
+      if (listing != null && listing.isAgentListed) {
+        try {
+          contact = await agents.getOwnerContact(widget.listingId);
+        } catch (_) {
+          contact = null;
+        }
+      }
+      return (listing: listing, contact: contact);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ListingModel?>(
-      future: _listingFuture,
+    return FutureBuilder<({ListingModel? listing, OwnerContact? contact})>(
+      future: _future,
       builder: (context, snap) {
-        final listing = snap.data;
+        final listing = snap.data?.listing;
         if (listing == null || !listing.isAgentListed) {
           return const SizedBox.shrink();
         }
+        // Phone comes from the restricted subcollection; legacy top-level
+        // value is the fallback until the listing is next edited.
+        final contact = snap.data?.contact;
+        final phone = contact?.phone.isNotEmpty == true
+            ? contact!.phone
+            : listing.ownerPhone;
         return Container(
           margin: const EdgeInsets.only(top: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -401,8 +417,8 @@ class _OwnerContactStripState extends ConsumerState<_OwnerContactStrip> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Owner: ${listing.ownerName}'
-                  '${listing.ownerPhone != null ? ' • ${listing.ownerPhone}' : ''}',
+                  'Owner: ${contact?.name.isNotEmpty == true ? contact!.name : listing.ownerName}'
+                  '${phone != null && phone.isNotEmpty ? ' • $phone' : ''}',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

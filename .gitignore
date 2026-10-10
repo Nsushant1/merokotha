@@ -5,6 +5,11 @@ firebase_options.dart
 .firebase/
 firebase-debug.log
 
+# Local Firebase emulator output (regenerable on every run)
+firestore-debug.log
+emulator-bg.log
+emulator-bg.err.log
+
 # Flutter generated
 *.g.dart
 *.freezed.dart

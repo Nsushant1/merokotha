@@ -9,7 +9,6 @@ import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
-import 'package:merokotha/shared/widgets/mk_section_title.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/login_sheet.dart';
 import 'package:merokotha/features/customer/presentation/widgets/room_photo_section.dart';

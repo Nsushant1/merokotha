@@ -7,8 +7,6 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/shared/models/user_model.dart';
-import 'package:merokotha/shared/widgets/mk_button.dart';
-import 'package:merokotha/shared/widgets/mk_text_field.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/profile_section.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';

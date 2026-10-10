@@ -11,6 +11,11 @@ class UserModel {
   final String? photoUrl;
   final String? location;
   final String? fcmToken;
+
+  /// All registered device push tokens (multi-device support).
+  /// [fcmToken] is retained as the most-recent token for backward
+  /// compatibility with older readers.
+  final List<String> fcmTokens;
   final bool isVerified;
   final bool isBanned;
   final DateTime createdAt;
@@ -25,6 +30,7 @@ class UserModel {
     this.photoUrl,
     this.location,
     this.fcmToken,
+    this.fcmTokens = const [],
     this.isVerified = false,
     this.isBanned = false,
     required this.createdAt,
@@ -45,6 +51,8 @@ class UserModel {
       photoUrl: map['photoUrl'] as String?,
       location: map['location'] as String?,
       fcmToken: map['fcmToken'] as String?,
+      fcmTokens:
+          (map['fcmTokens'] as List?)?.whereType<String>().toList() ?? const [],
       isVerified: map['isVerified'] as bool? ?? false,
       isBanned: map['isBanned'] as bool? ?? false,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -66,6 +74,7 @@ class UserModel {
       'photoUrl': photoUrl,
       'location': location,
       'fcmToken': fcmToken,
+      'fcmTokens': fcmTokens,
       'isVerified': isVerified,
       'isBanned': isBanned,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -81,6 +90,7 @@ class UserModel {
     String? photoUrl,
     String? location,
     String? fcmToken,
+    List<String>? fcmTokens,
     bool? isVerified,
     bool? isBanned,
   }) {
@@ -93,6 +103,7 @@ class UserModel {
       photoUrl: photoUrl ?? this.photoUrl,
       location: location ?? this.location,
       fcmToken: fcmToken ?? this.fcmToken,
+      fcmTokens: fcmTokens ?? this.fcmTokens,
       isVerified: isVerified ?? this.isVerified,
       isBanned: isBanned ?? this.isBanned,
       createdAt: createdAt,

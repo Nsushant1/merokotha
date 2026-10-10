@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Internet for OpenStreetMap tiles and Firebase -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Chat push notifications (Android 13+ runtime prompt) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="MeroKotha"
         android:name="${applicationName}"
@@ -25,6 +27,17 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- FCM: route system-displayed chat notifications into the same
+             channel the app creates, so foreground and background alerts look
+             identical and respect the user's channel settings. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="chat_messages" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
+
         <!-- Flutter embedding -->
         <meta-data
             android:name="flutterEmbedding"

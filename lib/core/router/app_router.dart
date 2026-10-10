@@ -9,6 +9,7 @@ import 'package:merokotha/features/auth/presentation/screens/role_select_screen.
 import 'package:merokotha/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
+import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 
 import 'package:merokotha/features/landing/presentation/screens/landing_screen.dart';
@@ -45,6 +46,9 @@ part 'app_router.g.dart';
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
   final authState = ref.watch(authStateProvider);
+  // Role is async; guards that need it only apply once loaded. Data stays
+  // protected by Firestore rules regardless of navigation state.
+  final role = ref.watch(currentUserProvider).asData?.value?.role;
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
@@ -67,6 +71,22 @@ GoRouter appRouter(Ref ref) {
           !publicRoutes.contains(loc) &&
           !loc.startsWith('/customer/room/')) {
         return AppRoutes.login;
+      }
+
+      // Admin screens are never reachable without the superAdmin role.
+      // Other roles keep cross-access to owner/customer/agent screens:
+      // listings data is public and users may switch roles from profile,
+      // so per-role walls there would only add friction without security.
+      if (isLoggedIn && loc.startsWith('/admin')) {
+        if (role == null) return null; // profile still loading — decide later
+        if (role != UserRole.superAdmin) {
+          return switch (role) {
+            UserRole.owner => AppRoutes.ownerHome,
+            UserRole.agent => AppRoutes.agentHome,
+            UserRole.customer => AppRoutes.customerHome,
+            UserRole.superAdmin => null,
+          };
+        }
       }
 
       return null;

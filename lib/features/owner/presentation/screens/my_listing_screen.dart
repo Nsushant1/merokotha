@@ -7,7 +7,6 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
-import 'package:merokotha/shared/widgets/mk_app_bar.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/features/owner/providers/owner_providers.dart';
 import 'package:merokotha/features/owner/presentation/widgets/owner_widgets.dart';

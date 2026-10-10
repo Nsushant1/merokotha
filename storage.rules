@@ -100,17 +100,28 @@ service firebase.storage {
 
     match /chats/{chatId}/{fileName} {
 
-      // FIXED: previously any signed-in user could read any chat's
-      // photos. Now only the two participants (or admin) can read.
+      // Only the two participants (or admin) can read.
       allow read: if isChatParticipant(chatId) || isStorageAdmin();
 
-      // FIXED: previously any signed-in user could upload into any
-      // chat folder. Now only participants (or admin) can upload.
-      // Must be a valid image under 5MB
-      allow create, update: if (isChatParticipant(chatId) || isStorageAdmin()) && isValidImage();
+      // HARDENED: uploads must be stamped with the uploader's uid, and a
+      // participant can no longer overwrite or delete the OTHER participant's
+      // attachment just by knowing the chat id. Previously `create, update`
+      // and `delete` were participant-wide, so either side could tamper with
+      // the other's media. Legacy photos (uploaded before this metadata
+      // existed) have no `uploadedBy` and are therefore immutable
+      // client-side — which matches the app, which never edits or removes
+      // chat photos.
+      allow create: if (isChatParticipant(chatId) || isStorageAdmin())
+        && isValidImage()
+        && request.resource.metadata.uploadedBy == request.auth.uid;
 
-      // Only participants (or admin) can delete chat photos
-      allow delete: if isChatParticipant(chatId) || isStorageAdmin();
+      allow update: if isStorageAdmin()
+        || (isChatParticipant(chatId)
+            && resource.metadata.uploadedBy == request.auth.uid
+            && request.resource.metadata.uploadedBy == request.auth.uid);
+
+      allow delete: if isStorageAdmin()
+        || (isChatParticipant(chatId) && resource.metadata.uploadedBy == request.auth.uid);
     }
 
 

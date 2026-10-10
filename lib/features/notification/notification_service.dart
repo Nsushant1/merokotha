@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
@@ -9,9 +11,35 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   // ── Notification channel IDs ──
-  static const String _inquiryChannelId = 'inquiries';
-  static const String _chatChannelId = 'chat_messages';
-  static const String _generalChannelId = 'general';
+  static const String inquiryChannelId = 'inquiries';
+  static const String chatChannelId = 'chat_messages';
+  static const String generalChannelId = 'general';
+
+  // Retained for source compatibility with older call sites.
+  static const String _inquiryChannelId = inquiryChannelId;
+  static const String _chatChannelId = chatChannelId;
+  static const String _generalChannelId = generalChannelId;
+
+  /// Android notification ids must be a 32-bit int. Chat notifications use a
+  /// deterministic id derived from the conversation so that repeated pushes
+  /// for the same chat replace one another in the tray instead of stacking up.
+  static int chatNotificationId(String chatId) => chatId.hashCode & 0x3FFFFFFF;
+
+  final _chatOpenedController = StreamController<String>.broadcast();
+
+  /// Emits the chat id whenever a foreground local notification is tapped.
+  /// Wired into [MessagingService] so foreground taps route exactly like
+  /// background / terminated FCM taps.
+  Stream<String> get onChatOpened => _chatOpenedController.stream;
+
+  /// Payload prefix carried by foreground chat notifications.
+  static String chatPayload(String chatId) => 'chat:$chatId';
+
+  static String? chatIdFromPayload(String? payload) {
+    if (payload == null || !payload.startsWith('chat:')) return null;
+    final id = payload.substring('chat:'.length);
+    return id.isEmpty ? null : id;
+  }
 
   // ── Initialize ──
   Future<void> init() async {
@@ -30,7 +58,15 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        final chatId = chatIdFromPayload(response.payload);
+        if (chatId != null && !_chatOpenedController.isClosed) {
+          _chatOpenedController.add(chatId);
+        }
+      },
+    );
 
     await _createChannels();
   }
@@ -99,6 +135,8 @@ class NotificationService {
     required String body,
     required String channelId,
     required String channelName,
+    bool tapToNavigate = false,
+    String? payload,
   }) async {
     final androidDetails = AndroidNotificationDetails(
       channelId,
@@ -106,20 +144,33 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
+      // Chat notifications hand the tap back to the app so it can route to the
+      // conversation; inquiry notices simply open the launcher activity.
+      autoCancel: true,
+      ongoing: false,
+      onlyAlertOnce: channelId == _chatChannelId,
     );
 
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
+    final details = tapToNavigate
+        ? NotificationDetails(
+            android: androidDetails,
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+              threadIdentifier: 'chat',
+            ),
+          )
+        : NotificationDetails(
+            android: androidDetails,
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+            ),
+          );
 
-    final details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _plugin.show(id, title, body, details);
+    await _plugin.show(id, title, body, details, payload: payload);
   }
 
   // ────────────────────────────────────────────────────────────────
@@ -152,34 +203,23 @@ class NotificationService {
     );
   }
 
-  // ── Inquiry declined (shown to customer) ──
-  Future<void> showInquiryDeclined({
-    required String listingTitle,
-    String? reason,
-  }) async {
-    await _show(
-      id: 1003,
-      title: 'Inquiry update',
-      body: reason != null
-          ? 'Your inquiry for "$listingTitle" was declined. Reason: $reason'
-          : 'Your inquiry for "$listingTitle" was declined.',
-      channelId: _inquiryChannelId,
-      channelName: 'Inquiries',
-    );
-  }
-
-  // ── New chat message ──
-  Future<void> showNewMessage({
+  /// Foreground chat push. [chatId] keys the notification so successive
+  /// messages from the same conversation replace one another. The payload
+  /// carries the conversation so a tap deep-links into it.
+  Future<void> showChatMessage({
     required String senderName,
     required String message,
-    required String listingTitle,
+    required String chatId,
+    String? listingTitle,
   }) async {
     await _show(
-      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      id: chatNotificationId(chatId),
       title: senderName,
-      body: message.isEmpty ? '📷 Photo' : message,
+      body: message.trim().isEmpty ? '📷 Photo' : message,
       channelId: _chatChannelId,
       channelName: 'Chat Messages',
+      tapToNavigate: true,
+      payload: chatPayload(chatId),
     );
   }
 

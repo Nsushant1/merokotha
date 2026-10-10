@@ -10,8 +10,9 @@ part 'inquiry_repository.g.dart';
 
 class InquiryRepository {
   final FirebaseFirestore _db;
+  final ChatRepository _chatRepository;
 
-  InquiryRepository(this._db);
+  InquiryRepository(this._db, this._chatRepository);
 
   CollectionReference<Map<String, dynamic>> get _inquiries =>
       _db.collection('inquiries');
@@ -52,9 +53,12 @@ class InquiryRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
-    // Auto-create a chat thread between owner and customer on acceptance
-    final chatRepo = ChatRepository(_db);
-    final chatId = await chatRepo.createChat(
+    // Auto-create a chat thread between owner and customer on acceptance.
+    // The repository resolves the conversation id deterministically, so two
+    // concurrent acceptances collapse into a single thread.
+    final chatId = await _chatRepository.createChat(
+      createdByUid: inquiry.ownerId,
+      inquiryId: inquiryId,
       ownerId: inquiry.ownerId,
       ownerName: ownerName,
       ownerPhotoUrl: ownerPhotoUrl,
@@ -91,5 +95,8 @@ class InquiryRepository {
 
 @riverpod
 InquiryRepository inquiryRepository(Ref ref) {
-  return InquiryRepository(ref.watch(firebaseFirestoreProvider));
+  return InquiryRepository(
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(chatRepositoryProvider),
+  );
 }

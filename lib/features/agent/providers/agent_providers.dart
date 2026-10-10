@@ -88,12 +88,16 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
       }
 
       final now = DateTime.now();
+      // Real-owner phone goes to the restricted `ownerContact`
+      // subcollection — never top-level, where public listing reads would
+      // expose it. `ownerName` stays top-level (displayed on the agent's
+      // own screens and to admins).
       final listing = ListingModel(
         id: '',
         ownerId: agentId,
         ownerName: ownerName,
         agentId: agentId,
-        ownerPhone: ownerPhone,
+        ownerPhone: null,
         ownerPhotoUrl: agentPhotoUrl,
         title: title,
         rentPerMonth: rentPerMonth,
@@ -114,9 +118,15 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
         roomType: roomType,
       );
 
-      final id = await ref
-          .read(agentRepositoryProvider)
-          .createAgentListing(listing);
+      final repo = ref.read(agentRepositoryProvider);
+      final id = await repo.createAgentListing(listing);
+      // Same permissions as the listing write above, so a failure here
+      // implies the create failed too — surfaced as one error.
+      await repo.saveOwnerContact(
+        listingId: id,
+        name: ownerName,
+        phone: ownerPhone,
+      );
 
       state = state.copyWith(isLoading: false, success: true);
       return id;
@@ -149,9 +159,12 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await ref.read(agentRepositoryProvider).updateAgentListing(listingId, {
+      final repo = ref.read(agentRepositoryProvider);
+      await repo.updateAgentListing(listingId, {
         'ownerName': ownerName,
-        'ownerPhone': ownerPhone,
+        // Drop any legacy top-level phone (rules allow removal, never
+        // setting); the contact lives in `ownerContact` now.
+        'ownerPhone': FieldValue.delete(),
         'title': title,
         'roomType': roomType,
         'rentPerMonth': rentPerMonth,
@@ -166,6 +179,11 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
         'address': ?address,
         'nearbyLandmarks': ?nearbyLandmarks,
       });
+      await repo.saveOwnerContact(
+        listingId: listingId,
+        name: ownerName,
+        phone: ownerPhone,
+      );
       state = state.copyWith(isLoading: false, success: true);
     } catch (_) {
       state = state.copyWith(

@@ -19,9 +19,6 @@ import 'package:merokotha/features/agent/providers/agent_providers.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/owner/presentation/widgets/owner_widgets.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
-import 'package:merokotha/shared/widgets/mk_app_bar.dart';
-import 'package:merokotha/shared/widgets/mk_button.dart';
-import 'package:merokotha/shared/widgets/mk_text_field.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 
 const _roomTypes = [
@@ -98,7 +95,10 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
     final l = widget.listing;
     if (l != null) {
       _ownerNameCtrl.text = l.ownerName;
+      // Legacy fallback: pre-migration listings may carry the phone
+      // top-level; the restricted subcollection wins when present.
       _ownerPhoneCtrl.text = l.ownerPhone ?? '';
+      _loadOwnerContact(l.id);
       _titleCtrl.text = l.title;
       _rentCtrl.text = l.rentPerMonth.toStringAsFixed(0);
       _floorCtrl.text = l.floor.toString();
@@ -113,6 +113,20 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
       if (l.geoPoint != null) {
         _pickedLocation = LatLng(l.geoPoint!.latitude, l.geoPoint!.longitude);
       }
+    }
+  }
+
+  /// Loads the real-owner phone from the restricted subcollection.
+  /// Best-effort: the legacy top-level value (if any) stays on failure.
+  Future<void> _loadOwnerContact(String listingId) async {
+    try {
+      final contact = await ref
+          .read(agentRepositoryProvider)
+          .getOwnerContact(listingId);
+      if (!mounted || contact == null || contact.phone.isEmpty) return;
+      setState(() => _ownerPhoneCtrl.text = contact.phone);
+    } catch (_) {
+      // Keep the legacy fallback already in the field.
     }
   }
 

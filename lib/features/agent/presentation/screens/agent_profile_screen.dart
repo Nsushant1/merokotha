@@ -10,8 +10,6 @@ import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/shared/models/user_model.dart';
-import 'package:merokotha/shared/widgets/mk_app_bar.dart';
-import 'package:merokotha/shared/widgets/mk_button.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 
 /// Agent profile shell (Phase 2): verification status, role switch, sign out.

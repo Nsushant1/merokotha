@@ -6,12 +6,16 @@ class ChatInputBar extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
   final VoidCallback onImage;
+  final bool isSending;
+  final bool enabled;
 
   const ChatInputBar({
     super.key,
     required this.controller,
     required this.onSend,
     required this.onImage,
+    this.isSending = false,
+    this.enabled = true,
   });
 
   @override
@@ -31,7 +35,7 @@ class ChatInputBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           _RoundIconTap(
-            onTap: onImage,
+            onTap: enabled ? onImage : null,
             icon: Icons.image_outlined,
             background: AppColors.backgroundSecondary,
             iconColor: AppColors.grey600,
@@ -48,6 +52,7 @@ class ChatInputBar extends StatelessWidget {
               ),
               child: TextField(
                 controller: controller,
+                enabled: enabled,
                 maxLines: 4,
                 minLines: 1,
                 textCapitalization: TextCapitalization.sentences,
@@ -59,21 +64,25 @@ class ChatInputBar extends StatelessWidget {
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                onSubmitted: (_) => onSend(),
+                onSubmitted: enabled ? (_) => onSend() : null,
               ),
             ),
           ),
           const SizedBox(width: 8),
-          AnimatedBuilder(
-            animation: controller,
+          // Rebuilds whenever the controller notifies (text, selection) or the
+          // send state flips, so the button reflects both.
+          ListenableBuilder(
+            listenable: controller,
             builder: (context, _) {
               final hasText = controller.text.trim().isNotEmpty;
+              final active = enabled && !isSending && hasText;
               return _RoundIconTap(
-                onTap: onSend,
-                icon: Icons.send_rounded,
-                background: hasText ? AppColors.accent : AppColors.grey100,
+                onTap: active ? onSend : null,
+                icon: isSending ? Icons.more_horiz_rounded : Icons.send_rounded,
+                background: active ? AppColors.accent : AppColors.grey100,
                 iconColor: Colors.white,
-                shadow: hasText,
+                shadow: active,
+                loading: isSending,
               );
             },
           ),
@@ -84,11 +93,12 @@ class ChatInputBar extends StatelessWidget {
 }
 
 class _RoundIconTap extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final IconData icon;
   final Color background;
   final Color iconColor;
   final bool shadow;
+  final bool loading;
 
   const _RoundIconTap({
     required this.onTap,
@@ -96,6 +106,7 @@ class _RoundIconTap extends StatelessWidget {
     required this.background,
     required this.iconColor,
     this.shadow = false,
+    this.loading = false,
   });
 
   @override
@@ -114,7 +125,18 @@ class _RoundIconTap extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: shadow ? AppSizes.shadowButton : null,
           ),
-          child: Icon(icon, size: 19, color: iconColor),
+          child: loading
+              ? Center(
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: iconColor,
+                    ),
+                  ),
+                )
+              : Icon(icon, size: 19, color: iconColor),
         ),
       ),
     );

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Accent used by the app icon and by system-displayed FCM chat
+         notifications (small icon tint on Android). -->
+    <color name="notification_color">#0757B8</color>
+</resources>

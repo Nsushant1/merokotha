@@ -70,7 +70,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final extra = GoRouterState.of(context).extra;
-    if (extra is UserRole) _role = extra;
+    // superAdmin can never be self-selected: ignore a crafted extra.
+    // Admin accounts are provisioned out-of-band; rules remain the boundary.
+    if (extra is UserRole && extra != UserRole.superAdmin) _role = extra;
   }
 
   @override
@@ -123,12 +125,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         );
         return;
       }
+      // No client path can create a superAdmin (Firestore rules reject it);
+      // any unexpected role falls back to the customer home.
       if (role == UserRole.owner) {
         context.go(AppRoutes.ownerHome);
       } else if (role == UserRole.agent) {
         context.go(AppRoutes.agentHome);
-      } else if (role == UserRole.superAdmin) {
-        context.go(AppRoutes.adminHome);
       } else {
         context.go(AppRoutes.customerHome);
       }

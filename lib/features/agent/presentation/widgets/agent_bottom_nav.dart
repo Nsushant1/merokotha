@@ -55,7 +55,9 @@ class AgentBottomNav extends ConsumerWidget {
           case 1:
             context.push(AppRoutes.customerHome);
           case 3:
-            context.push(AppRoutes.agentInquiries);
+            // The badge counts unread *messages*, so this must land on the
+            // chat list — not on the inquiries screen.
+            context.push(AppRoutes.chatList);
           case 4:
             context.push(AppRoutes.agentProfile);
         }

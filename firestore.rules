@@ -70,11 +70,52 @@ service cloud.firestore {
 
     // Is the current user a participant of a given chat?
     function isChatParticipant(chatId) {
+      return isChatOwnerSide(chatId) || isChatCustomerSide(chatId);
+    }
+
+    // The lister-side participant. Owners AND agents occupy the `ownerId`
+    // slot, so this must be compared against the stored id, never against the
+    // caller's role string.
+    function isChatOwnerSide(chatId) {
       return isAuth() &&
-        exists(/databases/$(database)/documents/chats/$(chatId)) && (
-        get(/databases/$(database)/documents/chats/$(chatId)).data.ownerId    == request.auth.uid ||
-        get(/databases/$(database)/documents/chats/$(chatId)).data.customerId == request.auth.uid
-      );
+        exists(/databases/$(database)/documents/chats/$(chatId)) &&
+        get(/databases/$(database)/documents/chats/$(chatId)).data.ownerId == request.auth.uid;
+    }
+
+    // The enquirer-side participant.
+    function isChatCustomerSide(chatId) {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/chats/$(chatId)) &&
+        get(/databases/$(database)/documents/chats/$(chatId)).data.customerId == request.auth.uid;
+    }
+
+    // Unread accounting is per-side:
+    //   * a participant may always clear their OWN counter (marking read);
+    //   * a participant may only RAISE the other side's counter, and only on
+    //     a genuine send (the summary is attributed to them in the same write).
+    // This stops a malicious participant from inflating the other party's
+    // badge, or zeroing it to hide messages.
+    function chatUnreadUpdateAllowed(chatId) {
+      let ownerBefore = resource.data.get('unreadOwner', 0);
+      let ownerAfter  = request.resource.data.get('unreadOwner', 0);
+      let custBefore  = resource.data.get('unreadCustomer', 0);
+      let custAfter   = request.resource.data.get('unreadCustomer', 0);
+      let senderNow   = request.resource.data.get('lastMessageSenderId', null);
+      let lastActivityNow  = request.resource.data.get('lastMessageAt', null);
+      let lastActivityPrev = resource.data.get('lastMessageAt', null);
+      // A counter may rise only alongside a newly authored activity timestamp.
+      // Comparing the previous sender is not enough: the same person can and
+      // should send twice in a row, and each genuine send gets a newer server
+      // timestamp.
+      let isSending   = senderNow == request.auth.uid
+        && lastActivityNow != null
+        && lastActivityNow != lastActivityPrev
+        && (lastActivityPrev == null || lastActivityNow > lastActivityPrev);
+      return isChatOwnerSide(chatId)
+        ? (ownerAfter <= ownerBefore
+            && (custAfter == custBefore || (isSending && custAfter > custBefore)))
+        : (custAfter <= custBefore
+            && (ownerAfter == ownerBefore || (isSending && ownerAfter > ownerBefore)));
     }
 
 
@@ -85,9 +126,12 @@ service cloud.firestore {
 
     match /users/{userId} {
 
-      // Any signed-in user can read any profile
-      // (needed to display owner name/photo on listings and chats)
-      allow read: if isAuth();
+      // Any signed-in user can read a single profile document
+      // (needed to display owner name/photo on listings and chats).
+      // Collection-wide listing is admin-only so one account cannot
+      // enumerate every user's name/phone/email.
+      allow get: if isAuth();
+      allow list: if isAdmin();
 
       // A user can only create their OWN document
       // Role must be owner, customer, or agent — cannot self-assign superAdmin.
@@ -104,7 +148,7 @@ service cloud.firestore {
       // superAdmin can update any user (ban/unban and role changes).
       allow update: if isAdmin();
       allow update: if isMe(userId) && notBanned()
-        && onlyFields(['name', 'location', 'photoUrl', 'fcmToken', 'role', 'updatedAt'])
+        && onlyFields(['name', 'location', 'photoUrl', 'fcmToken', 'fcmTokens', 'role', 'updatedAt'])
         && request.resource.data.role in ['owner', 'customer', 'agent']
         && request.resource.data.phone == resource.data.phone
         && request.resource.data.createdAt == resource.data.createdAt;
@@ -154,18 +198,20 @@ service cloud.firestore {
 
       // Verified agents post on behalf of owners: ownerId and agentId are
       // both the agent's uid, with the real-owner contact entered manually.
-      // Owner contact is required so agent listings always have it.
+      // The real-owner phone lives in the restricted `ownerContact`
+      // subcollection below — never top-level, where public listing reads
+      // would expose it. (Legacy listings may still carry a top-level
+      // `ownerPhone`; it is ignored by new clients.)
       allow create: if isVerifiedAgent()
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.agentId == request.auth.uid
         && request.resource.data.keys().hasAll([
-            'ownerId', 'agentId', 'ownerName', 'ownerPhone', 'title',
+            'ownerId', 'agentId', 'ownerName', 'title',
             'rentPerMonth', 'status', 'createdAt'
           ])
         && request.resource.data.ownerName is string
         && request.resource.data.ownerName.size() > 0
-        && request.resource.data.ownerPhone is string
-        && request.resource.data.ownerPhone.size() > 0
+        && request.resource.data.get('ownerPhone', null) == null
         && request.resource.data.status == 'active'
         && request.resource.data.rentPerMonth is number
         && request.resource.data.rentPerMonth > 0;
@@ -181,11 +227,48 @@ service cloud.firestore {
         (isAuth() && notBanned() && resource.data.ownerId == request.auth.uid
           && request.resource.data.ownerId == resource.data.ownerId
           && request.resource.data.get('agentId', null) == resource.data.get('agentId', null)
-          && request.resource.data.createdAt == resource.data.createdAt);
+          && request.resource.data.createdAt == resource.data.createdAt
+          // Top-level `ownerPhone` is legacy: it may stay or be removed,
+          // never set — new contact details go to `ownerContact`.
+          && (request.resource.data.get('ownerPhone', null) == null
+            || request.resource.data.get('ownerPhone', null) == resource.data.get('ownerPhone', null)));
+
+      // Anyone may bump the view counter by exactly one — it is display-only
+      // and the detail screen is reachable without sign-in. Steps are fixed
+      // at +1 so a client cannot forge arbitrary counts; nothing else may
+      // change in the same write.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount'])
+        && request.resource.data.viewCount == resource.data.get('viewCount', 0) + 1;
 
       // The listing owner OR superAdmin can delete a listing
       allow delete: if isAdmin() ||
         (isAuth() && resource.data.ownerId == request.auth.uid);
+
+      // ── Real-owner contact sub-collection ────────────────────
+      // /listings/{listingId}/ownerContact/{docId}
+      // Holds the manually entered real-owner contact for agent-posted
+      // listings. Only the posting agent (ownerId slot) and superAdmin can
+      // read or write it — public listing reads never include it.
+      match /ownerContact/{docId} {
+        // Single-document reads by the posting agent or admin.
+        // Collection listing is admin-only (same rationale as /users).
+        allow get: if isAdmin() || (isAuth() && (
+          get(/databases/$(database)/documents/listings/$(listingId)).data.ownerId == request.auth.uid
+        ));
+        allow list: if isAdmin();
+
+        // The posting agent (or admin) maintains the contact. Phone must be
+        // a non-empty string; name is stored alongside for the agent's
+        // inquiry banner.
+        allow create, update: if isAdmin() || (isAuth() && notBanned()
+          && get(/databases/$(database)/documents/listings/$(listingId)).data.ownerId == request.auth.uid
+          && request.resource.data.keys().hasAll(['name', 'phone'])
+          && request.resource.data.name is string
+          && request.resource.data.phone is string
+          && request.resource.data.phone.size() > 0);
+
+        allow delete: if isAdmin();
+      }
     }
 
 
@@ -234,30 +317,107 @@ service cloud.firestore {
     // /chats/{chatId}/messages/{messageId}
     // ────────────────────────────────────────────────────────────
 
+    // A changed conversation summary must be authored by its writer. Checking
+    // only whether the sender id "changed" is not enough: if the previous
+    // sender was already the other party, an unchanged sender id would let a
+    // participant post new text while attributing it to them. The only summary
+    // change that may keep another writer's id is the one-way legacy backfill.
+    function summaryAttributionAllowed() {
+      let lastMessageNow    = request.resource.data.get('lastMessage', null);
+      let lastMessagePrev   = resource.data.get('lastMessage', null);
+      let lastActivityNow   = request.resource.data.get('lastMessageAt', null);
+      let lastActivityPrev  = resource.data.get('lastMessageAt', null);
+      let messageChanged  = lastMessageNow != lastMessagePrev;
+      let activityChanged = lastActivityNow != lastActivityPrev;
+      let legacyBackfill  = lastActivityPrev == null;
+      let attributedToMe  = request.resource.data.get('lastMessageSenderId', null) == request.auth.uid;
+      return (!messageChanged || attributedToMe)
+        && (!activityChanged || legacyBackfill || attributedToMe);
+    }
+
     match /chats/{chatId} {
 
-      // Only participants (owner + customer) or superAdmin can read a chat
-      allow read: if isAdmin() || (isAuth() && (
+      // Only participants (owner + customer) or superAdmin can read a chat.
+      //
+      // `get` keeps the admin bypass. `list` is split per side and lookup-free:
+      // each statement mirrors exactly one client query
+      // (`where ownerId == me` / `where customerId == me`), which is what lets
+      // the query planner prove the query can only return the caller's own
+      // conversations. A combined `a == me || b == me` form is not provable
+      // against a single-field filter, so the list would be rejected.
+      allow get: if isAdmin() || (isAuth() && (
         resource.data.ownerId    == request.auth.uid ||
         resource.data.customerId == request.auth.uid
       ));
+      allow list: if isAuth()
+        && resource.data.ownerId == request.auth.uid;
+      allow list: if isAuth()
+        && resource.data.customerId == request.auth.uid;
 
-      // A chat is created when an inquiry is accepted
-      // The creator must be one of the participants
+      // A chat is created when an inquiry is accepted.
+      //
+      // HARDENED: the conversation must be backed by a REAL accepted inquiry
+      // for the same listing and the same two participants. Previously any
+      // signed-in non-banned user could mint a chat for any listingId and
+      // insert themselves as `customerId`, then read and write it.
       allow create: if isAuth() && notBanned()
         && request.resource.data.keys().hasAll([
             'ownerId', 'customerId', 'listingId',
-            'listingTitle', 'createdAt'
+            'listingTitle', 'createdAt', 'inquiryId'
           ])
+        && request.resource.data.ownerId is string
+        && request.resource.data.customerId is string
+        && request.resource.data.listingId is string
+        && request.resource.data.listingTitle is string
+        && request.resource.data.ownerId != request.resource.data.customerId
         && (request.resource.data.ownerId    == request.auth.uid ||
-            request.resource.data.customerId == request.auth.uid);
+            request.resource.data.customerId == request.auth.uid)
+        // Starts clean — nobody is "unread" in a brand new thread.
+        && request.resource.data.get('unreadOwner', 0) == 0
+        && request.resource.data.get('unreadCustomer', 0) == 0
+        // The conversation list orders by latest activity, so the thread needs
+        // an activity timestamp from its very first write. Otherwise it would
+        // sort below every older conversation that already had one.
+        && request.resource.data.lastMessageAt == request.resource.data.createdAt
+        && exists(/databases/$(database)/documents/inquiries/$(request.resource.data.inquiryId))
+        && get(/databases/$(database)/documents/inquiries/$(request.resource.data.inquiryId)).data.status      == 'accepted'
+        && get(/databases/$(database)/documents/inquiries/$(request.resource.data.inquiryId)).data.listingId   == request.resource.data.listingId
+        && get(/databases/$(database)/documents/inquiries/$(request.resource.data.inquiryId)).data.ownerId    == request.resource.data.ownerId
+        && get(/databases/$(database)/documents/inquiries/$(request.resource.data.inquiryId)).data.customerId == request.resource.data.customerId;
 
-      // Only participants can update chat metadata
-      // (e.g. lastMessage, lastMessageAt, unreadCount after a message is sent)
-      allow update: if isAdmin() || (isAuth() && (
-        resource.data.ownerId    == request.auth.uid ||
-        resource.data.customerId == request.auth.uid
-      ));
+      // Only participants can update the conversation summary and counters.
+      //
+      // HARDENED: identity fields are immutable, so a participant can no
+      // longer rewrite `ownerId`/`customerId` to add themselves to a
+      // conversation or hand it to someone else. Unread counters move only in
+      // the direction permitted by `chatUnreadUpdateAllowed`.
+      allow update: if isAdmin();
+      allow update: if isChatParticipant(chatId) && notBanned()
+        // Identity is immutable.
+        && request.resource.data.ownerId    == resource.data.ownerId
+        && request.resource.data.customerId == resource.data.customerId
+        && request.resource.data.listingId  == resource.data.listingId
+        && request.resource.data.createdAt  == resource.data.createdAt
+        && request.resource.data.get('inquiryId', null)     == resource.data.get('inquiryId', null)
+        && request.resource.data.get('ownerName', null)    == resource.data.get('ownerName', null)
+        && request.resource.data.get('customerName', null) == resource.data.get('customerName', null)
+        && request.resource.data.get('listingTitle', null)  == resource.data.get('listingTitle', null)
+        // Nothing outside the summary / counters is writable.
+        && onlyFields([
+            'lastMessage', 'lastMessageAt', 'lastMessageSenderId',
+            'unreadOwner', 'unreadCustomer'
+          ])
+        && request.resource.data.get('unreadOwner', 0) >= 0
+        && request.resource.data.get('unreadCustomer', 0) >= 0
+        // Activity time moves forward only. The null branch permits the
+        // one-way backfill of legacy chats that predate `lastMessageAt`.
+        && (resource.data.get('lastMessageAt', null) == null
+            || request.resource.data.get('lastMessageAt', null) == resource.data.get('lastMessageAt', null)
+            || request.resource.data.lastMessageAt > resource.data.lastMessageAt)
+        // A conversation summary may only be authored by its writer. The legacy
+        // backfill is the only summary change that can retain another id.
+        && summaryAttributionAllowed()
+        && chatUnreadUpdateAllowed(chatId);
 
       // Only superAdmin can delete chats
       allow delete: if isAdmin();
@@ -272,8 +432,11 @@ service cloud.firestore {
 
         // Sender must be a participant of THIS chat —
         // prevents anyone who knows a chatId from injecting messages.
-        // FIXED: text must be a string within 1000 chars
-        // (empty text is allowed for image-only messages).
+        // text must be a string within 1000 chars (empty text is allowed for
+        // image-only messages).
+        //
+        // HARDENED: `createdAt` must be a real server timestamp. Previously a
+        // client could back- or forward-date messages to reorder a thread.
         allow create: if isAuth() && notBanned()
           && request.resource.data.senderId == request.auth.uid
           && isChatParticipant(chatId)
@@ -281,13 +444,22 @@ service cloud.firestore {
               'senderId', 'text', 'createdAt', 'isRead'
             ])
           && request.resource.data.text is string
-          && request.resource.data.text.size() <= 1000;
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.createdAt >= request.time - duration.value(5, 'm')
+          && request.resource.data.createdAt <= request.time + duration.value(5, 'm');
 
-        // Only the isRead flag can be updated (mark as read)
-        // Message content cannot be edited after sending
-        allow update: if isAuth()
+        // Only the isRead flag can be updated (mark as read).
+        // Message content cannot be edited after sending.
+        //
+        // HARDENED: receipts are one-way and self-vouching is forbidden —
+        // a sender can no longer flip their own `isRead` to fake a delivery
+        // receipt, nor un-read a message that was already seen.
+        allow update: if isAuth() && notBanned()
           && isChatParticipant(chatId)
-          && onlyFields(['isRead']);
+          && onlyFields(['isRead'])
+          && request.resource.data.isRead == true
+          && resource.data.senderId != request.auth.uid;
 
         // Nobody can delete messages (superAdmin only)
         allow delete: if isAdmin();

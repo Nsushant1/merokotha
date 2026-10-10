@@ -6,7 +6,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:merokotha/shared/widgets/mk_map_button.dart';
 import 'package:merokotha/shared/widgets/owner_bottom_nav.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
@@ -14,7 +13,6 @@ import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
-import 'package:merokotha/shared/widgets/mk_button.dart';
 import 'package:merokotha/features/owner/providers/owner_providers.dart';
 
 class OwnerMapScreen extends ConsumerStatefulWidget {
