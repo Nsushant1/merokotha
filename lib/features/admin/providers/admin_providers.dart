@@ -89,23 +89,31 @@ class AdminAction extends _$AdminAction {
   @override
   AdminActionState build() => const AdminActionState();
 
-  Future<void> banUser(String uid, {String? reason}) async {
+  /// Returns true on success so callers can navigate or show feedback.
+  /// Errors are also recorded in [AdminActionState.error].
+  Future<bool> banUser(String uid, {String? reason}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       await ref.read(adminRepositoryProvider).banUser(uid, reason: reason);
       state = state.copyWith(isLoading: false, success: true);
+      return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Failed to ban: $e');
+      return false;
     }
   }
 
-  Future<void> unbanUser(String uid) async {
+  /// Returns true on success so callers can navigate or show feedback.
+  /// Errors are also recorded in [AdminActionState.error].
+  Future<bool> unbanUser(String uid) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       await ref.read(adminRepositoryProvider).unbanUser(uid);
       state = state.copyWith(isLoading: false, success: true);
+      return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Failed to unban: $e');
+      return false;
     }
   }
 

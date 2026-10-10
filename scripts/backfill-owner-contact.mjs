@@ -27,8 +27,11 @@
  *   $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\path\to\service-account.json"
  *
  * USAGE:
- *   node <repo>/scripts/backfill-owner-contact.mjs --dry-run [--limit 50]
- *   node <repo>/scripts/backfill-owner-contact.mjs --apply   [--limit 50]
+ *   node <repo>/scripts/backfill-owner-contact.mjs --project=mero-kotha-1f4f3 [--limit 50]
+ *   node <repo>/scripts/backfill-owner-contact.mjs --project=mero-kotha-1f4f3 --apply [--limit 50]
+ *
+ * LIMIT batches the run; re-run until "Found 0" (idempotent). Take a
+ * Firestore export before the first --apply.
  *
  * ALTERNATIVE (no script): in the Firebase Console, query
  * `listings` where `ownerPhone != null`, and for each agent-posted
@@ -42,7 +45,22 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 const args = new Set(process.argv.slice(2));
 const APPLY = args.has("--apply");
 const limitArg = process.argv.find((a) => a.startsWith("--limit="));
+const projectArg = process.argv.find((a) => a.startsWith("--project="));
 const LIMIT = limitArg ? Number(limitArg.split("=")[1]) : 500;
+const PROJECT = projectArg ? projectArg.split("=")[1] : null;
+
+if (!Number.isInteger(LIMIT) || LIMIT <= 0) {
+  console.error(`Invalid --limit value: ${limitArg}. Must be a positive integer.`);
+  process.exit(2);
+}
+
+// Explicit project gate: this script touches real user data, so the
+// target project must be stated on every invocation — never inferred.
+// Example: --project=mero-kotha-1f4f3
+if (!PROJECT) {
+  console.error("Missing required --project=<project-id>. Refusing to run.");
+  process.exit(2);
+}
 
 if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.FIREBASE_CONFIG) {
   console.error(
@@ -57,9 +75,9 @@ try {
   const key = JSON.parse(
     readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, "utf8"),
   );
-  initializeApp({ credential: cert(key) });
+  initializeApp({ credential: cert(key), projectId: PROJECT });
 } catch {
-  initializeApp({ credential: applicationDefault() });
+  initializeApp({ credential: applicationDefault(), projectId: PROJECT });
 }
 
 const db = getFirestore();

@@ -309,34 +309,49 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
           ),
 
           // ── Selected listing bottom card ──
+          // Tapping opens the room detail, mirroring the customer map.
           if (_selectedListing != null)
             Positioned(
               bottom: 90,
               left: 12,
               right: 12,
-              child: Container(
-                padding: const EdgeInsets.all(AppSizes.md),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-                  boxShadow: AppSizes.shadowRaised,
+              child: GestureDetector(
+                onTap: () => context.push(
+                  AppRoutes.roomDetail.replaceAll(':id', _selectedListing!.id),
                 ),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                      child: _selectedListing!.photoUrls.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: _selectedListing!.photoUrls.first,
-                              width: 64,
-                              height: 64,
-                              fit: BoxFit.cover,
-                              placeholder: (_, _) => Container(
+                child: Container(
+                  padding: const EdgeInsets.all(AppSizes.md),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                    boxShadow: AppSizes.shadowRaised,
+                  ),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                        child: _selectedListing!.photoUrls.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: _selectedListing!.photoUrls.first,
                                 width: 64,
                                 height: 64,
-                                color: AppColors.backgroundSecondary,
-                              ),
-                              errorWidget: (_, _, _) => Container(
+                                fit: BoxFit.cover,
+                                placeholder: (_, _) => Container(
+                                  width: 64,
+                                  height: 64,
+                                  color: AppColors.backgroundSecondary,
+                                ),
+                                errorWidget: (_, _, _) => Container(
+                                  width: 64,
+                                  height: 64,
+                                  color: AppColors.backgroundSecondary,
+                                  child: const Icon(
+                                    Icons.image_outlined,
+                                    color: AppColors.grey200,
+                                  ),
+                                ),
+                              )
+                            : Container(
                                 width: 64,
                                 height: 64,
                                 color: AppColors.backgroundSecondary,
@@ -345,48 +360,40 @@ class _OwnerMapScreenState extends ConsumerState<OwnerMapScreen> {
                                   color: AppColors.grey200,
                                 ),
                               ),
-                            )
-                          : Container(
-                              width: 64,
-                              height: 64,
-                              color: AppColors.backgroundSecondary,
-                              child: const Icon(
-                                Icons.image_outlined,
-                                color: AppColors.grey200,
-                              ),
-                            ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _selectedListing!.title,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.grey900,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          PriceBadge(amount: _selectedListing!.rentPerMonth),
-                          const SizedBox(height: 4),
-                          StatusBadge.fromListingStatus(
-                            _selectedListing!.status,
-                          ),
-                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedListing!.title,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.grey900,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            PriceBadge(amount: _selectedListing!.rentPerMonth),
+                            const SizedBox(height: 4),
+                            StatusBadge.fromListingStatus(
+                              _selectedListing!.status,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
         ],
       ),
-      bottomNavigationBar: const HomeBottomNav(currentIndex: 4),
+      // 2 = My Listings: this map shows the user's own listings.
+      bottomNavigationBar: const HomeBottomNav(currentIndex: 2),
     );
   }
 }

@@ -48,18 +48,21 @@ class AgentBottomNav extends ConsumerWidget {
           label: 'Profile',
         ),
       ],
+      // Tab switches replace the stack instead of piling onto it, so the
+      // system back button exits the current section instead of walking
+      // back through previously visited tabs.
       onTap: (i) {
         switch (i) {
           case 0:
-            context.push(AppRoutes.agentHome);
+            context.go(AppRoutes.agentHome);
           case 1:
-            context.push(AppRoutes.home);
+            context.go(AppRoutes.home);
           case 3:
             // The badge counts unread *messages*, so this must land on the
             // chat list — not on the inquiries screen.
-            context.push(AppRoutes.chatList);
+            context.go(AppRoutes.chatList);
           case 4:
-            context.push(AppRoutes.agentProfile);
+            context.go(AppRoutes.agentProfile);
         }
       },
     );

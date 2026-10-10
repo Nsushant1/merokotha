@@ -14,6 +14,43 @@ import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
+/// Route entry for `/customer/inquire/:id`.
+///
+/// Callers navigating in-app pass the already-loaded [listing] via `extra`.
+/// Direct navigation (deep link, refresh, state restoration) carries no
+/// `extra`, so the listing is fetched by id instead of crashing on a cast.
+class InquireRouteScreen extends ConsumerWidget {
+  final String listingId;
+  final ListingModel? listing;
+
+  const InquireRouteScreen({super.key, required this.listingId, this.listing});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final initial = listing;
+    if (initial != null) return InquireScreen(listing: initial);
+
+    final detail = ref.watch(listingDetailProvider(listingId));
+    return detail.when(
+      loading: () => const Scaffold(body: MkLoading()),
+      error: (e, _) => Scaffold(
+        body: MkErrorWidget(
+          message: 'Could not load this room: $e',
+          onRetry: () => ref.invalidate(listingDetailProvider(listingId)),
+        ),
+      ),
+      data: (loaded) => loaded == null
+          ? Scaffold(
+              body: MkErrorWidget(
+                message: 'This room is no longer available.',
+                onRetry: () => context.go(AppRoutes.home),
+              ),
+            )
+          : InquireScreen(listing: loaded),
+    );
+  }
+}
+
 class InquireScreen extends ConsumerStatefulWidget {
   final ListingModel listing;
   const InquireScreen({super.key, required this.listing});

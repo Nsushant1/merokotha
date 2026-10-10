@@ -4,7 +4,7 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
-import 'package:merokotha/shared/models/user_model.dart';
+import 'package:merokotha/shared/models/user_model.dart' show PublicProfile;
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 
 /// "Listed by" card on the room detail screen.
@@ -23,7 +23,9 @@ class RoomOwnerCard extends ConsumerStatefulWidget {
 }
 
 class _RoomOwnerCardState extends ConsumerState<RoomOwnerCard> {
-  Future<UserModel?>? _agentFuture;
+  // Public name/photo only — full user docs are restricted to the owner
+  // and admins, so display code must never fetch them.
+  Future<PublicProfile?>? _agentFuture;
 
   @override
   void initState() {
@@ -31,7 +33,7 @@ class _RoomOwnerCardState extends ConsumerState<RoomOwnerCard> {
     if (widget.listing.isAgentListed) {
       _agentFuture = ref
           .read(userRepositoryProvider)
-          .getUser(widget.listing.ownerId);
+          .getPublicProfile(widget.listing.ownerId);
     }
   }
 
@@ -45,7 +47,7 @@ class _RoomOwnerCardState extends ConsumerState<RoomOwnerCard> {
       );
     }
 
-    return FutureBuilder<UserModel?>(
+    return FutureBuilder<PublicProfile?>(
       future: _agentFuture,
       builder: (context, snap) {
         final agent = snap.data;

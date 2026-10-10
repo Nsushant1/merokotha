@@ -10,6 +10,32 @@ enum UserRole { owner, customer, agent, superAdmin }
 /// access — it is preserved on documents only for backward compatibility.
 enum AgentStatus { none, pending, verified }
 
+/// Name/photo projection of a user, mirrored in `usersPublic/{uid}`.
+///
+/// This is the ONLY user data ordinary signed-in users may read about
+/// each other. Phone, email, tokens and moderation flags stay in
+/// `users/{uid}`, restricted to the owner and admins.
+class PublicProfile {
+  final String uid;
+  final String name;
+  final String? photoUrl;
+
+  const PublicProfile({required this.uid, required this.name, this.photoUrl});
+
+  factory PublicProfile.fromMap(Map<String, dynamic> map, String uid) {
+    return PublicProfile(
+      uid: uid,
+      name: map['name'] as String? ?? '',
+      photoUrl: map['photoUrl'] as String?,
+    );
+  }
+
+  factory PublicProfile.fromSnapshot(DocumentSnapshot doc) =>
+      PublicProfile.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+
+  Map<String, dynamic> toMap() => {'name': name, 'photoUrl': photoUrl};
+}
+
 class UserModel {
   final String id;
   final String name;

@@ -48,6 +48,13 @@ async function pruneDeadTokens(uid, deadTokens) {
     await ref.update({
       fcmTokens: FieldValue.arrayRemove(...invalid),
     });
+    // The legacy single-token field is not covered by arrayRemove. If it
+    // holds a dead token, clear it too — otherwise tokensOf() re-adds it
+    // on every send and the dead device keeps costing a fan-out.
+    const snap = await ref.get();
+    if (snap.exists && invalid.includes(snap.data()?.fcmToken)) {
+      await ref.update({ fcmToken: FieldValue.delete() });
+    }
   } catch (e) {
     logger.warn(`Failed to prune tokens for ${uid}: ${e.message}`);
   }

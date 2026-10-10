@@ -127,9 +127,24 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                         AppRoutes.adminUserDetail.replaceAll(':uid', u.id),
                       ),
                       onBan: () => _showBanDialog(context, ref, u.id, u.name),
-                      onUnban: () => ref
-                          .read(adminActionProvider.notifier)
-                          .unbanUser(u.id),
+                      onUnban: () async {
+                        final ok = await ref
+                            .read(adminActionProvider.notifier)
+                            .unbanUser(u.id);
+                        if (!ok && context.mounted) {
+                          final err =
+                              ref.read(adminActionProvider).error ??
+                              'Failed to unban. Please try again.';
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                content: Text(err),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                        }
+                      },
                     );
                   },
                 );
@@ -183,9 +198,9 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ref
+              final ok = await ref
                   .read(adminActionProvider.notifier)
                   .banUser(
                     uid,
@@ -193,6 +208,19 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                         ? null
                         : reasonCtrl.text.trim(),
                   );
+              if (!ok && context.mounted) {
+                final err =
+                    ref.read(adminActionProvider).error ??
+                    'Failed to ban. Please try again.';
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(err),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+              }
             },
             child: const Text(
               'Ban user',

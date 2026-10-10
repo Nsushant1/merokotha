@@ -109,11 +109,11 @@ service cloud.firestore {
 
     match /users/{userId} {
 
-      // Any signed-in user can read a single profile document
-      // (needed to display owner name/photo on listings and chats).
-      // Collection-wide listing is admin-only so one account cannot
-      // enumerate every user's name/phone/email.
-      allow get: if isAuth();
+      // Full profile documents contain phone, email, push tokens and
+      // moderation flags — readable only by the owner and admins.
+      // Display names/photos for other users come from `usersPublic`
+      // below (and from denormalized chat/listing fields).
+      allow get: if isMe(userId) || isAdmin();
       allow list: if isAdmin();
 
       // A user can only create their OWN document
@@ -147,6 +147,32 @@ service cloud.firestore {
         // Only the user themselves (or admin) can read/write their favourites
         allow read, write: if isMe(userId) || isAdmin();
       }
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // PUBLIC PROFILES
+    // /usersPublic/{userId} — {name, photoUrl, updatedAt} only
+    // ────────────────────────────────────────────────────────────
+
+    match /usersPublic/{userId} {
+
+      // Any signed-in user may resolve a display name/photo (e.g. the
+      // agent badge on room details). Nothing sensitive lives here.
+      allow get: if isAuth();
+      allow list: if isAdmin();
+
+      // Owners maintain their own projection; admins may fix any.
+      // Field allowlist keeps phone/email/tokens out of this collection
+      // even if a client tries to write them here.
+      allow create: if (isMe(userId) || isAdmin())
+        && request.resource.data.keys().hasAll(['name'])
+        && request.resource.data.keys().hasOnly(['name', 'photoUrl', 'updatedAt'])
+        && request.resource.data.name is string;
+      allow update: if isAdmin();
+      allow update: if isMe(userId) && notBanned()
+        && onlyFields(['name', 'photoUrl', 'updatedAt']);
+
+      allow delete: if isAdmin();
     }
 
 

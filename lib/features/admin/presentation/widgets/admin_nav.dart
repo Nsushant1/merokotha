@@ -42,16 +42,19 @@ class AdminBottomNav extends StatelessWidget {
     ),
   ];
 
+  // Tab switches replace the stack instead of piling onto it, so the
+  // system back button exits the current section instead of walking
+  // back through previously visited tabs.
   void _onTap(BuildContext context, int i) {
     switch (i) {
       case 0:
-        context.push(AppRoutes.adminHome);
+        context.go(AppRoutes.adminHome);
       case 1:
-        context.push(AppRoutes.adminUsers);
+        context.go(AppRoutes.adminUsers);
       case 2:
-        context.push(AppRoutes.adminListings);
+        context.go(AppRoutes.adminListings);
       case 3:
-        context.push(AppRoutes.adminInquiries);
+        context.go(AppRoutes.adminInquiries);
     }
   }
 

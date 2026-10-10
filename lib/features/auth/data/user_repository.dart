@@ -19,8 +19,33 @@ class UserRepository {
   CollectionReference<Map<String, dynamic>> get _users =>
       _db.collection('users');
 
+  /// Name/photo projection readable by any signed-in user. Phone, email,
+  /// tokens and moderation flags live only in `users/{uid}`, which is
+  /// restricted to the owner and admins.
+  CollectionReference<Map<String, dynamic>> get _usersPublic =>
+      _db.collection('usersPublic');
+
   Future<void> createUser(UserModel user) async {
-    await _users.doc(user.id).set(user.toMap());
+    final batch = _db.batch();
+    batch.set(_users.doc(user.id), user.toMap());
+    batch.set(
+      _usersPublic.doc(user.id),
+      PublicProfile(
+        uid: user.id,
+        name: user.name,
+        photoUrl: user.photoUrl,
+      ).toMap(),
+    );
+    await batch.commit();
+  }
+
+  /// Display name/photo of any user. Returns null when the user never
+  /// published one (legacy accounts predate this collection) — callers
+  /// must fall back to denormalized names from listings/chats.
+  Future<PublicProfile?> getPublicProfile(String uid) async {
+    final doc = await _usersPublic.doc(uid).get();
+    if (!doc.exists) return null;
+    return PublicProfile.fromSnapshot(doc);
   }
 
   Future<UserModel?> getUser(String uid) async {
@@ -35,10 +60,20 @@ class UserRepository {
   }
 
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
-    await _users.doc(uid).update({
+    final batch = _db.batch();
+    batch.update(_users.doc(uid), {
       ...data,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    // Keep the public projection in sync when display fields change.
+    final public = <String, dynamic>{};
+    if (data['name'] is String) public['name'] = data['name'];
+    if (data.containsKey('photoUrl')) public['photoUrl'] = data['photoUrl'];
+    if (public.isNotEmpty) {
+      public['updatedAt'] = FieldValue.serverTimestamp();
+      batch.set(_usersPublic.doc(uid), public, SetOptions(merge: true));
+    }
+    await batch.commit();
   }
 
   /// Persist this device's push token alongside every other device the user
@@ -77,6 +112,24 @@ class UserRepository {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     });
+  }
+
+  /// Remove this device's token when signing out so pushes for this
+  /// account stop reaching the device. Best-effort: sign-out must never
+  /// fail because of it — callers swallow errors.
+  Future<void> unregisterFcmToken(String uid, String token) async {
+    final ref = _users.doc(uid);
+    if (!(await ref.get()).exists) return;
+    await ref.update({
+      'fcmTokens': FieldValue.arrayRemove([token]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    // Clear the legacy single-token field only if it is this device's
+    // token; another device may have rotated it since.
+    final snap = await _users.doc(uid).get();
+    if (snap.data()?['fcmToken'] == token) {
+      await _users.doc(uid).update({'fcmToken': FieldValue.delete()});
+    }
   }
 }
 

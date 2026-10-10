@@ -8,6 +8,7 @@ class AppRoutes {
   static const splash = '/splash';
   static const login = '/login';
   static const onboarding = '/onboarding';
+  static const banned = '/banned';
 
   // Shared home + profile — one account browses and posts, no roles.
   static const home = '/home';

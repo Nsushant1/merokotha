@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:merokotha/features/owner/presentation/screens/my_listing_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:merokotha/features/auth/presentation/screens/banned_screen.dart';
 import 'package:merokotha/features/auth/presentation/screens/splash_screen.dart';
 import 'package:merokotha/features/auth/presentation/screens/google_login_screen.dart';
 import 'package:merokotha/features/auth/presentation/screens/onboarding_screen.dart';
@@ -70,6 +71,14 @@ GoRouter appRouter(Ref ref) {
         return AppRoutes.login;
       }
 
+      // Suspended accounts see only the banned screen (with a sign-out
+      // action) until an admin lifts the ban. Writes are already rejected
+      // by Firestore rules; this makes the state explicit instead of a
+      // series of silent failures.
+      if (isLoggedIn && (user?.isBanned ?? false) && loc != AppRoutes.banned) {
+        return AppRoutes.banned;
+      }
+
       // Admin screens are never reachable without the superAdmin role.
       // Verified agents land on their own interface; everyone else lands
       // on the shared home. There are no walls between regular
@@ -107,6 +116,7 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.onboarding,
         builder: (_, _) => const OnboardingScreen(),
       ),
+      GoRoute(path: AppRoutes.banned, builder: (_, _) => const BannedScreen()),
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomeScreen()),
       GoRoute(
         path: AppRoutes.profile,
@@ -153,8 +163,12 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: AppRoutes.inquire,
-        builder: (_, state) =>
-            InquireScreen(listing: state.extra as ListingModel),
+        builder: (_, state) => InquireRouteScreen(
+          listingId: state.pathParameters['id']!,
+          listing: state.extra is ListingModel
+              ? state.extra as ListingModel
+              : null,
+        ),
       ),
       GoRoute(
         path: AppRoutes.chatList,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
@@ -91,6 +92,22 @@ class _RoomDetailSkeleton extends StatelessWidget {
 
 class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
   int _photoIndex = 0;
+
+  /// Opens the room location in the device maps app, keeping the listing
+  /// context (previously this just opened the generic in-app map).
+  /// Falls back to the in-app map when no maps handler exists.
+  Future<void> _openDirections(
+    BuildContext context,
+    double lat,
+    double lng,
+  ) async {
+    final uri = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+      return;
+    }
+    if (context.mounted) context.push(AppRoutes.customerMap);
+  }
 
   @override
   void dispose() {
@@ -347,8 +364,11 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                               width: double.infinity,
                               height: 48,
                               child: OutlinedButton.icon(
-                                onPressed: () =>
-                                    context.push(AppRoutes.customerMap),
+                                onPressed: () => _openDirections(
+                                  context,
+                                  listing.geoPoint!.latitude,
+                                  listing.geoPoint!.longitude,
+                                ),
                                 icon: const Icon(
                                   Icons.navigation_rounded,
                                   size: 18,

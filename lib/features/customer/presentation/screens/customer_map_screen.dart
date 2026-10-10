@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:merokotha/core/constants/app_colors.dart';
@@ -27,6 +28,7 @@ class CustomerMapScreen extends ConsumerStatefulWidget {
 class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
   final _mapController = MapController();
   ListingModel? _selectedListing;
+  bool _locating = false;
 
   static const _kathmandu = LatLng(27.7172, 85.3240);
 
@@ -34,6 +36,50 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
   void dispose() {
     _mapController.dispose();
     super.dispose();
+  }
+
+  /// Centers the map on the device's actual location, requesting
+  /// permission first. Falls back to Kathmandu with an explanation when
+  /// location is unavailable or denied.
+  Future<void> _goToMyLocation() async {
+    if (_locating) return;
+    setState(() => _locating = true);
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        _notice('Location services are off. Showing Kathmandu.');
+        _mapController.move(_kathmandu, 13);
+        return;
+      }
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        _notice(
+          'Location permission denied. Showing Kathmandu — '
+          'enable it in settings to see rooms near you.',
+        );
+        _mapController.move(_kathmandu, 13);
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+      );
+      _mapController.move(LatLng(pos.latitude, pos.longitude), 14);
+    } catch (_) {
+      _notice('Could not get your location. Showing Kathmandu.');
+      _mapController.move(_kathmandu, 13);
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
+  }
+
+  void _notice(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   List<Marker> _buildMarkers(List<ListingModel> listings) {
@@ -140,8 +186,10 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
                 ),
                 const SizedBox(width: 8),
                 MkMapButton(
-                  icon: Icons.my_location_rounded,
-                  onTap: () => _mapController.move(_kathmandu, 14),
+                  icon: _locating
+                      ? Icons.hourglass_top_rounded
+                      : Icons.my_location_rounded,
+                  onTap: _goToMyLocation,
                 ),
               ],
             ),

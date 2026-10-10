@@ -132,10 +132,38 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   Color get _accent => AppColors.customerPrimary;
   Color get _accentLight => AppColors.customerLight;
 
+  Future<void> _signOut() async {
+    await signOutAndClearSession(ref);
+    if (mounted) context.go(AppRoutes.login);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
+      // New users can go back (e.g. to pick another Google account) or
+      // sign out instead of being trapped until the form is completed.
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.grey900),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(AppRoutes.login),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _signOut,
+            child: const Text(
+              'Sign out',
+              style: TextStyle(
+                color: AppColors.grey600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: FadeTransition(
         opacity: _fade,
         child: SafeArea(

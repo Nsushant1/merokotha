@@ -165,10 +165,27 @@ class AdminUserDetailScreen extends ConsumerWidget {
                         icon: Icons.check_circle_outline_rounded,
                         label: 'Unban this user',
                         color: AppColors.success,
-                        onTap: () => ref
-                            .read(adminActionProvider.notifier)
-                            .unbanUser(user.id)
-                            .then((_) => context.pop()),
+                        onTap: () async {
+                          final ok = await ref
+                              .read(adminActionProvider.notifier)
+                              .unbanUser(user.id);
+                          if (!context.mounted) return;
+                          if (ok) {
+                            context.pop();
+                          } else {
+                            final err =
+                                ref.read(adminActionProvider).error ??
+                                'Failed to unban. Please try again.';
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(
+                                SnackBar(
+                                  content: Text(err),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                          }
+                        },
                       ),
                     const Divider(height: 1, color: AppColors.border),
                     _ActionTile(
@@ -262,17 +279,32 @@ class AdminUserDetailScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ref
+              final ok = await ref
                   .read(adminActionProvider.notifier)
                   .banUser(
                     user.id,
                     reason: reasonCtrl.text.trim().isEmpty
                         ? null
                         : reasonCtrl.text.trim(),
-                  )
-                  .then((_) => context.pop());
+                  );
+              if (!context.mounted) return;
+              if (ok) {
+                context.pop();
+              } else {
+                final err =
+                    ref.read(adminActionProvider).error ??
+                    'Failed to ban. Please try again.';
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(err),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+              }
             },
             child: const Text('Ban', style: TextStyle(color: AppColors.error)),
           ),

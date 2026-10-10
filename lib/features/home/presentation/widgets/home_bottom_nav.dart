@@ -51,18 +51,21 @@ class HomeBottomNav extends ConsumerWidget {
           label: 'Profile',
         ),
       ],
+      // Tab switches replace the stack instead of piling onto it, so the
+      // system back button exits the current section instead of walking
+      // back through previously visited tabs.
       onTap: (i) {
         switch (i) {
           case 0:
-            context.push(AppRoutes.home);
+            context.go(AppRoutes.home);
           case 1:
-            context.push(AppRoutes.favourites);
+            context.go(AppRoutes.favourites);
           case 2:
-            context.push(AppRoutes.myListings);
+            context.go(AppRoutes.myListings);
           case 3:
-            context.push(AppRoutes.chatList);
+            context.go(AppRoutes.chatList);
           case 4:
-            context.push(AppRoutes.profile);
+            context.go(AppRoutes.profile);
         }
       },
     );

@@ -1,6 +1,8 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:merokotha/features/auth/data/auth_repository.dart';
+import 'package:merokotha/features/auth/data/user_repository.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 
@@ -29,7 +31,31 @@ final pendingInquiryProvider =
 ///
 /// The Firestore user profile (including the saved role) and account
 /// data are left untouched so the next sign-in restores them.
+///
+/// The device push token IS removed first: otherwise FCM keeps delivering
+/// this account's notifications to the device after sign-out (cross-account
+/// leak on shared devices). This must run while still authenticated —
+/// Firestore rules reject token writes from signed-out callers.
 Future<void> signOutAndClearSession(WidgetRef ref) async {
+  final uid = ref.read(authStateProvider).value?.uid;
+  if (uid != null) {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await ref.read(userRepositoryProvider).unregisterFcmToken(uid, token);
+      }
+    } catch (_) {
+      // Best-effort: sign-out must never fail because of token cleanup.
+    }
+    try {
+      // Invalidate the local instance ID so the OS token can never be
+      // reused for this account. Next sign-in mints a fresh token.
+      await FirebaseMessaging.instance.deleteToken();
+    } catch (_) {
+      // Best-effort (e.g. no network) — server-side removal above is what
+      // stops the fan-out.
+    }
+  }
   await ref.read(authRepositoryProvider).signOut();
   ref.read(pendingInquiryProvider.notifier).clear();
   ref.invalidate(currentUserProvider);

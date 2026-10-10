@@ -61,7 +61,9 @@ class _GoogleLoginScreenState extends ConsumerState<GoogleLoginScreen> {
             .read(userRepositoryProvider)
             .getUser(firebaseUser.uid);
         if (!mounted) return;
-        if (user?.isAdmin == true) {
+        if (user?.isBanned == true) {
+          context.go(AppRoutes.banned);
+        } else if (user?.isAdmin == true) {
           context.go(AppRoutes.adminHome);
         } else if (user?.isVerifiedAgent == true) {
           context.go(AppRoutes.agentHome);
