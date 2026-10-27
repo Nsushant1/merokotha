@@ -14,6 +14,10 @@ class AppRoutes {
   static const home = '/home';
   static const profile = '/profile';
   static const myInquiries = '/my-inquiries';
+  static const myReports = '/my-reports';
+  static const savedSearches = '/saved-searches';
+  static const agents = '/agents';
+  static const agentDetail = '/agents/:uid';
   static const applyAgent = '/apply-agent';
 
   // Owner capabilities (paths kept stable; open to every signed-in user)
@@ -21,6 +25,7 @@ class AppRoutes {
   static const myListings = '/owner/listings';
   static const ownerInquiries = '/owner/inquiries';
   static const ownerMap = '/owner/map';
+  static const ownerAnalytics = '/owner/analytics';
 
   // Customer capabilities
   static const search = '/customer/search';
@@ -48,4 +53,7 @@ class AppRoutes {
   static const adminInquiries = '/admin/inquiries';
   static const adminAds = '/admin/ads';
   static const adminAdForm = '/admin/ads/form';
+  static const adminReports = '/admin/reports';
+  static const adminHistory = '/admin/history';
+  static const adminAnalytics = '/admin/analytics';
 }

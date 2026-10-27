@@ -386,10 +386,10 @@ class _FormCard extends StatelessWidget {
           const SizedBox(height: 18),
           _Field(
             ctrl: phoneCtrl,
-            label: 'Phone number',
+            label: 'Phone number (optional)',
             hint: '98XXXXXXXX',
             icon: Icons.phone_outlined,
-            validator: Validators.phone,
+            validator: Validators.optionalPhone,
             accent: accent,
             keyboardType: TextInputType.phone,
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
+import 'package:merokotha/core/i18n/localization.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/chat/providers/chat_providers.dart';
 import 'package:merokotha/shared/widgets/mk_bottom_nav.dart';
@@ -21,10 +22,10 @@ class AgentBottomNav extends ConsumerWidget {
       accentColor: AppColors.accent,
       onCenterTap: () => context.push(AppRoutes.agentUpload),
       items: [
-        const MkBottomNavItem(
+        MkBottomNavItem(
           icon: Icons.home_outlined,
           activeIcon: Icons.home_rounded,
-          label: 'Home',
+          label: tr(ref, 'nav_home'),
         ),
         const MkBottomNavItem(
           icon: Icons.search_outlined,
@@ -39,13 +40,13 @@ class AgentBottomNav extends ConsumerWidget {
         MkBottomNavItem(
           icon: Icons.inbox_outlined,
           activeIcon: Icons.inbox_rounded,
-          label: 'Inbox',
+          label: tr(ref, 'nav_inbox'),
           badgeCount: unread,
         ),
-        const MkBottomNavItem(
+        MkBottomNavItem(
           icon: Icons.person_outline_rounded,
           activeIcon: Icons.person_rounded,
-          label: 'Profile',
+          label: tr(ref, 'nav_profile'),
         ),
       ],
       // Tab switches replace the stack instead of piling onto it, so the

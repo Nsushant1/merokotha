@@ -9,34 +9,56 @@ class OwnerQuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        _QuickActionButton(
-          label: 'Add room',
-          icon: Icons.add_home_outlined,
-          color: AppColors.primary,
-          onTap: () => context.push(AppRoutes.uploadListing),
+        Row(
+          children: [
+            _QuickActionButton(
+              label: 'Add room',
+              icon: Icons.add_home_outlined,
+              color: AppColors.primary,
+              onTap: () => context.push(AppRoutes.uploadListing),
+            ),
+            const SizedBox(width: 10),
+            _QuickActionButton(
+              label: 'Listings',
+              icon: Icons.list_alt_rounded,
+              color: AppColors.info,
+              onTap: () => context.push(AppRoutes.myListings),
+            ),
+            const SizedBox(width: 10),
+            _QuickActionButton(
+              label: 'Inquiries',
+              icon: Icons.inbox_rounded,
+              color: AppColors.warning,
+              onTap: () => context.push(AppRoutes.ownerInquiries),
+            ),
+          ],
         ),
-        const SizedBox(width: 10),
-        _QuickActionButton(
-          label: 'Listings',
-          icon: Icons.list_alt_rounded,
-          color: AppColors.info,
-          onTap: () => context.push(AppRoutes.myListings),
-        ),
-        const SizedBox(width: 10),
-        _QuickActionButton(
-          label: 'Inquiries',
-          icon: Icons.inbox_rounded,
-          color: AppColors.warning,
-          onTap: () => context.push(AppRoutes.ownerInquiries),
-        ),
-        const SizedBox(width: 10),
-        _QuickActionButton(
-          label: 'Map',
-          icon: Icons.map_outlined,
-          color: AppColors.secondary,
-          onTap: () => context.push(AppRoutes.ownerMap),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _QuickActionButton(
+              label: 'Map',
+              icon: Icons.map_outlined,
+              color: AppColors.secondary,
+              onTap: () => context.push(AppRoutes.ownerMap),
+            ),
+            const SizedBox(width: 10),
+            _QuickActionButton(
+              label: 'Analytics',
+              icon: Icons.insights_outlined,
+              color: AppColors.success,
+              onTap: () => context.push(AppRoutes.ownerAnalytics),
+            ),
+            const SizedBox(width: 10),
+            _QuickActionButton(
+              label: 'Agents',
+              icon: Icons.badge_outlined,
+              color: AppColors.agentPrimary,
+              onTap: () => context.push(AppRoutes.agents),
+            ),
+          ],
         ),
       ],
     );

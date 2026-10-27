@@ -42,7 +42,7 @@ class _RoomOwnerCardState extends ConsumerState<RoomOwnerCard> {
     final listing = widget.listing;
     if (!listing.isAgentListed) {
       return _OwnerCard(
-        name: listing.ownerName,
+        name: listing.hideDisplayName ? 'Property Owner' : listing.ownerName,
         photoUrl: listing.ownerPhotoUrl,
       );
     }
@@ -51,8 +51,10 @@ class _RoomOwnerCardState extends ConsumerState<RoomOwnerCard> {
       future: _agentFuture,
       builder: (context, snap) {
         final agent = snap.data;
+        final hidden =
+            agent?.hideDisplayName ?? listing.hideDisplayName;
         return _AgentCard(
-          name: agent?.name ?? 'Agent',
+          name: hidden ? 'Agent' : (agent?.name ?? 'Agent'),
           photoUrl: listing.ownerPhotoUrl ?? agent?.photoUrl,
         );
       },

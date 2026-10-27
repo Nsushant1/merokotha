@@ -5,6 +5,7 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
+import 'package:merokotha/shared/widgets/status_badge.dart';
 
 class OwnerListingCard extends StatelessWidget {
   final ListingModel listing;
@@ -27,6 +28,7 @@ class OwnerListingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive = listing.status == ListingStatus.active;
     final isRented = listing.status == ListingStatus.rented;
+    final isSuspended = listing.status == ListingStatus.suspended;
 
     Color statusColor;
     String statusLabel;
@@ -36,6 +38,9 @@ class OwnerListingCard extends StatelessWidget {
     } else if (isRented) {
       statusColor = AppColors.primary;
       statusLabel = 'Rented';
+    } else if (isSuspended) {
+      statusColor = AppColors.error;
+      statusLabel = 'Suspended';
     } else {
       statusColor = AppColors.warning;
       statusLabel = 'Paused';
@@ -72,24 +77,30 @@ class OwnerListingCard extends StatelessWidget {
               Positioned(
                 top: 10,
                 left: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+                      ),
+                      child: Text(
+                        statusLabel,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    StatusBadge.fromVerification(listing.verificationStatus),
+                  ],
                 ),
               ),
             ],
@@ -177,6 +188,8 @@ class OwnerListingCard extends StatelessWidget {
   }
 }
 
+void _noop() {}
+
 class _StatusMenuBtn extends StatelessWidget {
   final ListingModel listing;
   final void Function(ListingStatus) onStatusChange;
@@ -185,6 +198,14 @@ class _StatusMenuBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (listing.status == ListingStatus.suspended) {
+      // Suspended listings are frozen for listers — only admins can restore.
+      return const _IconBtn(
+        icon: Icons.lock_outline_rounded,
+        color: AppColors.error,
+        onTap: _noop,
+      );
+    }
     if (listing.status == ListingStatus.rented) {
       return _IconBtn(
         icon: Icons.home_rounded,
@@ -228,8 +249,7 @@ class _StatusMenuBtn extends StatelessWidget {
   }
 }
 
-class _ImagePlaceholder extends StatelessWidget {
-  const _ImagePlaceholder();
+class _ImagePlaceholder extends StatelessWidget {  const _ImagePlaceholder();
 
   @override
   Widget build(BuildContext context) {

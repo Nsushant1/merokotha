@@ -6,6 +6,8 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/agent/data/agent_repository.dart';
+import 'package:merokotha/features/analytics/data/analytics_repository.dart';
+import 'package:merokotha/shared/models/analytics_model.dart';
 import 'package:merokotha/features/agent/presentation/widgets/agent_bottom_nav.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/data/listings_repository.dart';
@@ -177,7 +179,7 @@ class _AgentInquiryTab extends ConsumerWidget {
                               ? () => _acceptAndChat(context, ref, user, inq)
                               : null,
                           onDecline: status == InquiryStatus.pending
-                              ? () => _showDeclineDialog(context, ref, inq.id)
+                              ? () => _showDeclineDialog(context, ref, inq)
                               : null,
                           onOpenChat: status == InquiryStatus.accepted
                               ? () => _openChat(context, ref, user, inq)
@@ -214,6 +216,15 @@ class _AgentInquiryTab extends ConsumerWidget {
             inquiry: inq,
             ownerName: user.name,
             ownerPhotoUrl: user.photoUrl,
+          );
+
+      ref
+          .read(analyticsRepositoryProvider)
+          .logEvent(
+            listingId: inq.listingId,
+            ownerId: inq.ownerId,
+            type: AnalyticsEventType.inquiryAccepted,
+            visitorId: user.id,
           );
 
       if (context.mounted) {
@@ -280,8 +291,9 @@ class _AgentInquiryTab extends ConsumerWidget {
   void _showDeclineDialog(
     BuildContext context,
     WidgetRef ref,
-    String inquiryId,
+    InquiryModel inq,
   ) {
+    final inquiryId = inq.id;
     final reasonCtrl = TextEditingController();
     showDialog(
       context: context,
@@ -337,6 +349,15 @@ class _AgentInquiryTab extends ConsumerWidget {
                     reason: reasonCtrl.text.trim().isEmpty
                         ? null
                         : reasonCtrl.text.trim(),
+                  );
+              final me = ref.read(currentUserProvider).asData?.value;
+              ref
+                  .read(analyticsRepositoryProvider)
+                  .logEvent(
+                    listingId: inq.listingId,
+                    ownerId: inq.ownerId,
+                    type: AnalyticsEventType.inquiryDeclined,
+                    visitorId: me?.id ?? inq.ownerId,
                   );
             },
             child: const Text(

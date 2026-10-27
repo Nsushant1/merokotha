@@ -4,6 +4,7 @@ export 'inquiry_card.dart';
 export 'facilities_selector.dart';
 export 'map_picker_screen.dart';
 export 'listing_photo_picker.dart';
+export 'listing_photo_manager.dart';
 export 'upload_form_card.dart';
 export 'segment_selector.dart';
 export 'owner_greeting.dart';

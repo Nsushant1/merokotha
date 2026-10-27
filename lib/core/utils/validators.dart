@@ -5,6 +5,13 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';
     }
+    return optionalPhone(value);
+  }
+
+  /// Validates only when a value is entered — empty passes (for optional
+  /// phone fields such as onboarding and public contact numbers).
+  static String? optionalPhone(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
     // Normalize: strip spaces, dashes, parentheses and leading '+'.
     var cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
     if (cleaned.startsWith('+')) cleaned = cleaned.substring(1);

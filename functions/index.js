@@ -9,7 +9,7 @@
  * `lib/features/notification/messaging_service.dart` (`PushKeys`).
  */
 
-const {onDocumentCreated} = require("firebase-functions/v2/firestore");
+const {onDocumentCreated, onDocumentUpdated} = require("firebase-functions/v2/firestore");
 const {logger} = require("firebase-functions");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
@@ -199,5 +199,110 @@ exports.onMessageCreated = onDocumentCreated(
       logger.error(`Push failed for message ${messageId}: ${e.message}`);
       throw e; // let FCM retry
     }
+  }
+);
+
+/**
+ * Fired when an inquiry is accepted (`inquiries/{inquiryId}` flips to
+ * `status == "accepted"`).
+ *
+ * Guarantees the conversation exists with the sender's original message as
+ * its first message — even if the accepting client failed to create the
+ * chat (offline, rules rejection) or created it empty. Runs with Admin SDK
+ * privileges so attribution to the customer (`senderId == customerId`) is
+ * allowed, which client-side rules forbid for the owner.
+ *
+ * Idempotent: skips when the thread already contains a message, and the
+ * deterministic chat id (`c_owner_customer_listing`, mirroring
+ * `ChatRepository.deterministicChatId`) collapses concurrent accepts.
+ */
+exports.onInquiryAccepted = onDocumentUpdated(
+  {
+    document: "inquiries/{inquiryId}",
+    region: "asia-south1",
+    memory: "256MiB",
+  },
+  async (event) => {
+    const before = event.data && event.data.before ? event.data.before.data() : null;
+    const after = event.data && event.data.after ? event.data.after.data() : null;
+    if (!after) return;
+    if ((before && before.status === "accepted") || after.status !== "accepted") return;
+
+    const inquiryId = event.params.inquiryId;
+    const ownerId = after.ownerId;
+    const customerId = after.customerId;
+    const listingId = after.listingId;
+    if (!ownerId || !customerId || !listingId) {
+      logger.warn(`Inquiry ${inquiryId} accepted without owner/customer/listing; skipping chat seed.`);
+      return;
+    }
+
+    const chatId = `c_${ownerId}_${customerId}_${listingId}`;
+    const chatRef = db.doc(`chats/${chatId}`);
+
+    const text = String(after.message || "").slice(0, 1000);
+    const preview = text.slice(0, MAX_BODY_LENGTH);
+
+    const chatExisted = (await chatRef.get()).exists;
+    if (!chatExisted) {
+      await chatRef.set(
+        {
+          ownerId: ownerId,
+          ownerName: after.ownerName || "Owner",
+          ownerPhotoUrl: after.ownerPhotoUrl || null,
+          customerId: customerId,
+          customerName: after.customerName || "Customer",
+          customerPhotoUrl: after.customerPhotoUrl || null,
+          listingId: listingId,
+          listingTitle: after.listingTitle || "",
+          inquiryId: inquiryId,
+          lastMessage: text ? preview : null,
+          lastMessageAt: FieldValue.serverTimestamp(),
+          lastMessageSenderId: text ? customerId : null,
+          unreadOwner: text ? 1 : 0,
+          unreadCustomer: 0,
+          createdAt: FieldValue.serverTimestamp(),
+        },
+        {merge: true},
+      );
+    }
+
+    // Seed the original inquiry text as the first message (exactly once).
+    // A freshly created chat already carries the preview and unreadOwner == 1
+    // above, so only the message document is still missing there.
+    if (!text) return;
+    const existing = await chatRef.collection("messages").limit(1).get();
+    if (!existing.empty) return;
+
+    if (chatExisted) {
+      const batch = db.batch();
+      batch.set(chatRef.collection("messages").doc(), {
+        senderId: customerId,
+        text: text,
+        imageUrl: null,
+        isRead: false,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      batch.set(
+        chatRef,
+        {
+          lastMessage: preview,
+          lastMessageAt: FieldValue.serverTimestamp(),
+          lastMessageSenderId: customerId,
+          unreadOwner: FieldValue.increment(1),
+        },
+        {merge: true},
+      );
+      await batch.commit();
+    } else {
+      await chatRef.collection("messages").add({
+        senderId: customerId,
+        text: text,
+        imageUrl: null,
+        isRead: false,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
+    logger.info(`Seeded inquiry ${inquiryId} message into chat ${chatId}.`);
   }
 );

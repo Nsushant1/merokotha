@@ -13,6 +13,7 @@ class InquiryModel {
   final String? customerPhotoUrl;
   final String ownerId;
   final String? ownerName;
+  final String? ownerPhotoUrl;
 
   /// UID of the agent handling this inquiry (for agent-posted listings).
   /// Mirrors the listing's [agentId]; null for owner-posted listings.
@@ -33,6 +34,7 @@ class InquiryModel {
     this.customerPhotoUrl,
     required this.ownerId,
     this.ownerName,
+    this.ownerPhotoUrl,
     this.agentId,
     required this.message,
     required this.moveInDate,
@@ -52,6 +54,7 @@ class InquiryModel {
       customerPhotoUrl: map['customerPhotoUrl'] as String?,
       ownerId: map['ownerId'] as String? ?? '',
       ownerName: map['ownerName'] as String?,
+      ownerPhotoUrl: map['ownerPhotoUrl'] as String?,
       agentId: map['agentId'] as String?,
       message: map['message'] as String? ?? '',
       moveInDate: (map['moveInDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -78,6 +81,7 @@ class InquiryModel {
       'customerPhotoUrl': customerPhotoUrl,
       'ownerId': ownerId,
       'ownerName': ownerName,
+      'ownerPhotoUrl': ownerPhotoUrl,
       'agentId': agentId,
       'message': message,
       'moveInDate': Timestamp.fromDate(moveInDate),
@@ -103,6 +107,7 @@ class InquiryModel {
     String? customerPhotoUrl,
     String? ownerId,
     String? ownerName,
+    String? ownerPhotoUrl,
     String? agentId,
     String? message,
     DateTime? moveInDate,
@@ -118,6 +123,7 @@ class InquiryModel {
       customerPhotoUrl: customerPhotoUrl ?? this.customerPhotoUrl,
       ownerId: ownerId ?? this.ownerId,
       ownerName: ownerName ?? this.ownerName,
+      ownerPhotoUrl: ownerPhotoUrl ?? this.ownerPhotoUrl,
       agentId: agentId ?? this.agentId,
       message: message ?? this.message,
       moveInDate: moveInDate ?? this.moveInDate,

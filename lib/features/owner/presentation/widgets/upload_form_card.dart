@@ -23,24 +23,28 @@ class UploadFormCard extends StatelessWidget {
         border: Border.all(color: AppColors.border, width: 1),
         boxShadow: AppSizes.shadowCard,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.2,
-              height: 1.3,
-              color: AppColors.grey900,
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+                height: 1.3,
+                color: AppColors.grey900,
+              ),
             ),
-          ),
-          const SizedBox(height: 14),
-          const Divider(height: 1, color: AppColors.border),
-          const SizedBox(height: 16),
-          ...children,
-        ],
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 16),
+            ...children,
+          ],
+        ),
       ),
     );
   }

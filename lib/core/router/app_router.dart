@@ -38,6 +38,14 @@ import 'package:merokotha/features/admin/presentation/screens/admin_listings_scr
 import 'package:merokotha/features/admin/presentation/screens/admin_inquiries_screen.dart';
 import 'package:merokotha/features/admin/presentation/screens/admin_ads_screen.dart';
 import 'package:merokotha/features/admin/presentation/screens/admin_ad_form_screen.dart';
+import 'package:merokotha/features/admin/presentation/screens/admin_reports_screen.dart';
+import 'package:merokotha/features/admin/presentation/screens/admin_history_screen.dart';
+import 'package:merokotha/features/admin/presentation/screens/admin_analytics_screen.dart';
+import 'package:merokotha/features/agent/presentation/screens/agent_directory_screen.dart';
+import 'package:merokotha/features/agent/presentation/screens/agent_public_profile_screen.dart';
+import 'package:merokotha/features/analytics/presentation/owner_analytics_screen.dart';
+import 'package:merokotha/features/customer/presentation/screens/saved_searches_screen.dart';
+import 'package:merokotha/features/moderation/presentation/my_reports_screen.dart';
 import 'package:merokotha/shared/models/ad_model.dart';
 
 part 'app_router.g.dart';
@@ -127,6 +135,23 @@ GoRouter appRouter(Ref ref) {
         builder: (_, _) => const MyInquiriesScreen(),
       ),
       GoRoute(
+        path: AppRoutes.myReports,
+        builder: (_, _) => const MyReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.savedSearches,
+        builder: (_, _) => const SavedSearchesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.agents,
+        builder: (_, _) => const AgentDirectoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.agentDetail,
+        builder: (_, state) =>
+            AgentPublicProfileScreen(uid: state.pathParameters['uid']!),
+      ),
+      GoRoute(
         path: AppRoutes.applyAgent,
         builder: (_, _) => const AgentApplicationScreen(),
       ),
@@ -146,6 +171,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.ownerMap,
         builder: (_, _) => const OwnerMapScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.ownerAnalytics,
+        builder: (_, _) => const OwnerAnalyticsScreen(),
       ),
       GoRoute(path: AppRoutes.search, builder: (_, _) => const SearchScreen()),
       GoRoute(
@@ -202,6 +231,18 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.adminAdForm,
         builder: (_, state) => AdminAdFormScreen(ad: state.extra as AdModel?),
+      ),
+      GoRoute(
+        path: AppRoutes.adminReports,
+        builder: (_, _) => const AdminReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminHistory,
+        builder: (_, _) => const AdminHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAnalytics,
+        builder: (_, _) => const AdminAnalyticsScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminUserDetail,

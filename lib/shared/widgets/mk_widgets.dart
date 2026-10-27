@@ -6,6 +6,7 @@ export 'mk_card.dart';
 export 'mk_chip.dart';
 export 'mk_search_field.dart';
 export 'promo_banner_carousel.dart';
+export 'firebase_ads_carousel.dart';
 export 'mk_button.dart';
 export 'mk_app_bar.dart';
 export 'mk_text_field.dart';

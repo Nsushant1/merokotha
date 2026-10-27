@@ -66,11 +66,15 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
 
   final _titleCtrl = TextEditingController();
   final _rentCtrl = TextEditingController();
+  final _depositCtrl = TextEditingController();
   final _floorCtrl = TextEditingController();
   final _totalFloorsCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
   final _landmarksCtrl = TextEditingController();
+  final _callCtrl = TextEditingController();
+  final _whatsappCtrl = TextEditingController();
+  bool _hideName = false;
 
   String _roomType = 'room';
   FurnishingType _furnishing = FurnishingType.unfurnished;
@@ -78,6 +82,10 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
   DateTime _availableFrom = DateTime.now();
   LatLng? _pickedLocation;
   final List<File> _pickedImages = [];
+
+  /// Existing photos kept on edit, in display order (first = cover).
+  /// New uploads are appended after these on submit.
+  List<String> _keptUrls = [];
 
   /// Guards the whole submit (validation → Firestore write → photo upload
   /// → navigation). The provider's isLoading only covers the Firestore
@@ -94,11 +102,18 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
     if (l != null) {
       _titleCtrl.text = l.title;
       _rentCtrl.text = l.rentPerMonth.toStringAsFixed(0);
+      _depositCtrl.text = l.depositAmount > 0
+          ? l.depositAmount.toStringAsFixed(0)
+          : '';
       _floorCtrl.text = l.floor.toString();
       _totalFloorsCtrl.text = l.totalFloors.toString();
       _descCtrl.text = l.description;
       _addressCtrl.text = l.address ?? '';
       _landmarksCtrl.text = l.nearbyLandmarks ?? '';
+      _callCtrl.text = l.publicPhone ?? '';
+      _whatsappCtrl.text = l.whatsappNumber ?? '';
+      _hideName = l.hideDisplayName;
+      _keptUrls = List.from(l.photoUrls);
       _roomType = l.roomType;
       _furnishing = l.furnishing;
       _facilities = List.from(l.facilities);
@@ -113,11 +128,14 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
   void dispose() {
     _titleCtrl.dispose();
     _rentCtrl.dispose();
+    _depositCtrl.dispose();
     _floorCtrl.dispose();
     _totalFloorsCtrl.dispose();
     _descCtrl.dispose();
     _addressCtrl.dispose();
     _landmarksCtrl.dispose();
+    _callCtrl.dispose();
+    _whatsappCtrl.dispose();
     super.dispose();
   }
 
@@ -165,9 +183,12 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
     if (result != null) setState(() => _pickedLocation = result);
   }
 
+  /// Uploads newly picked photos with unique names (never overwriting kept
+  /// photos). Returns the download URLs in pick order.
   Future<List<String>> _uploadImages(String listingId) async {
     final storage = FirebaseStorage.instance;
     final urls = <String>[];
+    final stamp = DateTime.now().millisecondsSinceEpoch;
     for (var i = 0; i < _pickedImages.length; i++) {
       final file = _pickedImages[i];
       if (!await file.exists()) {
@@ -179,7 +200,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
         'Uploading photo $i for listing $listingId (${(size / 1024).toStringAsFixed(0)} KB)',
       );
       try {
-        final ref = storage.ref().child('listings/$listingId/image_$i.jpg');
+        final ref = storage.ref().child('listings/$listingId/photo_${stamp}_$i.jpg');
         final task = await ref.putFile(
           file,
           SettableMetadata(contentType: 'image/jpeg'),
@@ -194,15 +215,23 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
         rethrow;
       }
     }
-    if (urls.isEmpty) {
-      throw FirebaseException(
-        plugin: 'firebase_storage',
-        code: 'file-not-found',
-        message: 'No valid image files to upload.',
-      );
-    }
     return urls;
   }
+
+  /// Best-effort deletion of photos the user removed on edit. Storage rules
+  /// allow the listing owner to delete; failures never block the save.
+  Future<void> _deleteRemovedPhotos(List<String> removedUrls) async {
+    for (final url in removedUrls) {
+      try {
+        await FirebaseStorage.instance.refFromURL(url).delete();
+      } catch (e) {
+        debugPrint('Photo delete skipped for $url: $e');
+      }
+    }
+  }
+
+  double get _parsedDeposit =>
+      double.tryParse(_depositCtrl.text.trim()) ?? 0;
 
   GeoPoint? get _resolvedGeoPoint {
     if (_pickedLocation != null) {
@@ -251,7 +280,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           title: _titleCtrl.text.trim(),
           roomType: _roomType,
           rentPerMonth: double.parse(_rentCtrl.text.trim()),
-          depositAmount: 0,
+          depositAmount: _parsedDeposit,
           floor: int.tryParse(_floorCtrl.text.trim()) ?? 0,
           totalFloors: int.tryParse(_totalFloorsCtrl.text.trim()) ?? 1,
           furnishing: _furnishing,
@@ -261,6 +290,9 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           geoPoint: _resolvedGeoPoint,
           address: _addressCtrl.text.trim(),
           nearbyLandmarks: _landmarksCtrl.text.trim(),
+          publicPhone: _callCtrl.text.trim(),
+          whatsappNumber: _whatsappCtrl.text.trim(),
+          hideDisplayName: _hideName,
         );
 
     if (!mounted) return;
@@ -301,7 +333,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Listing published!'),
+          content: Text('Listing submitted for review!'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -310,7 +342,8 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
   }
 
   Future<void> _submitEdit() async {
-    final listingId = widget.listing!.id;
+    final listing = widget.listing!;
+    final listingId = listing.id;
 
     await ref
         .read(uploadListingProvider.notifier)
@@ -319,7 +352,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           title: _titleCtrl.text.trim(),
           roomType: _roomType,
           rentPerMonth: double.parse(_rentCtrl.text.trim()),
-          depositAmount: 0,
+          depositAmount: _parsedDeposit,
           floor: int.tryParse(_floorCtrl.text.trim()) ?? 0,
           totalFloors: int.tryParse(_totalFloorsCtrl.text.trim()) ?? 1,
           furnishing: _furnishing,
@@ -329,15 +362,27 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           geoPoint: _resolvedGeoPoint,
           address: _addressCtrl.text.trim(),
           nearbyLandmarks: _landmarksCtrl.text.trim(),
+          publicPhone: _callCtrl.text.trim(),
+          whatsappNumber: _whatsappCtrl.text.trim(),
+          hideDisplayName: _hideName,
         );
 
     if (!mounted) return;
     if (ref.read(uploadListingProvider).success) {
-      if (_pickedImages.isNotEmpty) {
+      // Removed existing photos are deleted from Storage (best-effort).
+      final removed = listing.photoUrls
+          .where((u) => !_keptUrls.contains(u))
+          .toList();
+      if (removed.isNotEmpty) await _deleteRemovedPhotos(removed);
+
+      // Kept photos stay in order (first = cover); new uploads append.
+      // The merged order is written whenever the set changed.
+      if (removed.isNotEmpty || _pickedImages.isNotEmpty) {
         try {
-          final photoUrls = await _uploadImages(listingId);
+          final uploaded = await _uploadImages(listingId);
+          final finalUrls = [..._keptUrls, ...uploaded];
           await ref.read(ownerRepositoryProvider).updateListing(listingId, {
-            'photoUrls': photoUrls,
+            'photoUrls': finalUrls,
           });
         } on FirebaseException catch (e) {
           debugPrint(
@@ -369,7 +414,7 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Listing updated!'),
+          content: Text('Changes saved — sent back for review.'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -380,7 +425,6 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
   @override
   Widget build(BuildContext context) {
     final uploadState = ref.watch(uploadListingProvider);
-    final existingPhotos = widget.listing?.photoUrls ?? [];
     final locationSet =
         _pickedLocation != null ||
         (_isEdit && widget.listing?.geoPoint != null);
@@ -409,17 +453,46 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListingPhotoPicker(
-                images: _pickedImages,
-                onChanged: (imgs) => setState(() {
+              if (_isEdit && widget.listing!.isPendingReview)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(AppSizes.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningLight,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                    border: Border.all(color: AppColors.warning),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.hourglass_top_rounded,
+                        size: 18,
+                        color: AppColors.warning,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Under review — saving will resubmit it for approval.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.grey800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ListingPhotoManager(
+                existingUrls: _keptUrls,
+                onExistingChanged: (urls) =>
+                    setState(() => _keptUrls = urls),
+                newImages: _pickedImages,
+                onNewChanged: (imgs) => setState(() {
                   _pickedImages
                     ..clear()
                     ..addAll(imgs);
                 }),
-                existingPhotoUrl: existingPhotos.isNotEmpty
-                    ? existingPhotos.first
-                    : null,
-                existingPhotoCount: existingPhotos.length,
               ),
               const SizedBox(height: 20),
 
@@ -513,6 +586,49 @@ class _UploadListingScreenState extends ConsumerState<UploadListingScreen> {
                     hint: '8000',
                     controller: _rentCtrl,
                     validator: Validators.price,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  MkPriceField(
+                    label: 'Deposit (optional)',
+                    hint: '0',
+                    controller: _depositCtrl,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              UploadFormCard(
+                title: 'Contact & privacy',
+                children: [
+                  MkTextField(
+                    label: 'Public call number (optional)',
+                    hint: '98XXXXXXXX',
+                    controller: _callCtrl,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  MkTextField(
+                    label: 'WhatsApp number (optional)',
+                    hint: '98XXXXXXXX',
+                    controller: _whatsappCtrl,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Hide my public name',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Seekers will see "Property Owner" instead.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: _hideName,
+                    onChanged: (v) => setState(() => _hideName = v),
                   ),
                 ],
               ),

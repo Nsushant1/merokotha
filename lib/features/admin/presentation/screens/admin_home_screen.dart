@@ -12,6 +12,8 @@ import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart'
 
 import 'package:merokotha/features/admin/providers/admin_providers.dart';
 import 'package:merokotha/features/admin/presentation/widgets/admin_widgets.dart';
+import 'package:merokotha/features/moderation/data/moderation_repository.dart';
+import 'package:merokotha/features/moderation/presentation/admin_review_sheet.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
 class AdminHomeScreen extends ConsumerWidget {
@@ -22,6 +24,11 @@ class AdminHomeScreen extends ConsumerWidget {
     final statsAsync = ref.watch(dashboardStatsProvider);
     final recentUsersAsync = ref.watch(recentUsersProvider);
     final recentListingsAsync = ref.watch(recentListingsProvider);
+    final pendingListings = ref.watch(pendingListingsProvider).asData?.value ?? [];
+    final pendingAgents =
+        ref.watch(pendingAgentApplicationsProvider).asData?.value ?? [];
+    final pendingReports =
+        ref.watch(pendingReportsCountProvider).asData?.value ?? 0;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
@@ -216,6 +223,51 @@ class AdminHomeScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: 24),
+              _SectionHeader(
+                'Needs review',
+                onSeeAll: () => context.push(AppRoutes.adminListings),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: AdminStatCard(
+                      label: 'Pending listings',
+                      value: '${pendingListings.length}',
+                      icon: Icons.home_work_outlined,
+                      color: AppColors.warning,
+                      onTap: () => context.push(AppRoutes.adminListings),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AdminStatCard(
+                      label: 'Agent applications',
+                      value: '${pendingAgents.length}',
+                      icon: Icons.badge_outlined,
+                      color: AppColors.agentPrimary,
+                      onTap: () => context.push(AppRoutes.adminUsers),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: AdminStatCard(
+                      label: 'Pending reports',
+                      value: '$pendingReports',
+                      icon: Icons.flag_outlined,
+                      color: AppColors.error,
+                      onTap: () => context.push(AppRoutes.adminReports),
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+
+              const SizedBox(height: 24),
               const _SectionHeader('Quick actions'),
               const SizedBox(height: 12),
               GridView.count(
@@ -249,6 +301,25 @@ class AdminHomeScreen extends ConsumerWidget {
                     icon: Icons.campaign_rounded,
                     color: AppColors.secondary,
                     onTap: () => context.push(AppRoutes.adminAds),
+                  ),
+                  _QuickAction(
+                    label: 'Reports',
+                    icon: Icons.flag_rounded,
+                    color: AppColors.error,
+                    badge: pendingReports,
+                    onTap: () => context.push(AppRoutes.adminReports),
+                  ),
+                  _QuickAction(
+                    label: 'History',
+                    icon: Icons.history_rounded,
+                    color: AppColors.grey600,
+                    onTap: () => context.push(AppRoutes.adminHistory),
+                  ),
+                  _QuickAction(
+                    label: 'Analytics',
+                    icon: Icons.insights_rounded,
+                    color: AppColors.success,
+                    onTap: () => context.push(AppRoutes.adminAnalytics),
                   ),
                 ],
               ),
@@ -310,6 +381,11 @@ class AdminHomeScreen extends ConsumerWidget {
                                       ? ListingStatus.paused
                                       : ListingStatus.active,
                                 ),
+                            onReview: () => showListingReviewSheet(
+                              context,
+                              ref,
+                              l,
+                            ),
                           ),
                         ),
                       )
@@ -447,12 +523,14 @@ class _QuickAction extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final int badge;
 
   const _QuickAction({
     required this.label,
     required this.icon,
     required this.color,
     required this.onTap,
+    this.badge = 0,
   });
 
   @override
@@ -473,14 +551,44 @@ class _QuickAction extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                ),
-                child: Icon(icon, size: 17, color: color),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                    ),
+                    child: Icon(icon, size: 17, color: color),
+                  ),
+                  if (badge > 0)
+                    Positioned(
+                      right: -6,
+                      top: -6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusFull,
+                          ),
+                        ),
+                        child: Text(
+                          '$badge',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 8),
               Flexible(

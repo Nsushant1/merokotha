@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:merokotha/shared/models/agent_application_model.dart';
 import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 import 'package:merokotha/shared/models/inquiry_model.dart';
@@ -98,6 +99,15 @@ class AdminRepository {
       'bannedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    // Suspend the public agent entry (if any) without losing stored data.
+    try {
+      await _db.collection('agentsPublic').doc(uid).set({
+        'status': 'suspended',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {
+      // Best-effort: only verified agents have directory entries.
+    }
   }
 
   Future<void> unbanUser(String uid) async {
@@ -107,6 +117,28 @@ class AdminRepository {
       'bannedAt': null,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    // Restore the public agent entry for still-verified agents.
+    try {
+      final user = await _users.doc(uid).get();
+      final data = user.data();
+      if (data != null &&
+          (data['agentStatus'] as String? ?? 'none') == 'verified') {
+        await _db.collection('agentsPublic').doc(uid).set({
+          'uid': uid,
+          'name': data['name'] ?? '',
+          'photoUrl': data['photoUrl'],
+          'bio': data['bio'],
+          'location': data['location'],
+          'publicPhone': data['publicPhone'],
+          'whatsappNumber': data['whatsappNumber'],
+          'hideDisplayName': data['hideDisplayName'] ?? false,
+          'status': 'active',
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+    } catch (_) {
+      // Best-effort.
+    }
   }
 
   Future<void> setUserRole(String uid, UserRole role) async {
@@ -123,6 +155,28 @@ class AdminRepository {
         .map((s) => s.docs.map((d) => ListingModel.fromSnapshot(d)).toList());
   }
 
+  Stream<List<ListingModel>> watchPendingListings() {
+    return _listings
+        .where(
+          'verificationStatus',
+          isEqualTo: VerificationStatus.pending.name,
+        )
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((s) => s.docs.map((d) => ListingModel.fromSnapshot(d)).toList());
+  }
+
+  Stream<List<AgentApplicationModel>> watchPendingAgentApplications() {
+    return _db
+        .collection('agentApplications')
+        .where('status', isEqualTo: AgentApplicationStatus.pending.name)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (s) => s.docs.map(AgentApplicationModel.fromSnapshot).toList(),
+        );
+  }
+
   Future<void> deleteListing(String listingId) async {
     await _listings.doc(listingId).delete();
   }
@@ -131,6 +185,62 @@ class AdminRepository {
     await _listings.doc(listingId).update({
       'status': status.name,
       'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Admin listing review: verify or reject with a reason. Appends a shared
+  /// audit entry so the decision history is visible across admin screens.
+  Future<void> reviewListing({
+    required String listingId,
+    required bool approved,
+    String? reason,
+    required String decidedBy,
+  }) async {
+    await _listings.doc(listingId).update({
+      'verificationStatus': approved
+          ? VerificationStatus.verified.name
+          : VerificationStatus.rejected.name,
+      'reviewReason': reason,
+      'reviewedBy': decidedBy,
+      'reviewedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    await _db.collection('moderationHistory').add({
+      'targetType': 'listing',
+      'targetId': listingId,
+      'action': approved ? 'verified' : 'rejected',
+      'note': reason,
+      'decidedBy': decidedBy,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Suspend a listing (e.g. from report review) or restore it to active.
+  /// Restoring returns the listing to pending review.
+  Future<void> setListingSuspended(
+    String listingId,
+    bool suspended, {
+    String? reason,
+    required String decidedBy,
+  }) async {
+    await _listings.doc(listingId).update({
+      'status': suspended
+          ? ListingStatus.suspended.name
+          : ListingStatus.active.name,
+      if (suspended) 'reviewReason': reason,
+      if (suspended) 'reviewedBy': decidedBy,
+      if (suspended) 'reviewedAt': FieldValue.serverTimestamp(),
+      if (!suspended)
+        'verificationStatus': VerificationStatus.pending.name,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    await _db.collection('moderationHistory').add({
+      'targetType': 'listing',
+      'targetId': listingId,
+      'action': suspended ? 'suspended' : 'restored',
+      'note': reason,
+      'decidedBy': decidedBy,
+      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 

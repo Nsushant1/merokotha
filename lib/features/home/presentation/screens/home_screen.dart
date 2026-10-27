@@ -6,6 +6,7 @@ import 'package:merokotha/features/customer/providers/room_view_mode_provider.da
 
 import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
+import 'package:merokotha/core/i18n/localization.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/theme/app_decorations.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
@@ -178,7 +179,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 18),
                       MkSearchField.readOnly(
-                        hint: 'Search by location, property type...',
+                        hint: tr(ref, 'home_search_hint'),
                         onTap: () => context.push(AppRoutes.search),
                         suffix: MkSearchSuffixButton(
                           icon: Icons.tune_rounded,
@@ -190,7 +191,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
 
-              // ── Promo banner ──
+              // ── Dynamic sponsored ads (Firebase, 'home' placement) ──
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -199,7 +200,7 @@ class HomeScreen extends ConsumerWidget {
                     AppSizes.pagePadding,
                     0,
                   ),
-                  child: PromoBannerCarousel(),
+                  child: FirebasePromoCarousel(slot: 'home'),
                 ),
               ),
 
@@ -338,8 +339,9 @@ class HomeScreen extends ConsumerWidget {
                             horizontal: AppSizes.pagePadding,
                           ),
                           child: RoomSectionHeader(
-                            title: 'All rooms (${listings.length})',
-                            actionLabel: 'View All',
+                            title:
+                                '${tr(ref, 'home_explore')} (${listings.length})',
+                            actionLabel: tr(ref, 'home_view_all'),
                             onAction: () => context.push(AppRoutes.search),
                             isGrid: isGrid,
                             onToggle: () => ref
@@ -467,55 +469,139 @@ class _AgentEntry extends ConsumerWidget {
   }
 }
 
-/// Compact card advertising posting for users without listings yet.
+/// High-contrast card advertising free posting for users without
+/// listings yet. Red conversion gradient + yellow FREE badge + white
+/// Post pill so the eye lands here first.
 class _PostRoomCta extends StatelessWidget {
   final VoidCallback onTap;
   const _PostRoomCta({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSizes.cardPadding),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppSizes.shadowCard,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-            ),
-            child: const Icon(Icons.add_home_rounded, color: AppColors.primary),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Have a room to rent?',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.grey900,
+    return Consumer(
+      builder: (context, ref, _) => Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.accentGradient,
+          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          boxShadow: AppSizes.shadowAccentButton,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: Colors.white.withValues(alpha: 0.18),
+            highlightColor: Colors.white.withValues(alpha: 0.08),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSizes.cardPadding),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.add_home_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Post it for free and reach seekers.',
-                  style: TextStyle(fontSize: 12, color: AppColors.grey600),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                tr(ref, 'home_post_room'),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFC93C),
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusFull,
+                                ),
+                              ),
+                              child: Text(
+                                tr(ref, 'home_free'),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6,
+                                  color: Color(0xFF7A1F0A),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          tr(ref, 'home_post_room_sub'),
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: Colors.white.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.radiusFull,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          tr(ref, 'home_post'),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.accentDark,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 16,
+                          color: AppColors.accentDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          TextButton(onPressed: onTap, child: const Text('Post')),
-        ],
+        ),
       ),
     );
   }

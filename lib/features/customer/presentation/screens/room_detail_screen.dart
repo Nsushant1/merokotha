@@ -10,6 +10,8 @@ import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/auth/providers/pending_inquiry_provider.dart';
 import 'package:merokotha/features/customer/providers/customers_providers.dart';
+import 'package:merokotha/features/moderation/presentation/report_dialog.dart';
+import 'package:merokotha/shared/widgets/contact_buttons.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/login_sheet.dart';
 import 'package:merokotha/features/customer/presentation/widgets/room_photo_section.dart';
@@ -269,6 +271,32 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
 
                           const SizedBox(height: 14),
 
+                          // Verification badge (+ review reason when rejected).
+                          Row(
+                            children: [
+                              StatusBadge.fromVerification(
+                                listing.verificationStatus,
+                              ),
+                              if (listing.isSuspended) ...[
+                                const SizedBox(width: 8),
+                                StatusBadge.suspended(),
+                              ],
+                            ],
+                          ),
+                          if (listing.isRejected &&
+                              (listing.reviewReason?.isNotEmpty ?? false))
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                'Note from review: ${listing.reviewReason}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.error,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+
                           // Spec pills (design.jpeg: 3 Room / 2 Bathroom / 1 Parking).
                           Wrap(
                             spacing: 8,
@@ -298,6 +326,16 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                             value: Formatters.date(listing.availableFrom),
                           ),
 
+                          if (listing.depositAmount > 0) ...[
+                            const MkDivider(),
+                            RoomInfoRow(
+                              icon: Icons.account_balance_wallet_outlined,
+                              label: 'Deposit',
+                              value:
+                                  'Rs. ${listing.depositAmount.toStringAsFixed(0)}',
+                            ),
+                          ],
+
                           MkDivider(),
 
                           if (listing.facilities.isNotEmpty) ...[
@@ -326,7 +364,36 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                           const SizedBox(height: 10),
                           RoomOwnerCard(listing: listing),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 12),
+                          ContactButtons(
+                            publicPhone: listing.publicPhone,
+                            whatsappNumber: listing.whatsappNumber,
+                            listingId: listing.id,
+                            ownerId: listing.ownerId,
+                          ),
+
+                          // Report entry (hidden for own listings inside the dialog).
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              onPressed: () =>
+                                  showReportDialog(context, ref, listing),
+                              icon: const Icon(
+                                Icons.flag_outlined,
+                                size: 16,
+                                color: AppColors.grey400,
+                              ),
+                              label: const Text(
+                                'Report listing',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.grey400,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
                           MkDivider(),
 
                           if (listing.geoPoint != null) ...[
@@ -417,7 +484,52 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: RoomBottomCTA(listing: listing, userAsync: userAsync),
+                child: listing.isSuspended
+                    ? Container(
+                        padding: EdgeInsets.fromLTRB(
+                          AppSizes.pagePadding,
+                          AppSizes.md,
+                          AppSizes.pagePadding,
+                          MediaQuery.of(context).padding.bottom + AppSizes.md,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: const Border(
+                            top: BorderSide(color: AppColors.border),
+                          ),
+                          boxShadow: AppSizes.shadowRaised,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.errorLight,
+                            borderRadius: BorderRadius.circular(
+                              AppSizes.radiusMd,
+                            ),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(
+                                Icons.block_rounded,
+                                size: 18,
+                                color: AppColors.error,
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'This listing is suspended and unavailable.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : RoomBottomCTA(listing: listing, userAsync: userAsync),
               ),
             ],
           );

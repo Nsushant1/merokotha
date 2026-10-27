@@ -122,6 +122,10 @@ abstract class ChatRepository {
     required int limit,
   });
 
+  /// Whether the thread already contains at least one message.
+  /// Used to seed the original inquiry text exactly once.
+  Future<bool> hasMessages(String chatId, {int limit = 1});
+
   Future<String> sendMessage({
     required String chatId,
     required String senderId,
@@ -357,6 +361,14 @@ class FirestoreChatRepository implements ChatRepository {
     final byDate = a.createdAt.compareTo(b.createdAt);
     if (byDate != 0) return byDate;
     return a.id.compareTo(b.id);
+  }
+
+  /// Whether the thread already contains at least one message.
+  /// Used to seed the original inquiry text exactly once.
+  @override
+  Future<bool> hasMessages(String chatId, {int limit = 1}) async {
+    final snap = await _messages(chatId).limit(limit).get();
+    return snap.docs.isNotEmpty;
   }
 
   // ── Message writes ──────────────────────────────────────────────────────

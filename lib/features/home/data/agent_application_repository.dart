@@ -78,6 +78,8 @@ class AgentApplicationRepository {
   /// Admin decision. Approval unlocks the Agent interface by flipping
   /// `agentStatus`; rejection resets it so the user may re-apply.
   /// Both documents change atomically — never one without the other.
+  /// The public agent directory (`agentsPublic/{uid}`) is synchronized
+  /// alongside: upsert on approval, removal on rejection/revoke.
   Future<void> decideApplication({
     required String uid,
     required bool approved,
@@ -102,6 +104,32 @@ class AgentApplicationRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
     await batch.commit();
+
+    // ── Directory sync (best-effort; must not fail the decision) ──
+    try {
+      final dir = _db.collection('agentsPublic').doc(uid);
+      if (approved) {
+        final user = await _db.collection('users').doc(uid).get();
+        final data = user.data() ?? {};
+        await dir.set({
+          'uid': uid,
+          'name': data['name'] ?? '',
+          'photoUrl': data['photoUrl'],
+          'bio': data['bio'],
+          'location': data['location'],
+          'publicPhone': data['publicPhone'],
+          'whatsappNumber': data['whatsappNumber'],
+          'hideDisplayName': data['hideDisplayName'] ?? false,
+          'status': 'active',
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } else {
+        final existing = await dir.get();
+        if (existing.exists) await dir.delete();
+      }
+    } catch (_) {
+      // Directory sync is best-effort.
+    }
   }
 }
 

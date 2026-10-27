@@ -92,6 +92,9 @@ class _InquireScreenState extends ConsumerState<InquireScreen> {
           listing: widget.listing,
           customerName: user.name,
           customerId: user.id,
+          customerPhotoUrl: user.photoUrl,
+          ownerName: widget.listing.ownerName,
+          ownerPhotoUrl: widget.listing.ownerPhotoUrl,
           message: _messageCtrl.text.trim(),
           moveInDate: _moveInDate,
         );

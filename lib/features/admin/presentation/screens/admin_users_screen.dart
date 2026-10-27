@@ -6,6 +6,7 @@ import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/features/admin/presentation/widgets/admin_widgets.dart';
 import 'package:merokotha/features/admin/providers/admin_providers.dart';
+import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
@@ -16,8 +17,24 @@ class AdminUsersScreen extends ConsumerStatefulWidget {
   ConsumerState<AdminUsersScreen> createState() => _AdminUsersScreenState();
 }
 
+enum _UserFilter { all, pendingAgents, verifiedAgents, banned }
+
 class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   final _searchCtrl = TextEditingController();
+  _UserFilter _filter = _UserFilter.all;
+
+  bool _matchesFilter(UserModel u) {
+    switch (_filter) {
+      case _UserFilter.all:
+        return true;
+      case _UserFilter.pendingAgents:
+        return u.agentStatus == AgentStatus.pending;
+      case _UserFilter.verifiedAgents:
+        return u.agentStatus == AgentStatus.verified;
+      case _UserFilter.banned:
+        return u.isBanned;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +64,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         children: [
           // Search bar
           Container(
-            color: AdminColors.primary,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            color: AdminColors.primary,            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: TextField(
               controller: _searchCtrl,
               onChanged: (v) =>
@@ -90,6 +106,44 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
             ),
           ),
 
+          // Review filter chips
+          Container(
+            color: AdminColors.primary,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _UserFilterChip(
+                    label: 'All',
+                    selected: _filter == _UserFilter.all,
+                    onTap: () => setState(() => _filter = _UserFilter.all),
+                  ),
+                  const SizedBox(width: 8),
+                  _UserFilterChip(
+                    label: 'Pending agents',
+                    selected: _filter == _UserFilter.pendingAgents,
+                    onTap: () =>
+                        setState(() => _filter = _UserFilter.pendingAgents),
+                  ),
+                  const SizedBox(width: 8),
+                  _UserFilterChip(
+                    label: 'Verified agents',
+                    selected: _filter == _UserFilter.verifiedAgents,
+                    onTap: () =>
+                        setState(() => _filter = _UserFilter.verifiedAgents),
+                  ),
+                  const SizedBox(width: 8),
+                  _UserFilterChip(
+                    label: 'Banned',
+                    selected: _filter == _UserFilter.banned,
+                    onTap: () => setState(() => _filter = _UserFilter.banned),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           // User list
           Expanded(
             child: usersAsync.when(
@@ -105,7 +159,8 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                 ),
               ),
               error: (e, _) => MkErrorWidget(message: e.toString()),
-              data: (users) {
+              data: (all) {
+                final users = all.where(_matchesFilter).toList();
                 if (users.isEmpty) {
                   return MkEmptyState(
                     title: query.isNotEmpty ? 'No users found' : 'No users yet',
@@ -228,6 +283,43 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _UserFilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _UserFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? AdminColors.accent : AdminColors.surface,
+            borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              color: selected ? AdminColors.primary : AppColors.grey400,
+            ),
+          ),
+        ),
       ),
     );
   }

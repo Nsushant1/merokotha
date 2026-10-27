@@ -1,9 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:merokotha/shared/models/agent_application_model.dart';
 import 'package:merokotha/shared/models/inquiry_model.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 import 'package:merokotha/shared/models/user_model.dart';
 import 'package:merokotha/features/admin/data/admin_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 part 'admin_providers.g.dart';
 
@@ -21,6 +23,19 @@ Stream<List<UserModel>> allUsers(Ref ref) {
 Stream<List<ListingModel>> allListings(Ref ref) {
   return ref.watch(adminRepositoryProvider).watchAllListings();
 }
+
+/// Listings awaiting verification review (admin).
+final pendingListingsProvider = StreamProvider<List<ListingModel>>(
+  (ref) => ref.watch(adminRepositoryProvider).watchPendingListings(),
+);
+
+/// Agent applications awaiting review (admin).
+final pendingAgentApplicationsProvider =
+    StreamProvider<List<AgentApplicationModel>>(
+      (ref) => ref
+          .watch(adminRepositoryProvider)
+          .watchPendingAgentApplications(),
+    );
 
 @riverpod
 Stream<List<InquiryModel>> allInquiries(Ref ref) {
@@ -136,6 +151,60 @@ class AdminAction extends _$AdminAction {
       state = state.copyWith(isLoading: false, success: true);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<bool> reviewListing(
+    String listingId, {
+    required bool approved,
+    String? reason,
+    required String decidedBy,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await ref
+          .read(adminRepositoryProvider)
+          .reviewListing(
+            listingId: listingId,
+            approved: approved,
+            reason: reason,
+            decidedBy: decidedBy,
+          );
+      state = state.copyWith(isLoading: false, success: true);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to save review: $e',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> setListingSuspended(
+    String listingId,
+    bool suspended, {
+    String? reason,
+    required String decidedBy,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await ref
+          .read(adminRepositoryProvider)
+          .setListingSuspended(
+            listingId,
+            suspended,
+            reason: reason,
+            decidedBy: decidedBy,
+          );
+      state = state.copyWith(isLoading: false, success: true);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to update listing: $e',
+      );
+      return false;
     }
   }
 

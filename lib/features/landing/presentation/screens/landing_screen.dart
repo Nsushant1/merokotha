@@ -13,7 +13,7 @@ import 'package:merokotha/features/landing/presentation/widgets/landing_listing_
 import 'package:merokotha/features/landing/presentation/widgets/landing_search_bar.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_theme.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_toggle_view.dart';
-import 'package:merokotha/shared/widgets/promo_banner_carousel.dart';
+import 'package:merokotha/shared/widgets/firebase_ads_carousel.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
 
 class LandingScreen extends ConsumerStatefulWidget {
@@ -56,12 +56,12 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-            // Promo banner — same reusable carousel as Customer Home,
-            // immediately below the search header. 3s auto-scroll.
+            // Dynamic sponsored ads (Firebase, placement-aware) with bundled
+            // fallback — same carousel position, 3s auto-scroll.
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                child: PromoBannerCarousel(),
+                child: FirebasePromoCarousel(slot: 'landing'),
               ),
             ),
 
@@ -193,7 +193,7 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                         const SliverToBoxAdapter(
                           child: Padding(
                             padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                            child: InFeedPromoCarousel(),
+                            child: FirebaseInFeedPromo(slot: 'landing'),
                           ),
                         ),
                       );

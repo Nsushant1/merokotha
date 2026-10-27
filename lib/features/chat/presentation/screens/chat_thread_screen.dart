@@ -9,11 +9,15 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:merokotha/core/constants/app_colors.dart';
+import 'package:merokotha/core/constants/app_sizes.dart';
+import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/shared/providers/firebase_providers.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/chat/data/chat_model.dart';
 import 'package:merokotha/features/chat/providers/chat_providers.dart';
+import 'package:merokotha/features/owner/data/inquiry_repository.dart';
+import 'package:merokotha/shared/models/inquiry_model.dart';
 import 'package:merokotha/features/chat/presentation/widgets/chat_app_bar.dart';
 import 'package:merokotha/features/chat/presentation/widgets/chat_message_bubble.dart';
 import 'package:merokotha/features/chat/presentation/widgets/chat_date_divider.dart';
@@ -238,6 +242,15 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen>
       ),
       body: Column(
         children: [
+          // Original inquiry context: guarantees the owner sees the sender's
+          // profile and message even before any chat message exists (e.g.
+          // legacy threads created empty on acceptance).
+          chatAsync.asData?.value?.inquiryId != null
+              ? _InquiryContextBanner(
+                  inquiryId: chatAsync.asData!.value!.inquiryId!,
+                  myUid: myUid,
+                )
+              : const SizedBox.shrink(),
           Expanded(
             child: Stack(
               children: [
@@ -426,6 +439,92 @@ class _JumpToLatest extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Original inquiry context shown at the top of a chat thread.
+///
+/// Guarantees the lister (owner/agent) sees the sender's profile and message
+/// even when the thread was created empty on acceptance and no chat message
+/// exists yet. Both participants may read the inquiry (see firestore.rules).
+class _InquiryContextBanner extends ConsumerWidget {
+  final String inquiryId;
+  final String myUid;
+
+  const _InquiryContextBanner({required this.inquiryId, required this.myUid});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inquiryAsync = ref.watch(
+      inquiryRepositoryProvider.select((repo) => repo.watchInquiry(inquiryId)),
+    );
+    return StreamBuilder<InquiryModel?>(
+      stream: inquiryAsync,
+      builder: (context, snap) {
+        final inquiry = snap.data;
+        if (inquiry == null) return const SizedBox.shrink();
+        final isLister = myUid == inquiry.ownerId;
+        final name = isLister
+            ? inquiry.customerName
+            : (inquiry.ownerName ?? 'Owner');
+        final photoUrl = isLister
+            ? inquiry.customerPhotoUrl
+            : inquiry.ownerPhotoUrl;
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              UserAvatar(
+                name: name.isEmpty ? 'User' : name,
+                photoUrl: photoUrl,
+                size: 40,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name.isEmpty ? 'Inquiry' : name,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.grey900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Move-in ${Formatters.date(inquiry.moveInDate)} · ${inquiry.listingTitle}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.grey400,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      inquiry.message,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.45,
+                        color: AppColors.grey800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

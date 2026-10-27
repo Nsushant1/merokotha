@@ -145,12 +145,16 @@ class AdminListingTile extends StatelessWidget {
   final VoidCallback? onToggleStatus;
   final VoidCallback? onTap;
 
+  /// Opens the verify/reject/suspend review sheet.
+  final VoidCallback? onReview;
+
   const AdminListingTile({
     super.key,
     required this.listing,
     this.onDelete,
     this.onToggleStatus,
     this.onTap,
+    this.onReview,
   });
 
   @override
@@ -210,17 +214,29 @@ class AdminListingTile extends StatelessWidget {
                           _statusBadge(listing.status),
                         ],
                       ),
+                      const SizedBox(height: 6),
+                      StatusBadge.fromVerification(
+                        listing.verificationStatus,
+                      ),
                     ],
                   ),
                 ),
                 Column(
                   children: [
-                    if (onToggleStatus != null)
+                    if (onReview != null)
+                      _SmallAction(
+                        label: 'Review',
+                        color: AppColors.info,
+                        onTap: onReview!,
+                      ),
+                    if (onToggleStatus != null) ...[
+                      const SizedBox(height: 4),
                       _SmallAction(
                         label: listing.isActive ? 'Pause' : 'Activate',
                         color: AppColors.warning,
                         onTap: onToggleStatus!,
                       ),
+                    ],
                     if (onDelete != null) ...[
                       const SizedBox(height: 4),
                       _SmallAction(
@@ -254,6 +270,8 @@ class AdminListingTile extends StatelessWidget {
         return StatusBadge.paused();
       case ListingStatus.rented:
         return StatusBadge.rented();
+      case ListingStatus.suspended:
+        return StatusBadge.suspended();
     }
   }
 }

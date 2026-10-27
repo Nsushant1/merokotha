@@ -34,6 +34,10 @@ class UserRepository {
         uid: user.id,
         name: user.name,
         photoUrl: user.photoUrl,
+        bio: user.bio,
+        publicPhone: user.publicPhone,
+        whatsappNumber: user.whatsappNumber,
+        hideDisplayName: user.hideDisplayName,
       ).toMap(),
     );
     await batch.commit();
@@ -69,11 +73,57 @@ class UserRepository {
     final public = <String, dynamic>{};
     if (data['name'] is String) public['name'] = data['name'];
     if (data.containsKey('photoUrl')) public['photoUrl'] = data['photoUrl'];
+    if (data.containsKey('bio')) public['bio'] = data['bio'];
+    if (data.containsKey('publicPhone')) {
+      public['publicPhone'] = data['publicPhone'];
+    }
+    if (data.containsKey('whatsappNumber')) {
+      public['whatsappNumber'] = data['whatsappNumber'];
+    }
+    if (data['hideDisplayName'] is bool) {
+      public['hideDisplayName'] = data['hideDisplayName'];
+    }
     if (public.isNotEmpty) {
       public['updatedAt'] = FieldValue.serverTimestamp();
       batch.set(_usersPublic.doc(uid), public, SetOptions(merge: true));
     }
     await batch.commit();
+
+    // Merge the same display fields into the public agent directory when
+    // the editor is a verified agent (best-effort).
+    try {
+      const displayKeys = {
+        'name',
+        'photoUrl',
+        'bio',
+        'location',
+        'publicPhone',
+        'whatsappNumber',
+        'hideDisplayName',
+      };
+      if (data.keys.any(displayKeys.contains)) {
+        final user = await _users.doc(uid).get();
+        final current = user.data();
+        if (current != null &&
+            (current['agentStatus'] as String? ?? 'none') == 'verified' &&
+            (current['isBanned'] as bool? ?? false) == false) {
+          final dir = <String, dynamic>{
+            'uid': uid,
+            'status': 'active',
+            'updatedAt': FieldValue.serverTimestamp(),
+          };
+          for (final k in displayKeys) {
+            if (data.containsKey(k)) dir[k] = data[k];
+          }
+          await _db.collection('agentsPublic').doc(uid).set(
+            dir,
+            SetOptions(merge: true),
+          );
+        }
+      }
+    } catch (_) {
+      // Best-effort.
+    }
   }
 
   /// Persist this device's push token alongside every other device the user

@@ -139,6 +139,9 @@ class _CarouselShellState extends State<_CarouselShell> {
     if (oldWidget.itemCount != widget.itemCount ||
         oldWidget.interval != widget.interval) {
       _index = 0;
+      if (_controller.hasClients && widget.itemCount > 0) {
+        _controller.jumpToPage(0);
+      }
       _startAutoScroll();
     }
   }
@@ -156,6 +159,8 @@ class _CarouselShellState extends State<_CarouselShell> {
     if (widget.itemCount <= 1) return;
     _timer = Timer.periodic(widget.interval, (_) {
       if (!mounted || !_controller.hasClients) return;
+      // Don't fight the user mid-swipe or an in-flight animation.
+      if (_controller.position.isScrollingNotifier.value) return;
       final next = (_index + 1) % widget.itemCount;
       _controller.animateToPage(
         next,

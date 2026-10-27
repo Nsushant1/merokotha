@@ -33,6 +33,35 @@ class StatusBadge extends StatelessWidget {
     backgroundColor: AppColors.grey50,
   );
 
+  factory StatusBadge.suspended() => const StatusBadge(
+    label: 'Suspended',
+    color: AppColors.error,
+    backgroundColor: AppColors.errorLight,
+  );
+
+  factory StatusBadge.verified() => const StatusBadge(
+    label: 'Verified',
+    color: AppColors.success,
+    backgroundColor: AppColors.successLight,
+  );
+
+  factory StatusBadge.needsChanges() => const StatusBadge(
+    label: 'Needs changes',
+    color: AppColors.error,
+    backgroundColor: AppColors.errorLight,
+  );
+
+  factory StatusBadge.fromVerification(VerificationStatus status) {
+    switch (status) {
+      case VerificationStatus.verified:
+        return StatusBadge.verified();
+      case VerificationStatus.rejected:
+        return StatusBadge.needsChanges();
+      case VerificationStatus.pending:
+        return StatusBadge.pending();
+    }
+  }
+
   factory StatusBadge.pending() => const StatusBadge(
     label: 'Pending',
     color: AppColors.warning,
@@ -59,6 +88,8 @@ class StatusBadge extends StatelessWidget {
         return StatusBadge.paused();
       case ListingStatus.rented:
         return StatusBadge.rented();
+      case ListingStatus.suspended:
+        return StatusBadge.suspended();
     }
   }
 

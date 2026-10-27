@@ -7,6 +7,7 @@ import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/router/app_routes.dart';
 import 'package:merokotha/core/utils/formatters.dart';
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
+import 'package:merokotha/features/chat/data/chat_repository.dart';
 import 'package:merokotha/features/customer/data/customer_inquiry_repository.dart';
 import 'package:merokotha/features/customer/presentation/widgets/inquiry_status_tracker.dart';
 import 'package:merokotha/features/owner/data/inquiry_repository.dart';
@@ -88,6 +89,25 @@ class _InquiryTile extends ConsumerWidget {
               inquiry: inquiry,
               ownerName: inquiry.ownerName ?? 'Owner',
             );
+        // Seed the original inquiry text as the first message, sent as the
+        // customer (so rules attribute it correctly). Idempotent: only when
+        // the thread is still empty. This guarantees the owner sees the
+        // sender's message in Messages even if the accept-time seed (Cloud
+        // Function) has not run yet.
+        try {
+          final chatRepo = ref.read(chatRepositoryProvider);
+          if (inquiry.message.trim().isNotEmpty &&
+              !await chatRepo.hasMessages(chatId)) {
+            await chatRepo.sendMessage(
+              chatId: chatId,
+              senderId: inquiry.customerId,
+              text: inquiry.message.trim(),
+            );
+          }
+        } catch (_) {
+          // Seeding is best-effort — the thread still opens with the
+          // inquiry context banner.
+        }
         if (context.mounted) {
           context.push(AppRoutes.chatThread.replaceAll(':chatId', chatId));
         }

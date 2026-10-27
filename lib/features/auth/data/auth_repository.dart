@@ -61,6 +61,81 @@ class AuthRepository {
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
+
+  // ── Email / password ──────────────────────────────────────────────
+
+  /// Register with email + password. Returns the new credential, or null
+  /// when Firebase auto-links (rare). Throws [FirebaseAuthException].
+  Future<UserCredential> signUpWithEmail({
+    required String email,
+    required String password,
+  }) {
+    return _auth.createUserWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+  }
+
+  /// Sign in with email + password. Throws [FirebaseAuthException]
+  /// (`user-not-found`, `wrong-password` / `invalid-credential`).
+  Future<UserCredential> signInWithEmail({
+    required String email,
+    required String password,
+  }) {
+    return _auth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+  }
+
+  /// Send a password-reset email. Never reveals whether the address exists
+  /// (Firebase returns success either way for valid addresses).
+  Future<void> sendPasswordReset(String email) {
+    return _auth.sendPasswordResetEmail(email: email.trim());
+  }
+
+  /// Link the Google provider to the CURRENT user (e.g. an email/password
+  /// account linking Google) so both sign-in methods share the same UID.
+  /// Returns null when the user cancels the Google flow.
+  Future<UserCredential?> linkWithGoogle() async {
+    final user = _auth.currentUser;
+    if (user == null) throw StateError('Not signed in');
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) return null; // User cancelled
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+    if (idToken == null || idToken.isEmpty) {
+      throw FirebaseAuthException(
+        code: 'invalid-credential',
+        message: 'Google sign-in failed (missing ID token).',
+      );
+    }
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: idToken,
+    );
+    return await user.linkWithCredential(credential);
+  }
+
+  /// Link an email/password credential to the CURRENT user (e.g. a Google
+  /// account adding a password). Same UID is preserved.
+  Future<UserCredential> linkWithEmail({
+    required String email,
+    required String password,
+  }) {
+    final user = _auth.currentUser;
+    if (user == null) throw StateError('Not signed in');
+    final credential = EmailAuthProvider.credential(
+      email: email.trim(),
+      password: password,
+    );
+    return user.linkWithCredential(credential);
+  }
+
+  /// Provider ids linked to the current user (e.g. 'google.com', 'password').
+  List<String> get linkedProviders =>
+      _auth.currentUser?.providerData.map((p) => p.providerId).toList() ??
+      const [];
 }
 
 @riverpod

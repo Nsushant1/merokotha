@@ -23,27 +23,31 @@ class ProfileSectionCard extends StatelessWidget {
         border: Border.all(color: AppColors.border, width: 1),
         boxShadow: AppSizes.shadowCard,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-            child: Text(
-              title.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
-                color: AppColors.grey600,
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+              child: Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: AppColors.grey600,
+                ),
               ),
             ),
-          ),
-          const Divider(height: 1, color: AppColors.border),
-          Padding(
-            padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
-            child: Column(children: children),
-          ),
-        ],
+            const Divider(height: 1, color: AppColors.border),
+            Padding(
+              padding: const EdgeInsets.all(AppSizes.cardPaddingLarge),
+              child: Column(children: children),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -143,6 +147,10 @@ class MkProfileHeader extends StatelessWidget {
   final String roleLabel;
   final IconData roleIcon;
 
+  /// When non-null, tapping the avatar invokes it (e.g. change photo).
+  final VoidCallback? onPhotoTap;
+  final bool photoLoading;
+
   const MkProfileHeader({
     super.key,
     required this.name,
@@ -151,6 +159,8 @@ class MkProfileHeader extends StatelessWidget {
     this.onSettings,
     this.roleLabel = '',
     this.roleIcon = Icons.person_rounded,
+    this.onPhotoTap,
+    this.photoLoading = false,
   });
 
   @override
@@ -175,20 +185,51 @@ class MkProfileHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.9),
-                width: 2.5,
-              ),
-            ),
-            child: UserAvatar(
-              name: name,
-              photoUrl: photoUrl,
-              size: 64,
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
+          GestureDetector(
+            onTap: onPhotoTap,
+            child: Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      width: 2.5,
+                    ),
+                  ),
+                  child: UserAvatar(
+                    name: name,
+                    photoUrl: photoUrl,
+                    size: 64,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+                if (onPhotoTap != null)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: photoLoading
+                          ? const Padding(
+                              padding: EdgeInsets.all(5),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 13,
+                              color: AppColors.grey800,
+                            ),
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 16),

@@ -107,6 +107,18 @@ class AgentProfileScreen extends ConsumerWidget {
                           color: AppColors.grey400,
                         ),
                       ),
+                      if (user.bio?.isNotEmpty ?? false) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          user.bio!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.grey600,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(

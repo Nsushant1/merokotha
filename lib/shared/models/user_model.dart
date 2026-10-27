@@ -11,29 +11,54 @@ enum UserRole { owner, customer, agent, superAdmin }
 enum AgentStatus { none, pending, verified }
 
 /// Name/photo projection of a user, mirrored in `usersPublic/{uid}`.
-///
-/// This is the ONLY user data ordinary signed-in users may read about
-/// each other. Phone, email, tokens and moderation flags stay in
-/// `users/{uid}`, restricted to the owner and admins.
+/// Also carries the public agent-directory fields (`bio`, contact numbers,
+/// name-visibility) so the verified-agent directory can render without
+/// touching private user documents.
 class PublicProfile {
   final String uid;
   final String name;
   final String? photoUrl;
+  final String? bio;
+  final String? publicPhone;
+  final String? whatsappNumber;
+  final bool hideDisplayName;
 
-  const PublicProfile({required this.uid, required this.name, this.photoUrl});
+  const PublicProfile({
+    required this.uid,
+    required this.name,
+    this.photoUrl,
+    this.bio,
+    this.publicPhone,
+    this.whatsappNumber,
+    this.hideDisplayName = false,
+  });
 
   factory PublicProfile.fromMap(Map<String, dynamic> map, String uid) {
     return PublicProfile(
       uid: uid,
       name: map['name'] as String? ?? '',
       photoUrl: map['photoUrl'] as String?,
+      bio: map['bio'] as String?,
+      publicPhone: map['publicPhone'] as String?,
+      whatsappNumber: map['whatsappNumber'] as String?,
+      hideDisplayName: map['hideDisplayName'] as bool? ?? false,
     );
   }
 
   factory PublicProfile.fromSnapshot(DocumentSnapshot doc) =>
       PublicProfile.fromMap(doc.data() as Map<String, dynamic>, doc.id);
 
-  Map<String, dynamic> toMap() => {'name': name, 'photoUrl': photoUrl};
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'photoUrl': photoUrl,
+    'bio': bio,
+    'publicPhone': publicPhone,
+    'whatsappNumber': whatsappNumber,
+    'hideDisplayName': hideDisplayName,
+  };
+
+  /// Display name honoring the privacy flag.
+  String get displayName => hideDisplayName ? 'Property Owner' : name;
 }
 
 class UserModel {
@@ -46,6 +71,19 @@ class UserModel {
   final String? photoUrl;
   final String? location;
   final String? fcmToken;
+
+  /// Short public biography (agents show it on the directory profile).
+  final String? bio;
+
+  /// Optional separate public contact numbers (call / WhatsApp).
+  final String? publicPhone;
+  final String? whatsappNumber;
+
+  /// When true, the public name is masked ("Property Owner").
+  final bool hideDisplayName;
+
+  /// 'en' | 'ne'. Synced so the language choice follows the account.
+  final String locale;
 
   /// All registered device push tokens (multi-device support).
   /// [fcmToken] is retained as the most-recent token for backward
@@ -67,6 +105,11 @@ class UserModel {
     this.location,
     this.fcmToken,
     this.fcmTokens = const [],
+    this.bio,
+    this.publicPhone,
+    this.whatsappNumber,
+    this.hideDisplayName = false,
+    this.locale = 'en',
     this.isVerified = false,
     this.isBanned = false,
     required this.createdAt,
@@ -91,6 +134,11 @@ class UserModel {
       photoUrl: map['photoUrl'] as String?,
       location: map['location'] as String?,
       fcmToken: map['fcmToken'] as String?,
+      bio: map['bio'] as String?,
+      publicPhone: map['publicPhone'] as String?,
+      whatsappNumber: map['whatsappNumber'] as String?,
+      hideDisplayName: map['hideDisplayName'] as bool? ?? false,
+      locale: map['locale'] as String? ?? 'en',
       fcmTokens:
           (map['fcmTokens'] as List?)?.whereType<String>().toList() ?? const [],
       isVerified: map['isVerified'] as bool? ?? false,
@@ -116,6 +164,11 @@ class UserModel {
       'location': location,
       'fcmToken': fcmToken,
       'fcmTokens': fcmTokens,
+      'bio': bio,
+      'publicPhone': publicPhone,
+      'whatsappNumber': whatsappNumber,
+      'hideDisplayName': hideDisplayName,
+      'locale': locale,
       'isVerified': isVerified,
       'isBanned': isBanned,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -133,6 +186,11 @@ class UserModel {
     String? location,
     String? fcmToken,
     List<String>? fcmTokens,
+    String? bio,
+    String? publicPhone,
+    String? whatsappNumber,
+    bool? hideDisplayName,
+    String? locale,
     bool? isVerified,
     bool? isBanned,
   }) {
@@ -147,6 +205,11 @@ class UserModel {
       location: location ?? this.location,
       fcmToken: fcmToken ?? this.fcmToken,
       fcmTokens: fcmTokens ?? this.fcmTokens,
+      bio: bio ?? this.bio,
+      publicPhone: publicPhone ?? this.publicPhone,
+      whatsappNumber: whatsappNumber ?? this.whatsappNumber,
+      hideDisplayName: hideDisplayName ?? this.hideDisplayName,
+      locale: locale ?? this.locale,
       isVerified: isVerified ?? this.isVerified,
       isBanned: isBanned ?? this.isBanned,
       createdAt: createdAt,

@@ -51,6 +51,33 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
     }
 
+    // Tours remain optional on older Android records. Panorama URLs must point
+    // into this rental's existing public Storage folder; nested hotspot data
+    // is validated and safely rendered by the tour reader.
+    function validTourScene(scene, listingId) {
+      return scene is map
+        && scene.keys().hasAll(['id', 'title', 'imageUrl', 'hotspots'])
+        && scene.keys().hasOnly(['id', 'title', 'imageUrl', 'hotspots'])
+        && scene.id is string && scene.id.size() > 0 && scene.id.size() <= 80
+        && scene.title is string && scene.title.size() > 0 && scene.title.size() <= 80
+        && scene.imageUrl is string && scene.imageUrl.size() <= 2000
+        && (scene.imageUrl.matches('https://firebasestorage[.]googleapis[.]com/v0/b/[^/]+/o/listings%2F' + listingId + '%2F.*')
+          || (isAuth() && request.auth.token.get('aud', '') == 'demo-merokotha-feature-tests'
+            && scene.imageUrl.matches('http://127[.]0[.]0[.]1:9198/v0/b/demo-merokotha-feature-tests[.]appspot[.]com/o/listings%2F' + listingId + '%2F.*')))
+        && scene.hotspots is list && scene.hotspots.size() <= 12;
+    }
+    function validTour(scenes, listingId) {
+      return scenes is list && scenes.size() <= 8
+        && (scenes.size() <= 0 || validTourScene(scenes[0], listingId))
+        && (scenes.size() <= 1 || validTourScene(scenes[1], listingId))
+        && (scenes.size() <= 2 || validTourScene(scenes[2], listingId))
+        && (scenes.size() <= 3 || validTourScene(scenes[3], listingId))
+        && (scenes.size() <= 4 || validTourScene(scenes[4], listingId))
+        && (scenes.size() <= 5 || validTourScene(scenes[5], listingId))
+        && (scenes.size() <= 6 || validTourScene(scenes[6], listingId))
+        && (scenes.size() <= 7 || validTourScene(scenes[7], listingId));
+    }
+
     // Is the current user a participant of a given chat?
     function isChatParticipant(chatId) {
       return isChatOwnerSide(chatId) || isChatCustomerSide(chatId);
@@ -117,12 +144,15 @@ service cloud.firestore {
       allow list: if isAdmin();
 
       // A user can only create their OWN document
-      // Role must be owner, customer, or agent — cannot self-assign superAdmin.
-      // Agents self-register as unverified; only an admin-verified agent
-      // (isVerified == true) can post listings.
+      // Both clients start without agent capabilities. Optional phone is
+      // contact information, not a Firebase Authentication identity.
       allow create: if isMe(userId)
-        && request.resource.data.keys().hasAll(['name', 'phone', 'role', 'createdAt'])
-        && request.resource.data.role in ['owner', 'customer', 'agent'];
+        && request.resource.data.keys().hasAll(['name', 'role', 'createdAt'])
+        && request.resource.data.role in ['owner', 'customer', 'agent']
+        && (request.resource.data.get('phone', null) == null || request.resource.data.phone is string)
+        && request.resource.data.get('agentStatus', 'none') == 'none'
+        && request.resource.data.get('isVerified', false) == false
+        && request.resource.data.get('isBanned', false) == false;
 
       // FIXED: self-update is limited to profile fields only.
       // Previously any user could set role='superAdmin', clear isBanned,
@@ -132,9 +162,11 @@ service cloud.firestore {
       // superAdmin can update any user (ban/unban, role and agentStatus).
       allow update: if isAdmin();
       allow update: if isMe(userId) && notBanned()
-        && onlyFields(['name', 'location', 'photoUrl', 'fcmToken', 'fcmTokens', 'role', 'updatedAt'])
+        && onlyFields(['name', 'email', 'phone', 'location', 'photoUrl', 'contactEmail', 'agentBio',
+            'bio', 'publicPhone', 'whatsappNumber', 'hideDisplayName',
+            'locale', 'fcmToken', 'fcmTokens', 'role', 'updatedAt'])
         && request.resource.data.role in ['owner', 'customer', 'agent']
-        && request.resource.data.phone == resource.data.phone
+        && (request.resource.data.get('phone', null) == null || request.resource.data.phone is string)
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.get('agentStatus', 'none') == resource.data.get('agentStatus', 'none');
 
@@ -145,6 +177,13 @@ service cloud.firestore {
       // /users/{userId}/favourites/{listingId}
       match /favourites/{listingId} {
         // Only the user themselves (or admin) can read/write their favourites
+        allow read, write: if isMe(userId) || isAdmin();
+      }
+
+      // ── Saved searches sub-collection ──────────────────────
+      // /users/{userId}/savedSearches/{searchId}
+      match /savedSearches/{searchId} {
+        // Only the user themselves (or admin) can read/write saved searches
         allow read, write: if isMe(userId) || isAdmin();
       }
     }
@@ -166,11 +205,14 @@ service cloud.firestore {
       // even if a client tries to write them here.
       allow create: if (isMe(userId) || isAdmin())
         && request.resource.data.keys().hasAll(['name'])
-        && request.resource.data.keys().hasOnly(['name', 'photoUrl', 'updatedAt'])
-        && request.resource.data.name is string;
+        && request.resource.data.keys().hasOnly(['name', 'photoUrl', 'bio',
+            'publicPhone', 'whatsappNumber', 'hideDisplayName', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.get('uid', userId) == userId;
       allow update: if isAdmin();
       allow update: if isMe(userId) && notBanned()
-        && onlyFields(['name', 'photoUrl', 'updatedAt']);
+        && onlyFields(['name', 'photoUrl', 'bio', 'publicPhone',
+            'whatsappNumber', 'hideDisplayName', 'updatedAt']);
 
       allow delete: if isAdmin();
     }
@@ -197,7 +239,10 @@ service cloud.firestore {
       // Any non-banned signed-in user can post a listing as themselves
       // (ownerId == their uid, no agentId) — browsing and posting are
       // capabilities of one account, not separate roles.
-      // Listing goes active immediately — no payment required
+      // Listing goes active immediately — no payment required.
+      // New listings always start as `verificationStatus == 'pending'`;
+      // only an admin decision moves them to verified/rejected.
+      // Missing verificationStatus is treated as legacy pending.
       allow create: if isAuth() && notBanned()
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.get('agentId', null) == null
@@ -206,8 +251,16 @@ service cloud.firestore {
             'rentPerMonth', 'status', 'createdAt'
           ])
         && request.resource.data.status == 'active'
+        && request.resource.data.get('verificationStatus', 'pending') == 'pending'
+        && request.resource.data.get('verifiedAt', null) == null
+        && request.resource.data.get('verifiedBy', null) == null
+        && request.resource.data.get('verificationReason', null) == null
+        && request.resource.data.get('reviewedAt', null) == null
+        && request.resource.data.get('reviewedBy', null) == null
+        && request.resource.data.get('reviewReason', null) == null
         && request.resource.data.rentPerMonth is number
-        && request.resource.data.rentPerMonth > 0;
+        && request.resource.data.rentPerMonth > 0
+        && validTour(request.resource.data.get('tourScenes', []), listingId);
 
       // Verified agents post on behalf of owners: ownerId and agentId are
       // both the agent's uid, with the real-owner contact entered manually.
@@ -226,8 +279,16 @@ service cloud.firestore {
         && request.resource.data.ownerName.size() > 0
         && request.resource.data.get('ownerPhone', null) == null
         && request.resource.data.status == 'active'
+        && request.resource.data.get('verificationStatus', 'pending') == 'pending'
+        && request.resource.data.get('verifiedAt', null) == null
+        && request.resource.data.get('verifiedBy', null) == null
+        && request.resource.data.get('verificationReason', null) == null
+        && request.resource.data.get('reviewedAt', null) == null
+        && request.resource.data.get('reviewedBy', null) == null
+        && request.resource.data.get('reviewReason', null) == null
         && request.resource.data.rentPerMonth is number
-        && request.resource.data.rentPerMonth > 0;
+        && request.resource.data.rentPerMonth > 0
+        && validTour(request.resource.data.get('tourScenes', []), listingId);
 
       // FIXED: ownerId and createdAt are immutable — previously an owner
       // could reassign a listing to another user or rewrite its age.
@@ -236,11 +297,26 @@ service cloud.firestore {
       // The listing owner OR superAdmin can update a listing.
       // (For agent listings, ownerId is the agent's uid, so the agent
       // who posted it can update it.)
+      //
+      // Verification: every lister edit returns the listing to `pending`
+      // (only admins may set verified/rejected + review fields), and only
+      // admins may move a listing into or out of `suspended`.
       allow update: if isAdmin() ||
         (isAuth() && notBanned() && resource.data.ownerId == request.auth.uid
           && request.resource.data.ownerId == resource.data.ownerId
           && request.resource.data.get('agentId', null) == resource.data.get('agentId', null)
           && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.status in ['active', 'paused', 'rented']
+          && validTour(request.resource.data.get('tourScenes', []), listingId)
+          // Content edits return the listing to `pending` review; a pure
+          // availability toggle (pause/resume/rented) preserves the verdict.
+          && (request.resource.data.get('verificationStatus', 'pending') == 'pending'
+            || onlyFields(['status', 'updatedAt']))
+          && request.resource.data.get('status', '') != 'suspended'
+          && resource.data.get('status', '') != 'suspended'
+          && request.resource.data.get('reviewReason', null) == resource.data.get('reviewReason', null)
+          && request.resource.data.get('reviewedBy', null) == resource.data.get('reviewedBy', null)
+          && request.resource.data.get('reviewedAt', null) == resource.data.get('reviewedAt', null)
           // Top-level `ownerPhone` is legacy: it may stay or be removed,
           // never set — new contact details go to `ownerContact`.
           && (request.resource.data.get('ownerPhone', null) == null
@@ -253,9 +329,12 @@ service cloud.firestore {
       allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount'])
         && request.resource.data.viewCount == resource.data.get('viewCount', 0) + 1;
 
-      // The listing owner OR superAdmin can delete a listing
+      // The listing owner OR superAdmin can delete a listing.
+      // Suspended listings are preserved for moderation (admin-only delete),
+      // and banned users lose write access including deletes.
       allow delete: if isAdmin() ||
-        (isAuth() && resource.data.ownerId == request.auth.uid);
+        (isAuth() && notBanned() && resource.data.ownerId == request.auth.uid
+          && resource.data.get('status', '') != 'suspended');
 
       // ── Real-owner contact sub-collection ────────────────────
       // /listings/{listingId}/ownerContact/{docId}
@@ -272,9 +351,12 @@ service cloud.firestore {
 
         // The posting agent (or admin) maintains the contact. Phone must be
         // a non-empty string; name is stored alongside for the agent's
-        // inquiry banner.
+        // inquiry banner. Contact edits are blocked once the listing is
+        // verified or suspended (admin-controlled states).
         allow create, update: if isAdmin() || (isAuth() && notBanned()
           && get(/databases/$(database)/documents/listings/$(listingId)).data.ownerId == request.auth.uid
+          && getAfter(/databases/$(database)/documents/listings/$(listingId)).data.get('verificationStatus', null) != 'verified'
+          && getAfter(/databases/$(database)/documents/listings/$(listingId)).data.get('status', '') != 'suspended'
           && request.resource.data.keys().hasAll(['name', 'phone'])
           && request.resource.data.name is string
           && request.resource.data.phone is string
@@ -415,7 +497,11 @@ service cloud.firestore {
       // the query planner prove the query can only return the caller's own
       // conversations. A combined `a == me || b == me` form is not provable
       // against a single-field filter, so the list would be rejected.
+      // Both clients check the deterministic ID before creating a thread.
+      // Permit an authenticated "not found" result; existing chat contents
+      // remain restricted to participants and admins.
       allow get: if isAdmin() || (isAuth() && (
+        !exists(/databases/$(database)/documents/chats/$(chatId)) ||
         resource.data.ownerId    == request.auth.uid ||
         resource.data.customerId == request.auth.uid
       ));
@@ -566,6 +652,193 @@ service cloud.firestore {
 
       // Only superAdmin can create, update, or delete categories
       allow write: if isAdmin();
+    }
+
+
+    // ────────────────────────────────────────────────────────────
+    // VERIFIED-AGENT DIRECTORY
+    // /agentsPublic/{userId} — public projection of verified agents
+    // ────────────────────────────────────────────────────────────
+    //
+    // Synced automatically: admin approval upserts, rejection/revoke
+    // deletes, ban suspends, unban restores, profile edits merge.
+    // Reads are fully public so logged-out visitors can browse agents.
+
+    match /agentsPublic/{userId} {
+      allow get, list: if true;
+
+      allow create, update: if isAdmin();
+      // A verified, non-banned agent may maintain their own public entry
+      // (display fields only — `status` is admin-controlled).
+      allow create: if isMe(userId) && isVerifiedAgent()
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'photoUrl',
+            'bio', 'location', 'publicPhone', 'whatsappNumber',
+            'hideDisplayName', 'status', 'createdAt', 'updatedAt'])
+        && request.resource.data.get('status', 'active') == 'active'
+        && request.resource.data.get('uid', userId) == userId;
+      allow update: if isMe(userId) && isVerifiedAgent()
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'photoUrl',
+            'bio', 'location', 'publicPhone', 'whatsappNumber',
+            'hideDisplayName', 'status', 'createdAt', 'updatedAt'])
+        && request.resource.data.get('status', 'active') == resource.data.get('status', 'active');
+
+      allow delete: if isAdmin() || (isMe(userId) && isVerifiedAgent());
+    }
+
+
+    match /adminDecisions/{decisionId} {
+      allow get, list, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+
+    // ────────────────────────────────────────────────────────────
+    // WEB ANALYTICS VISITS (shared backend, website client)
+    // /listingVisits/{visitId} — website-only, retained for compatibility.
+    // Android continues to use /listingEvents below. No migration.
+    // ────────────────────────────────────────────────────────────
+
+    // Web-only visit events contain a random browser identifier, source host,
+    // device size and server time. No account identity or private contact data.
+    match /listingVisits/{visitId} {
+      allow get: if isAdmin() || (notBanned() && resource.data.ownerId == request.auth.uid);
+      allow list: if request.query.limit <= 2000
+        && (isAdmin() || (notBanned() && resource.data.ownerId == request.auth.uid));
+      allow create: if (!isAuth() || notBanned())
+        && request.resource.data.keys().hasAll(['listingId', 'ownerId', 'visitorId', 'referrer', 'device', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['listingId', 'ownerId', 'visitorId', 'referrer', 'device', 'createdAt'])
+        && request.resource.data.listingId is string
+        && request.resource.data.ownerId is string
+        && request.resource.data.visitorId is string
+        && request.resource.data.visitorId.matches('[a-zA-Z0-9_-]{1,80}')
+        && visitId.matches(request.resource.data.listingId + '_' + request.resource.data.visitorId + '_[0-9]+')
+        && request.resource.data.referrer is string
+        && request.resource.data.referrer.size() > 0 && request.resource.data.referrer.size() <= 253
+        && request.resource.data.referrer.matches('[a-zA-Z0-9.-]+')
+        && request.resource.data.device in ['mobile', 'desktop']
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/listings/$(request.resource.data.listingId))
+        && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.status == 'active'
+        && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.ownerId == request.resource.data.ownerId
+        && (!isAuth() || request.auth.uid != request.resource.data.ownerId);
+      allow update, delete: if false;
+    }
+
+    // One immutable submission per renter/listing (website client).
+    // Reporters can follow their own decisions; listers never receive the
+    // reporter's identity or details. Android continues to use /reports below.
+    match /listingReports/{reportId} {
+      allow get: if isAdmin() || (notBanned() && resource.data.reporterId == request.auth.uid);
+      allow list: if request.query.limit <= 200
+        && (isAdmin() || (notBanned() && resource.data.reporterId == request.auth.uid));
+      allow create: if notBanned()
+        && request.resource.data.keys().hasAll(['listingId', 'listingTitle', 'ownerId', 'reporterId', 'reason', 'details', 'status', 'decisionReason', 'decidedBy', 'decidedAt', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['listingId', 'listingTitle', 'ownerId', 'reporterId', 'reason', 'details', 'status', 'decisionReason', 'decidedBy', 'decidedAt', 'createdAt', 'updatedAt'])
+        && request.resource.data.listingId is string
+        && reportId == request.resource.data.listingId + '_' + request.auth.uid
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.ownerId != request.auth.uid
+        && exists(/databases/$(database)/documents/listings/$(request.resource.data.listingId))
+        && request.resource.data.ownerId == get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.ownerId
+        && request.resource.data.listingTitle == get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.title
+        && request.resource.data.reason in ['fraud', 'duplicate', 'wrong_location', 'unavailable', 'misleading_price', 'stolen_photos', 'not_owner', 'offensive', 'other']
+        && request.resource.data.details is string && request.resource.data.details.size() >= 10 && request.resource.data.details.size() <= 1000
+        && request.resource.data.status == 'open'
+        && request.resource.data.decisionReason == null
+        && request.resource.data.decidedBy == null && request.resource.data.decidedAt == null
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin()
+        && resource.data.status in ['open', 'reviewing']
+        && request.resource.data.status in ['reviewing', 'resolved', 'dismissed']
+        && request.resource.data.status != resource.data.status
+        && onlyFields(['status', 'decisionReason', 'decidedBy', 'decidedAt', 'updatedAt'])
+        && request.resource.data.decisionReason is string
+        && request.resource.data.decisionReason.size() >= 5 && request.resource.data.decisionReason.size() <= 1000
+        && request.resource.data.decidedBy == request.auth.uid
+        && request.resource.data.decidedAt == request.time && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+
+    // ────────────────────────────────────────────────────────────
+    // REPORTS
+    // /reports/{reportId}
+    // ────────────────────────────────────────────────────────────
+
+    match /reports/{reportId} {
+      // The reporter and admins can read a report.
+      allow read: if isAdmin() || (isAuth() &&
+        resource.data.reporterId == request.auth.uid);
+
+      // Any non-banned signed-in user can report someone else's listing.
+      allow create: if isAuth() && notBanned()
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.keys().hasAll([
+            'reporterId', 'listingId', 'category', 'status', 'createdAt'
+          ])
+        && request.resource.data.category is string
+        && request.resource.data.category.size() > 0
+        && (request.resource.data.get('details', '') is string)
+        && request.resource.data.status == 'pending';
+
+      // Only admins review reports (resolve/dismiss + decision notes).
+      allow update: if isAdmin()
+        && request.resource.data.reporterId == resource.data.reporterId
+        && request.resource.data.listingId == resource.data.listingId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status in ['resolved', 'dismissed'];
+
+      allow delete: if isAdmin();
+    }
+
+
+    // ────────────────────────────────────────────────────────────
+    // ANALYTICS EVENTS
+    // /listingEvents/{eventId}
+    // Shared event schema with the website (see AnalyticsEventType).
+    // ────────────────────────────────────────────────────────────
+
+    match /listingEvents/{eventId} {
+      // The listing owner (ownerId slot) and admins can read events.
+      // Per-side mirroring of the chats pattern keeps queries provable.
+      allow get: if isAdmin() || (isAuth() &&
+        resource.data.get('ownerId', '') == request.auth.uid);
+      allow list: if isAdmin();
+      allow list: if isAuth() &&
+        resource.data.get('ownerId', '') == request.auth.uid;
+
+      // Anyone (including logged-out visitors) can log a well-formed event.
+      // Field allowlist + length caps keep this abuse-resistant; events are
+      // append-only for non-admins. Note: no `is timestamp` check on
+      // createdAt — serverTimestamp() sentinels do not reliably evaluate as
+      // timestamps in rules, and a forged date is harmless here.
+      allow create: if request.resource.data.keys().hasAll([
+            'listingId', 'type', 'visitorId', 'createdAt'
+          ])
+        && request.resource.data.keys().hasOnly([
+            'listingId', 'ownerId', 'type', 'visitorId', 'createdAt'
+          ])
+        && request.resource.data.listingId is string
+        && request.resource.data.listingId.size() > 0
+        && request.resource.data.listingId.size() < 200
+        && request.resource.data.type in ['view', 'inquiry',
+            'inquiry_accepted', 'inquiry_declined', 'call', 'whatsapp',
+            'favourite']
+        && request.resource.data.visitorId is string
+        && request.resource.data.visitorId.size() > 0
+        && request.resource.data.visitorId.size() < 200;
+
+      allow update, delete: if isAdmin();
+    }
+
+
+    // ────────────────────────────────────────────────────────────
+    // MODERATION HISTORY
+    // /moderationHistory/{entryId} — shared decision audit log
+    // ────────────────────────────────────────────────────────────
+
+    match /moderationHistory/{entryId} {
+      allow read, write: if isAdmin();
     }
 
 

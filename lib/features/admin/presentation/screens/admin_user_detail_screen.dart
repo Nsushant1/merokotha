@@ -433,27 +433,31 @@ class _Card extends StatelessWidget {
       border: Border.all(color: AppColors.border),
       boxShadow: AppSizes.shadowCard,
     ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-              color: AppColors.grey600,
+    clipBehavior: Clip.antiAlias,
+    child: Material(
+      color: Colors.transparent,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                color: AppColors.grey600,
+              ),
             ),
           ),
-        ),
-        const Divider(height: 1, color: AppColors.border),
-        Padding(
-          padding: const EdgeInsets.all(AppSizes.md),
-          child: Column(children: children),
-        ),
-      ],
+          const Divider(height: 1, color: AppColors.border),
+          Padding(
+            padding: const EdgeInsets.all(AppSizes.md),
+            child: Column(children: children),
+          ),
+        ],
+      ),
     ),
   );
 }

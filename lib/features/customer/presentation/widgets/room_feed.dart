@@ -4,6 +4,7 @@ import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/core/utils/responsive.dart';
 import 'package:merokotha/features/landing/presentation/widgets/landing_toggle_view.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
+import 'package:merokotha/shared/widgets/firebase_ads_carousel.dart';
 import 'package:merokotha/shared/widgets/promo_banner_carousel.dart';
 
 import 'listing_card.dart';
@@ -248,9 +249,9 @@ class RoomFeedSlivers extends StatelessWidget {
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppSizes.pagePadding),
-                // In-feed slots use the custom Pitambari / Floor Cleaner
-                // designs; classic image banners stay on top placements.
-                child: InFeedPromoCarousel(),
+                // In-feed slots prefer active Firebase ads, falling back to
+                // the bundled designs when none are live.
+                child: FirebaseInFeedPromo(slot: 'home'),
               ),
             ),
           );

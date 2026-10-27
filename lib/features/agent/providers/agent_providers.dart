@@ -56,8 +56,14 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
 
   /// Posts a room on behalf of an owner. Only admin-verified agents may post
   /// (also enforced by Firestore rules); the guard below fails fast in UI.
+  ///
+  /// Privacy: the listing's public `ownerName` is the AGENT's display name.
+  /// The real-owner [ownerName]/[ownerPhone] live only in the restricted
+  /// `ownerContact` subcollection — never top-level, where public listing
+  /// reads would expose them.
   Future<String?> uploadAgentListing({
     required String agentId,
+    required String agentDisplayName,
     String? agentPhotoUrl,
     required String ownerName,
     required String ownerPhone,
@@ -74,6 +80,9 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
     GeoPoint? geoPoint,
     String? address,
     String? nearbyLandmarks,
+    String? publicPhone,
+    String? whatsappNumber,
+    bool hideDisplayName = false,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -95,7 +104,7 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
       final listing = ListingModel(
         id: '',
         ownerId: agentId,
-        ownerName: ownerName,
+        ownerName: agentDisplayName,
         agentId: agentId,
         ownerPhone: null,
         ownerPhotoUrl: agentPhotoUrl,
@@ -113,6 +122,10 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
         nearbyLandmarks: nearbyLandmarks,
         availableFrom: availableFrom,
         status: ListingStatus.active,
+        verificationStatus: VerificationStatus.pending,
+        publicPhone: _cleanAgentPhone(publicPhone),
+        whatsappNumber: _cleanAgentPhone(whatsappNumber),
+        hideDisplayName: hideDisplayName,
         createdAt: now,
         updatedAt: now,
         roomType: roomType,
@@ -141,6 +154,7 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
 
   Future<void> updateExistingAgentListing({
     required String listingId,
+    required String agentDisplayName,
     required String ownerName,
     required String ownerPhone,
     required String title,
@@ -156,12 +170,15 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
     GeoPoint? geoPoint,
     String? address,
     String? nearbyLandmarks,
+    String? publicPhone,
+    String? whatsappNumber,
+    bool? hideDisplayName,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final repo = ref.read(agentRepositoryProvider);
       await repo.updateAgentListing(listingId, {
-        'ownerName': ownerName,
+        'ownerName': agentDisplayName,
         // Drop any legacy top-level phone (rules allow removal, never
         // setting); the contact lives in `ownerContact` now.
         'ownerPhone': FieldValue.delete(),
@@ -178,6 +195,11 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
         'geoPoint': ?geoPoint,
         'address': ?address,
         'nearbyLandmarks': ?nearbyLandmarks,
+        // Every content edit returns the listing to pending review.
+        'verificationStatus': VerificationStatus.pending.name,
+        'publicPhone': _cleanAgentPhone(publicPhone),
+        'whatsappNumber': _cleanAgentPhone(whatsappNumber),
+        'hideDisplayName': ?hideDisplayName,
       });
       await repo.saveOwnerContact(
         listingId: listingId,
@@ -194,6 +216,12 @@ class AgentUploadNotifier extends _$AgentUploadNotifier {
   }
 
   void reset() => state = const AgentUploadState();
+}
+
+/// Normalizes an optional phone field: blank becomes null.
+String? _cleanAgentPhone(String? v) {
+  final t = v?.trim() ?? '';
+  return t.isEmpty ? null : t;
 }
 
 @riverpod

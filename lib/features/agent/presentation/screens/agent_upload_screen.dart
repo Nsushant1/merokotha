@@ -70,11 +70,15 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
   final _ownerPhoneCtrl = TextEditingController();
   final _titleCtrl = TextEditingController();
   final _rentCtrl = TextEditingController();
+  final _depositCtrl = TextEditingController();
   final _floorCtrl = TextEditingController();
   final _totalFloorsCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
   final _landmarksCtrl = TextEditingController();
+  final _callCtrl = TextEditingController();
+  final _whatsappCtrl = TextEditingController();
+  bool _hideName = false;
 
   String _roomType = 'room';
   FurnishingType _furnishing = FurnishingType.unfurnished;
@@ -82,6 +86,9 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
   DateTime _availableFrom = DateTime.now();
   LatLng? _pickedLocation;
   final List<File> _pickedImages = [];
+
+  /// Existing photos kept on edit, in display order (first = cover).
+  List<String> _keptUrls = [];
 
   /// Guards the whole submit (validation → Firestore write → photo upload
   /// → navigation) so rapid taps on Publish can only ever post once.
@@ -94,18 +101,25 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
     super.initState();
     final l = widget.listing;
     if (l != null) {
-      _ownerNameCtrl.text = l.ownerName;
-      // Legacy fallback: pre-migration listings may carry the phone
+      // Legacy fallback: pre-migration listings carry the real-owner name
       // top-level; the restricted subcollection wins when present.
+      _ownerNameCtrl.text = l.ownerName;
       _ownerPhoneCtrl.text = l.ownerPhone ?? '';
       _loadOwnerContact(l.id);
       _titleCtrl.text = l.title;
       _rentCtrl.text = l.rentPerMonth.toStringAsFixed(0);
+      _depositCtrl.text = l.depositAmount > 0
+          ? l.depositAmount.toStringAsFixed(0)
+          : '';
       _floorCtrl.text = l.floor.toString();
       _totalFloorsCtrl.text = l.totalFloors.toString();
       _descCtrl.text = l.description;
       _addressCtrl.text = l.address ?? '';
       _landmarksCtrl.text = l.nearbyLandmarks ?? '';
+      _callCtrl.text = l.publicPhone ?? '';
+      _whatsappCtrl.text = l.whatsappNumber ?? '';
+      _hideName = l.hideDisplayName;
+      _keptUrls = List.from(l.photoUrls);
       _roomType = l.roomType;
       _furnishing = l.furnishing;
       _facilities = List.from(l.facilities);
@@ -116,15 +130,19 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
     }
   }
 
-  /// Loads the real-owner phone from the restricted subcollection.
-  /// Best-effort: the legacy top-level value (if any) stays on failure.
+  /// Loads the real-owner contact from the restricted subcollection,
+  /// overwriting the legacy top-level fallback. Best-effort: the legacy
+  /// values stay on failure.
   Future<void> _loadOwnerContact(String listingId) async {
     try {
       final contact = await ref
           .read(agentRepositoryProvider)
           .getOwnerContact(listingId);
-      if (!mounted || contact == null || contact.phone.isEmpty) return;
-      setState(() => _ownerPhoneCtrl.text = contact.phone);
+      if (!mounted || contact == null) return;
+      setState(() {
+        if (contact.name.isNotEmpty) _ownerNameCtrl.text = contact.name;
+        if (contact.phone.isNotEmpty) _ownerPhoneCtrl.text = contact.phone;
+      });
     } catch (_) {
       // Keep the legacy fallback already in the field.
     }
@@ -136,11 +154,14 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
     _ownerPhoneCtrl.dispose();
     _titleCtrl.dispose();
     _rentCtrl.dispose();
+    _depositCtrl.dispose();
     _floorCtrl.dispose();
     _totalFloorsCtrl.dispose();
     _descCtrl.dispose();
     _addressCtrl.dispose();
     _landmarksCtrl.dispose();
+    _callCtrl.dispose();
+    _whatsappCtrl.dispose();
     super.dispose();
   }
 
@@ -191,6 +212,7 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
   Future<List<String>> _uploadImages(String listingId) async {
     final storage = FirebaseStorage.instance;
     final urls = <String>[];
+    final stamp = DateTime.now().millisecondsSinceEpoch;
     for (var i = 0; i < _pickedImages.length; i++) {
       final file = _pickedImages[i];
       if (!await file.exists()) {
@@ -198,7 +220,7 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
         continue;
       }
       try {
-        final ref = storage.ref().child('listings/$listingId/image_$i.jpg');
+        final ref = storage.ref().child('listings/$listingId/photo_${stamp}_$i.jpg');
         final task = await ref.putFile(
           file,
           SettableMetadata(contentType: 'image/jpeg'),
@@ -211,15 +233,22 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
         rethrow;
       }
     }
-    if (urls.isEmpty) {
-      throw FirebaseException(
-        plugin: 'firebase_storage',
-        code: 'file-not-found',
-        message: 'No valid image files to upload.',
-      );
-    }
     return urls;
   }
+
+  /// Best-effort deletion of photos removed on edit.
+  Future<void> _deleteRemovedPhotos(List<String> removedUrls) async {
+    for (final url in removedUrls) {
+      try {
+        await FirebaseStorage.instance.refFromURL(url).delete();
+      } catch (e) {
+        debugPrint('Photo delete skipped for $url: $e');
+      }
+    }
+  }
+
+  double get _parsedDeposit =>
+      double.tryParse(_depositCtrl.text.trim()) ?? 0;
 
   GeoPoint? get _resolvedGeoPoint {
     if (_pickedLocation != null) {
@@ -263,13 +292,14 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
         .read(agentUploadProvider.notifier)
         .uploadAgentListing(
           agentId: user.id,
+          agentDisplayName: user.name,
           agentPhotoUrl: user.photoUrl,
           ownerName: _ownerNameCtrl.text.trim(),
           ownerPhone: _ownerPhoneCtrl.text.trim(),
           title: _titleCtrl.text.trim(),
           roomType: _roomType,
           rentPerMonth: double.parse(_rentCtrl.text.trim()),
-          depositAmount: 0,
+          depositAmount: _parsedDeposit,
           floor: int.tryParse(_floorCtrl.text.trim()) ?? 0,
           totalFloors: int.tryParse(_totalFloorsCtrl.text.trim()) ?? 1,
           furnishing: _furnishing,
@@ -279,6 +309,9 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
           geoPoint: _resolvedGeoPoint,
           address: _addressCtrl.text.trim(),
           nearbyLandmarks: _landmarksCtrl.text.trim(),
+          publicPhone: _callCtrl.text.trim(),
+          whatsappNumber: _whatsappCtrl.text.trim(),
+          hideDisplayName: _hideName,
         );
 
     if (!mounted) return;
@@ -319,7 +352,7 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Listing published!'),
+          content: Text('Listing submitted for review!'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -328,18 +361,22 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
   }
 
   Future<void> _submitEdit() async {
-    final listingId = widget.listing!.id;
+    final listing = widget.listing!;
+    final listingId = listing.id;
 
     await ref
         .read(agentUploadProvider.notifier)
         .updateExistingAgentListing(
           listingId: listingId,
+          agentDisplayName:
+              (await ref.read(currentUserProvider.future))?.name ??
+              listing.ownerName,
           ownerName: _ownerNameCtrl.text.trim(),
           ownerPhone: _ownerPhoneCtrl.text.trim(),
           title: _titleCtrl.text.trim(),
           roomType: _roomType,
           rentPerMonth: double.parse(_rentCtrl.text.trim()),
-          depositAmount: 0,
+          depositAmount: _parsedDeposit,
           floor: int.tryParse(_floorCtrl.text.trim()) ?? 0,
           totalFloors: int.tryParse(_totalFloorsCtrl.text.trim()) ?? 1,
           furnishing: _furnishing,
@@ -349,16 +386,26 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
           geoPoint: _resolvedGeoPoint,
           address: _addressCtrl.text.trim(),
           nearbyLandmarks: _landmarksCtrl.text.trim(),
+          publicPhone: _callCtrl.text.trim(),
+          whatsappNumber: _whatsappCtrl.text.trim(),
+          hideDisplayName: _hideName,
         );
 
     if (!mounted) return;
     if (ref.read(agentUploadProvider).success) {
-      if (_pickedImages.isNotEmpty) {
+      final removed = listing.photoUrls
+          .where((u) => !_keptUrls.contains(u))
+          .toList();
+      if (removed.isNotEmpty) await _deleteRemovedPhotos(removed);
+
+      if (removed.isNotEmpty || _pickedImages.isNotEmpty) {
         try {
-          final photoUrls = await _uploadImages(listingId);
+          final uploaded = await _uploadImages(listingId);
           await ref.read(agentRepositoryProvider).updateAgentListing(
             listingId,
-            {'photoUrls': photoUrls},
+            {
+              'photoUrls': [..._keptUrls, ...uploaded],
+            },
           );
         } on FirebaseException catch (e) {
           debugPrint(
@@ -390,7 +437,7 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Listing updated!'),
+          content: Text('Changes saved — sent back for review.'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -438,7 +485,6 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
 
   Widget _buildForm(BuildContext context, WidgetRef ref) {
     final uploadState = ref.watch(agentUploadProvider);
-    final existingPhotos = widget.listing?.photoUrls ?? [];
     final locationSet =
         _pickedLocation != null ||
         (_isEdit && widget.listing?.geoPoint != null);
@@ -486,7 +532,7 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Posting on behalf of an owner. Your agent profile is shown publicly; the owner contact below stays hidden until you accept an inquiry.',
+                        'Posting on behalf of an owner. Your agent profile is shown publicly; the real-owner contact below stays private and is never displayed on the listing.',
                         style: TextStyle(
                           fontSize: 13,
                           height: 1.4,
@@ -499,25 +545,24 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
               ),
               const SizedBox(height: 16),
 
-              ListingPhotoPicker(
-                images: _pickedImages,
-                onChanged: (imgs) => setState(() {
+              ListingPhotoManager(
+                existingUrls: _keptUrls,
+                onExistingChanged: (urls) =>
+                    setState(() => _keptUrls = urls),
+                newImages: _pickedImages,
+                onNewChanged: (imgs) => setState(() {
                   _pickedImages
                     ..clear()
                     ..addAll(imgs);
                 }),
-                existingPhotoUrl: existingPhotos.isNotEmpty
-                    ? existingPhotos.first
-                    : null,
-                existingPhotoCount: existingPhotos.length,
               ),
               const SizedBox(height: 20),
 
               UploadFormCard(
-                title: 'Property owner',
+                title: 'Property owner (private)',
                 children: [
                   MkTextField(
-                    label: 'Owner name',
+                    label: 'Real owner name',
                     hint: 'e.g. Ram Bahadur Thapa',
                     controller: _ownerNameCtrl,
                     validator: Validators.name,
@@ -530,7 +575,7 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
                   ),
                   const SizedBox(height: AppSizes.md),
                   MkTextField(
-                    label: 'Owner phone',
+                    label: 'Real owner phone',
                     hint: '98XXXXXXXX',
                     controller: _ownerPhoneCtrl,
                     validator: Validators.phone,
@@ -635,6 +680,49 @@ class _AgentUploadScreenState extends ConsumerState<AgentUploadScreen> {
                     hint: '8000',
                     controller: _rentCtrl,
                     validator: Validators.price,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  MkPriceField(
+                    label: 'Deposit (optional)',
+                    hint: '0',
+                    controller: _depositCtrl,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              UploadFormCard(
+                title: 'Contact & privacy',
+                children: [
+                  MkTextField(
+                    label: 'Public call number (optional)',
+                    hint: '98XXXXXXXX',
+                    controller: _callCtrl,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  MkTextField(
+                    label: 'WhatsApp number (optional)',
+                    hint: '98XXXXXXXX',
+                    controller: _whatsappCtrl,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Hide public name',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Your agent profile shows a generic label instead.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: _hideName,
+                    onChanged: (v) => setState(() => _hideName = v),
                   ),
                 ],
               ),

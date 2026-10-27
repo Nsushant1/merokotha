@@ -67,6 +67,9 @@ class UploadListingNotifier extends _$UploadListingNotifier {
     GeoPoint? geoPoint,
     String? address,
     String? nearbyLandmarks,
+    String? publicPhone,
+    String? whatsappNumber,
+    bool hideDisplayName = false,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -91,6 +94,10 @@ class UploadListingNotifier extends _$UploadListingNotifier {
         nearbyLandmarks: nearbyLandmarks,
         availableFrom: availableFrom,
         status: ListingStatus.active,
+        verificationStatus: VerificationStatus.pending,
+        publicPhone: _cleanPhone(publicPhone),
+        whatsappNumber: _cleanPhone(whatsappNumber),
+        hideDisplayName: hideDisplayName,
         createdAt: now,
         updatedAt: now,
         roomType: roomType,
@@ -124,6 +131,9 @@ class UploadListingNotifier extends _$UploadListingNotifier {
     GeoPoint? geoPoint,
     String? address,
     String? nearbyLandmarks,
+    String? publicPhone,
+    String? whatsappNumber,
+    bool? hideDisplayName,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -141,6 +151,13 @@ class UploadListingNotifier extends _$UploadListingNotifier {
         'geoPoint': ?geoPoint,
         'address': ?address,
         'nearbyLandmarks': ?nearbyLandmarks,
+        // Every content edit returns the listing to pending review.
+        'verificationStatus': VerificationStatus.pending.name,
+        // Written unconditionally (null clears) so listers can remove a
+        // previously set contact number.
+        'publicPhone': _cleanPhone(publicPhone),
+        'whatsappNumber': _cleanPhone(whatsappNumber),
+        'hideDisplayName': ?hideDisplayName,
       });
       state = state.copyWith(isLoading: false, success: true);
     } catch (_) {
@@ -152,6 +169,13 @@ class UploadListingNotifier extends _$UploadListingNotifier {
   }
 
   void reset() => state = const UploadListingState();
+}
+
+/// Normalizes an optional phone field: blank becomes null (field cleared
+/// server-side via the `?` spread in callers), otherwise trimmed digits.
+String? _cleanPhone(String? v) {
+  final t = v?.trim() ?? '';
+  return t.isEmpty ? null : t;
 }
 
 @riverpod

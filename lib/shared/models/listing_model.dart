@@ -2,7 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum FurnishingType { furnished, semiFurnished, unfurnished }
 
-enum ListingStatus { active, paused, rented }
+enum ListingStatus { active, paused, rented, suspended }
+
+/// Moderation state of a listing, independent of [ListingStatus].
+///
+/// New listings and every owner/agent edit start as `pending`. Only an admin
+/// decision moves a listing to `verified` or `rejected` (with [reviewReason]).
+/// Mirrors the website schema (`verificationStatus`, `reviewReason`,
+/// `reviewedAt`, `reviewedBy`) — confirm exact field names against the web app
+/// before going live.
+enum VerificationStatus { pending, verified, rejected }
 
 class ListingModel {
   final String id;
@@ -34,6 +43,25 @@ class ListingModel {
   final String? nearbyLandmarks;
   final DateTime availableFrom;
   final ListingStatus status;
+
+  /// Admin moderation state. Defaults to `pending` for legacy documents that
+  /// predate verification.
+  final VerificationStatus verificationStatus;
+
+  /// Admin-provided reason when [verificationStatus] is `rejected`
+  /// (also used for decision notes on suspension).
+  final String? reviewReason;
+  final DateTime? reviewedAt;
+  final String? reviewedBy;
+
+  /// Optional separate public contact numbers. When absent, contact goes
+  /// through in-app messaging only.
+  final String? publicPhone;
+  final String? whatsappNumber;
+
+  /// When true, the lister's name is masked publicly ("Property Owner").
+  final bool hideDisplayName;
+
   final int viewCount;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -60,6 +88,13 @@ class ListingModel {
     this.nearbyLandmarks,
     required this.availableFrom,
     required this.status,
+    this.verificationStatus = VerificationStatus.pending,
+    this.reviewReason,
+    this.reviewedAt,
+    this.reviewedBy,
+    this.publicPhone,
+    this.whatsappNumber,
+    this.hideDisplayName = false,
     this.viewCount = 0,
     required this.createdAt,
     required this.updatedAt,
@@ -95,6 +130,16 @@ class ListingModel {
         (e) => e.name == map['status'],
         orElse: () => ListingStatus.active,
       ),
+      verificationStatus: VerificationStatus.values.firstWhere(
+        (e) => e.name == map['verificationStatus'],
+        orElse: () => VerificationStatus.pending,
+      ),
+      reviewReason: map['reviewReason'] as String?,
+      reviewedAt: (map['reviewedAt'] as Timestamp?)?.toDate(),
+      reviewedBy: map['reviewedBy'] as String?,
+      publicPhone: map['publicPhone'] as String?,
+      whatsappNumber: map['whatsappNumber'] as String?,
+      hideDisplayName: map['hideDisplayName'] as bool? ?? false,
       viewCount: map['viewCount'] as int? ?? 0,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -125,6 +170,13 @@ class ListingModel {
     'nearbyLandmarks': nearbyLandmarks,
     'availableFrom': Timestamp.fromDate(availableFrom),
     'status': status.name,
+    'verificationStatus': verificationStatus.name,
+    'reviewReason': reviewReason,
+    'reviewedAt': reviewedAt != null ? Timestamp.fromDate(reviewedAt!) : null,
+    'reviewedBy': reviewedBy,
+    'publicPhone': publicPhone,
+    'whatsappNumber': whatsappNumber,
+    'hideDisplayName': hideDisplayName,
     'viewCount': viewCount,
     'createdAt': Timestamp.fromDate(createdAt),
     'updatedAt': Timestamp.fromDate(updatedAt),
@@ -150,6 +202,11 @@ class ListingModel {
     String? nearbyLandmarks,
     DateTime? availableFrom,
     ListingStatus? status,
+    VerificationStatus? verificationStatus,
+    String? reviewReason,
+    String? publicPhone,
+    String? whatsappNumber,
+    bool? hideDisplayName,
     int? viewCount,
   }) => ListingModel(
     id: id,
@@ -173,6 +230,11 @@ class ListingModel {
     nearbyLandmarks: nearbyLandmarks ?? this.nearbyLandmarks,
     availableFrom: availableFrom ?? this.availableFrom,
     status: status ?? this.status,
+    verificationStatus: verificationStatus ?? this.verificationStatus,
+    reviewReason: reviewReason ?? this.reviewReason,
+    publicPhone: publicPhone ?? this.publicPhone,
+    whatsappNumber: whatsappNumber ?? this.whatsappNumber,
+    hideDisplayName: hideDisplayName ?? this.hideDisplayName,
     viewCount: viewCount ?? this.viewCount,
     createdAt: createdAt,
     updatedAt: DateTime.now(),
@@ -180,6 +242,11 @@ class ListingModel {
 
   // ── Helpers ──
   bool get isActive => status == ListingStatus.active;
+  bool get isSuspended => status == ListingStatus.suspended;
+  bool get isVerified => verificationStatus == VerificationStatus.verified;
+  bool get isPendingReview =>
+      verificationStatus == VerificationStatus.pending;
+  bool get isRejected => verificationStatus == VerificationStatus.rejected;
 
   /// True when posted by an agent on behalf of an owner.
   bool get isAgentListed => agentId != null && agentId!.isNotEmpty;

@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:merokotha/features/analytics/data/analytics_repository.dart';
 import 'package:merokotha/features/owner/data/inquiry_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:merokotha/shared/models/analytics_model.dart';
 import 'package:merokotha/shared/models/inquiry_model.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
+import 'package:merokotha/shared/models/saved_search_model.dart' show ListingSort;
 import 'package:merokotha/features/auth/providers/auth_provider.dart';
 import 'package:merokotha/features/customer/data/favourites_repository.dart';
 import 'package:merokotha/features/customer/data/listings_repository.dart';
@@ -22,6 +25,16 @@ Future<ListingModel?> listingDetail(Ref ref, String listingId) async {
       .getListingById(listingId);
   if (listing != null) {
     ref.read(listingsRepositoryProvider).incrementView(listingId);
+    // Best-effort visit tracking for owner/admin dashboards. Shares the
+    // website event schema (`listingEvents`, type `view`).
+    ref
+        .read(analyticsRepositoryProvider)
+        .logEvent(
+          listingId: listingId,
+          ownerId: listing.ownerId,
+          type: AnalyticsEventType.view,
+          visitorId: ref.read(visitorIdProvider),
+        );
   }
   return listing;
 }
@@ -56,6 +69,18 @@ class SearchFilterNotifier extends _$SearchFilterNotifier {
       : state = state.copyWith(maxRent: v);
 
   void setFacilities(List<String> f) => state = state.copyWith(facilities: f);
+
+  void setVerifiedOnly(bool v) => state = state.copyWith(verifiedOnly: v);
+
+  void setSort(ListingSort s) => state = state.copyWith(sort: s);
+
+  void setNearby({required double lat, required double lng, double radiusKm = 5}) =>
+      state = state.copyWith(lat: lat, lng: lng, radiusKm: radiusKm);
+
+  void clearNearby() => state = state.copyWith(clearLocation: true);
+
+  /// Replaces the whole filter (e.g. opening a saved search).
+  void apply(SearchFilter filter) => state = filter;
 
   void reset() => state = const SearchFilter();
 }
@@ -113,6 +138,16 @@ class FavouriteNotifier extends _$FavouriteNotifier {
                 .read(favouritesRepositoryProvider)
                 .addFavourite(user.uid, listing),
     );
+    if (!isFav && !state.hasError) {
+      ref
+          .read(analyticsRepositoryProvider)
+          .logEvent(
+            listingId: listing.id,
+            ownerId: listing.ownerId,
+            type: AnalyticsEventType.favourite,
+            visitorId: user.uid,
+          );
+    }
   }
 }
 
@@ -152,6 +187,9 @@ class SendInquiryNotifier extends _$SendInquiryNotifier {
     required ListingModel listing,
     required String customerName,
     required String customerId,
+    String? customerPhotoUrl,
+    String? ownerName,
+    String? ownerPhotoUrl,
     required String message,
     required DateTime moveInDate,
   }) async {
@@ -164,7 +202,10 @@ class SendInquiryNotifier extends _$SendInquiryNotifier {
         listingTitle: listing.title,
         customerId: customerId,
         customerName: customerName,
+        customerPhotoUrl: customerPhotoUrl,
         ownerId: listing.ownerId,
+        ownerName: ownerName ?? listing.ownerName,
+        ownerPhotoUrl: ownerPhotoUrl ?? listing.ownerPhotoUrl,
         // Propagated for agent-posted listings (null for owner listings);
         // lets the agent inbox query its own inquiries in Phase 5.
         agentId: listing.agentId,
@@ -178,6 +219,15 @@ class SendInquiryNotifier extends _$SendInquiryNotifier {
       final id = await ref
           .read(inquiryRepositoryProvider)
           .createInquiry(inquiry);
+
+      ref
+          .read(analyticsRepositoryProvider)
+          .logEvent(
+            listingId: listing.id,
+            ownerId: listing.ownerId,
+            type: AnalyticsEventType.inquiry,
+            visitorId: customerId,
+          );
 
       state = state.copyWith(isLoading: false, success: true, inquiryId: id);
       return true;

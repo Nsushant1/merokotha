@@ -4,6 +4,7 @@ import 'package:merokotha/core/constants/app_colors.dart';
 import 'package:merokotha/core/constants/app_sizes.dart';
 import 'package:merokotha/features/admin/presentation/widgets/admin_widgets.dart';
 import 'package:merokotha/features/admin/providers/admin_providers.dart';
+import 'package:merokotha/features/moderation/presentation/admin_review_sheet.dart';
 import 'package:merokotha/shared/models/listing_model.dart';
 import 'package:merokotha/shared/widgets/mk_widgets.dart';
 import 'package:merokotha/shared/widgets/shimmer_loading.dart';
@@ -18,6 +19,7 @@ class AdminListingsScreen extends ConsumerStatefulWidget {
 
 class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
   ListingStatus? _filterStatus;
+  VerificationStatus? _filterVerification;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +30,10 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
       appBar: const AdminAppBar(title: 'All listings', showBack: false),
       body: Column(
         children: [
-          // Filter chips
+          // Status filter chips
           Container(
             color: AdminColors.primary,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -65,6 +67,61 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
                         setState(() => _filterStatus = ListingStatus.rented),
                     color: AppColors.grey400,
                   ),
+                  const SizedBox(width: 8),
+                  _FilterChip(
+                    label: 'Suspended',
+                    isSelected: _filterStatus == ListingStatus.suspended,
+                    onTap: () =>
+                        setState(() => _filterStatus = ListingStatus.suspended),
+                    color: AppColors.error,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Verification filter chips
+          Container(
+            color: AdminColors.primary,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _FilterChip(
+                    label: 'Any review',
+                    isSelected: _filterVerification == null,
+                    onTap: () => setState(() => _filterVerification = null),
+                  ),
+                  const SizedBox(width: 8),
+                  _FilterChip(
+                    label: 'Pending',
+                    isSelected:
+                        _filterVerification == VerificationStatus.pending,
+                    onTap: () => setState(
+                      () => _filterVerification = VerificationStatus.pending,
+                    ),
+                    color: AppColors.warning,
+                  ),
+                  const SizedBox(width: 8),
+                  _FilterChip(
+                    label: 'Verified',
+                    isSelected:
+                        _filterVerification == VerificationStatus.verified,
+                    onTap: () => setState(
+                      () => _filterVerification = VerificationStatus.verified,
+                    ),
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(width: 8),
+                  _FilterChip(
+                    label: 'Rejected',
+                    isSelected:
+                        _filterVerification == VerificationStatus.rejected,
+                    onTap: () => setState(
+                      () => _filterVerification = VerificationStatus.rejected,
+                    ),
+                    color: AppColors.error,
+                  ),
                 ],
               ),
             ),
@@ -86,15 +143,21 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
               ),
               error: (e, _) => MkErrorWidget(message: e.toString()),
               data: (all) {
-                final listings = _filterStatus == null
+                var listings = _filterStatus == null
                     ? all
                     : all.where((l) => l.status == _filterStatus).toList();
+                if (_filterVerification != null) {
+                  listings = listings
+                      .where((l) => l.verificationStatus == _filterVerification)
+                      .toList();
+                }
 
                 if (listings.isEmpty) {
                   return MkEmptyState(
                     title: 'No listings found',
-                    subtitle: _filterStatus != null
-                        ? 'No ${_filterStatus!.name} listings'
+                    subtitle: (_filterStatus != null ||
+                            _filterVerification != null)
+                        ? 'No listings match these filters'
                         : 'No listings on the platform yet',
                     icon: Icons.home_work_outlined,
                   );
@@ -117,6 +180,11 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
                                 ? ListingStatus.paused
                                 : ListingStatus.active,
                           ),
+                      onReview: () => showListingReviewSheet(
+                        context,
+                        ref,
+                        l,
+                      ),
                     );
                   },
                 );
